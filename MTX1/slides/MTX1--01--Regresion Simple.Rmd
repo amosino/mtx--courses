@@ -1,0 +1,1552 @@
+---
+title: "Econometría"
+subtitle: "_El modelo de regresión lineal simple_"
+author: "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v.2026.08.07"
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    transition: 0
+    slide_level: 3
+    css: ../src/custom.css
+---
+
+## Construcción del modelo
+
+### Datos
+
+Consideremos los siguientes datos sobre la esperanza de vida y el ingreso per cápita:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+library(tidyverse)
+library(knitr)
+library(here)
+
+lexpectancy <- read_csv(here("data/lexpectancy.csv"))
+
+selected_countries <- c("France", "Japan", "Mexico", "Nigeria")
+
+datos_tabla <- tibble(
+  País = c("France", "Japan", "Mexico", "Nigeria"),
+  `Ingreso per cápita` = c("$42,400", "$38,900", "$18,900", "$5,900"),
+  `Esperanza de vida` = c(81.8, 85.0, 75.9, 53.4)
+)
+
+kable(datos_tabla,
+      format = "html",
+      caption = "Relación entre ingreso per cápita y esperanza de vida",
+      table.attr = 'class="clean-table"')
+
+```
+
+_Fuente: CIA World Factbook_.
+
+
+### Diagrama de dispersión (1/2)
+
+
+Al representar estos datos en un diagrama de dispersión comienza a aparecer un patrón:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="50%"}
+library(ggrepel)
+
+# Crear variable indicadora
+selected <- c("France", "Japan", "Mexico", "Nigeria")
+lexpectancy <- lexpectancy %>%
+  mutate(destacado = if_else(pais %in% selected, "Sí", "No"))
+
+# Crear gráfico
+p1 <- ggplot(lexpectancy, aes(x = rgdp, y = life_exp)) +
+  geom_point(data = filter(lexpectancy, destacado == "No"),
+             color = "gray80", size = 1.5, alpha = 0.3) +
+  geom_point(data = filter(lexpectancy, destacado == "Sí"),
+             aes(color = pais), size = 4) +
+  geom_text_repel(data = filter(lexpectancy, destacado == "Sí"),
+                  aes(label = pais, color = pais),
+                  size = 4.2, fontface = "bold") +
+  scale_x_continuous(labels = scales::dollar_format()) +
+  labs(x = "Ingreso per cápita (USD)",
+       y = "Esperanza de vida (años)",
+       title = "Diagrama de dispersión") +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+
+p1
+
+```
+
+- Los países con mayor ingreso per cápita tienden a presentar una mayor esperanza de vida.
+- Los países con menor ingreso per cápita tienden a presentar una menor esperanza de vida.
+
+### Diagrama de dispersión (2/2)
+
+Con solo cuatro observaciones es difícil identificar un patrón general. Para comprender mejor la asociación entre ambas variables utilizaremos información de un conjunto mucho mayor de países.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="50%"}
+
+
+# Crear variable indicadora
+selected <- c("France", "Japan", "Mexico", "Nigeria")
+lexpectancy <- lexpectancy %>%
+  mutate(destacado = if_else(pais %in% selected, "Sí", "No"))
+
+# Crear gráfico
+p2 <- ggplot(lexpectancy, aes(x = rgdp, y = life_exp)) +
+  # Todos los países
+  geom_point(size = 3, color= "#F8766D", alpha = 0.7) +
+  scale_x_continuous(labels = scales::dollar_format()) +
+  labs(x = "Ingreso per cápita (USD)",
+       y = "Esperanza de vida (años)",
+       title = "Diagrama de dispersión")+
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+
+p2
+```
+
+Nota que, al incorporar más observaciones, la asociación _positiva_ entre el ingreso per cápita y la esperanza de vida se hace mucho más evidente.
+
+
+### Línea de tendencia
+
+Para resumir la asociación observada entre el ingreso per cápita y la esperanza de vida, dibujaremos una línea recta sobre el diagrama de dispersión. Esta es la **línea de tendencia**.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="50%"}
+
+p3 <- p2 +  geom_smooth(method = "lm", se = FALSE, color = "black", linetype = "dashed")
+
+p3
+
+```
+
+Todavía no sabemos cómo construir la línea de tendencia a partir de los datos. _¡Este será uno de los principales objetivos de la regresión lineal!_
+
+
+### Modelo
+
+Si decidimos representar la asociación entre el ingreso per cápita y la esperanza de vida mediante una línea recta (como haremos durante todo este capítulo), entonces el modelo es:
+
+
+$$
+y_i = \beta_1 + \beta_2 x_i
+$$
+(¿Recuerdas la fórmula de una línea?)
+
+donde:
+
+- \(y_i\) es la esperanza de vida (variable en el eje \(y\))
+- \(x_i\) es el ingreso per cápita (variable en el eje \(x\))
+- \(\beta_1, \beta_2\) son parámetros.
+
+### ¿Es suficiente una línea recta?
+
+
+<span class="emphasis-blue">Nota</span>.
+
+<div style="display:flex; align-items:flex-start; gap:24px;">
+
+<div style="flex:1;">
+
+La línea de tendencia recta es una buena aproximación, pero todavía presenta limitaciones:
+
+
+- Esta supone que la asociación entre el ingreso per cápita y la esperanza de vida es _exactamente lineal_.
+- Sin embargo, si esto fuera cierto, _todos los puntos en el diagrama de dispersión deberían estar sobre ella_.
+- Como este no es el caso, ¿cómo incorporamos esas diferencias al modelo?
+
+
+</div>
+
+<div style="flex:1;">
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='asis', out.width="100%"}
+
+p3
+
+```
+
+</div>
+</div>
+
+
+## El modelo de regresión simple
+
+### La línea de regresión (1/2)
+
+La ecuación para \(y_i\) tiene dos componentes:
+
+$$
+y_i = 
+\text{\(\displaystyle \color{#F8766D}{\beta_1 + \beta_2 x_i}\)} 
++ 
+\text{\(\displaystyle \color{#00BFC4}{u_i}\)}
+$$
+
+1. El elemento <span style="color:#F8766D">\( \beta_1 + \beta_2 x_i \)</span> es la _parte no aleatoria_ (determinista).
+
+2. El elemento <span style="color:#00BFC4">\( u_i \)</span> es la _parte aleatoria_.
+
+
+### La línea de regresión (2/2)
+
+Si conociéramos los valores de \(\beta_1\) y \(\beta_2\), la línea buscada partiría de \(\beta_1\) y tendría pendiente \(\beta_2\). En otras palabras, en ausencia del error (\(u_i = 0\)), observaríamos los puntos \(Q_1\) - \(Q_4\).
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="50%"}
+library(tidyverse)
+
+# Datos ficticios diseñados para que los residuales se vean claros
+datos <- tibble(
+  x = c(1, 2, 3, 4),
+  y = c(-5, 11, 4, 17)  # y_i (observado, puntos P)
+)
+
+# Ajuste lineal y etiquetas
+modelo <- lm(y ~ x, data = datos)
+datos <- datos %>%
+  mutate(
+    y_hat = predict(modelo),          # puntos Q (sobre la recta)
+    resid = y - y_hat,
+    idx   = 1:4,
+    P     = paste0("P", idx),
+    Q     = paste0("Q", idx),
+    xi    = paste0("x[", idx, "]")
+  )
+
+# Índice del mayor residual (para etiquetar u_i)
+i_max <- which.max(abs(datos$resid))
+
+ggplot(datos, aes(x = x, y = y)) +
+  # Línea de regresión
+  geom_abline(intercept = coef(modelo)[1], slope = coef(modelo)[2],
+              linetype = "dashed") +
+  # Segmentos (u_i) con flecha
+  geom_segment(aes(xend = x, y = y_hat, yend = y),
+               linetype = "dotted",
+               arrow = arrow(length = unit(0.15, "cm")),
+               color = "gray40") +
+  # Puntos observados (P) y sus etiquetas (arriba/izq)
+  geom_point(shape = 21, size = 3.5, fill = "black") +
+  geom_text(aes(label = P),
+            nudge_y = 0, nudge_x = 0.2,    # más separación
+            size = 5, fontface = "bold") +
+  # Puntos proyectados (Q) y sus etiquetas (abajo/der)
+  geom_point(aes(y = y_hat), shape = 21, size = 3.5,
+             fill = "white", color = "red") +
+  geom_text(aes(y = y_hat, label = Q),
+            nudge_y = -1.2, nudge_x = 0.08,     # más separación
+            size = 4.5, color = "gray30", fontface = "bold") +
+  # Etiquetas x_i bajo los ticks (usamos texto para poder formatear x[i])
+  geom_text(aes(y = -6.2, label = xi), parse = TRUE, size = 4.5) +
+  # Etiqueta u_i en el residual más grande (centrada en el segmento)
+  annotate("text",
+           x = datos$x[i_max] + 0.15,
+           y = mean(c(datos$y[i_max], datos$y_hat[i_max])),
+           label = "u[2]",
+           parse = TRUE,
+           color = "#00BFC4", size = 5, fontface = "bold") +
+  # Ejes y márgenes extra para que no se corten etiquetas
+  scale_x_continuous(breaks = datos$x, labels = NULL, limits = c(0.5, 4.5)) +
+  scale_y_continuous(limits = c(-6.5, 20), expand = expansion(mult = c(0.02, 0.12))) +
+  labs(
+    x = expression(x[i]),
+    y = expression(y[i]),
+    title = "Recta verdadera y errores",
+    subtitle = expression(y[i] == beta[1] + beta[2]*x[i] + u[i])
+  ) +
+  coord_cartesian(clip = "off") +
+  theme_minimal(base_size = 16) +
+  theme(
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(10, 30, 10, 30)
+  )
+
+```
+
+
+El problema es que en la práctica solo observamos los puntos \(P_1\) - \(P_4\). Por lo tanto, _dado que los \(u_i\) son desconocidos_, no podemos saber con certeza la localización de los puntos \(Q_1\) - \(Q_4\).
+
+
+### ¿Por qué existe \(u_i\)?
+
+La inclusión de \(u_i\) en el modelo se justifica por las siguientes razones:
+
+- Posible omisión de variables explicativas.
+- Agregación incorrecta de variables.
+- Especificación incorrecta del modelo.
+- Forma funcional incorrecta.
+- Errores de medición.
+
+
+### Aproximando la línea \(Q_1\) - \(Q_4\) (1/3)
+
+¿Cómo aproximamos la línea delimitada por los puntos \(Q_1\) - \(Q_4\)?
+
+<div style="display:flex; align-items:flex-start; gap:24px;">
+
+<div style="flex:1;">
+Una opción es identificar los puntos \(P_1\) - \(P_4\) en la gráfica y trazar la línea <em>a ojo de buen cubero</em>.
+
+En este ejemplo, los valores estimados para \(\beta_1\) y \(\beta_2\) son \(b_1\) y \(b_2\), respectivamente. El valor estimado de \(y_i\) se calcula entonces como:
+
+$$
+\hat{y}_i = b_1 + b_2 x_i
+$$
+
+</div>
+
+<div style="flex:1;">
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
+library(tidyverse)
+
+# Datos de ejemplo
+if (!exists("datos")) {
+  datos <- tibble(
+    x = c(1, 2, 3, 4),
+    y = c(-5, 11, 4, 17)
+  )
+}
+
+# Ajuste MCO (recta verdadera)
+modelo_mco <- lm(y ~ x, data = datos)
+b1_true <- coef(modelo_mco)[1]
+b2_true <- coef(modelo_mco)[2]
+
+# “Recta a ojo”
+b1_eye <- -1.5
+b2_eye <-  3.2
+
+datos_eye_base <- datos %>%
+  mutate(
+    idx = seq_along(x),
+    P   = paste0("P", idx),
+    R   = paste0("R", idx),
+    xi  = paste0("x[", idx, "]")
+  )
+
+ggplot(datos_eye_base, aes(x, y)) +
+  geom_abline(intercept = b1_true, slope = b2_true,
+              linetype = "dashed", linewidth = 0.8, color = "black") +
+  geom_abline(intercept = b1_eye, slope = b2_eye,
+              color = "blue", linewidth = 0.8) +
+  geom_point(shape = 21, size = 3.8, fill = "black") +
+  geom_text(aes(label = P), nudge_y = 1.5, size = 5, fontface = "bold") +
+  geom_text(aes(y = min(y) - 2.2, label = xi), parse = TRUE, size = 4.6) +
+  scale_x_continuous(breaks = datos_eye_base$x, labels = NULL, limits = c(0.5, 4.5)) +
+  scale_y_continuous(limits = c(min(datos_eye_base$y) - 2.8, max(datos_eye_base$y) + 2.5)) +
+  labs(
+    title = "Recta estimada vs. recta verdadera",
+    subtitle = expression(hat(y)[i] == b[1] + b[2] * x[i]),
+    x = expression(x[i]), y = expression(y[i])
+  ) +
+  coord_cartesian(clip = "off") +
+  theme_minimal(base_size = 16) +
+  theme(panel.grid.minor = element_blank(),
+        plot.margin = margin(10, 30, 10, 30))
+```
+
+</div>
+</div>
+
+
+### Aproximando la línea \(Q_1\) - \(Q_4\) (2/3)
+
+Podemos usar técnicas más sofisticadas para encontrar \(b_1\) y \(b_2\). Estas requiere el cálculo del (de los) **residual** (**residuales**) de estimación, \(e_i\).
+
+<div style="display:flex; align-items:flex-start; gap:24px;">
+
+<div style="flex:1;">
+Tenemos que:
+
+$$
+\begin{align}
+e_i &= y_i - \hat{y}_i \\
+&= y_i - b_1 - b_2 x_i
+\end{align}
+$$
+
+</div>
+
+<div style="flex:1;">
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
+library(tidyverse)
+
+# Datos de ejemplo (reusar si ya existen)
+if (!exists("datos")) {
+  datos <- tibble(
+    x = c(1, 2, 3, 4),
+    y = c(-5, 11, 4, 17)
+  )
+}
+
+# Recta verdadera (MCO)
+modelo_mco <- lm(y ~ x, data = datos)
+b1_true <- coef(modelo_mco)[1]
+b2_true <- coef(modelo_mco)[2]
+
+# Recta estimada "a ojo"
+b1_eye <- -1.5
+b2_eye <-  3.2
+
+# Proyecciones sobre la recta estimada y residuales
+datos_plot <- datos %>%
+  mutate(
+    idx    = seq_along(x),
+    P_lab  = paste0("P", idx),
+    R_lab  = paste0("R", idx),
+    xi     = paste0("x[", idx, "]"),
+    y_eye  = b1_eye + b2_eye * x,       # puntos R_i sobre la línea estimada
+    e_eye  = y - y_eye                  # residuales respecto a la línea estimada
+  )
+
+# Índice del residual más grande (para etiquetarlo e_k)
+i_max <- which.max(abs(datos_plot$e_eye))
+
+ggplot(datos_plot, aes(x = x, y = y)) +
+  # Recta verdadera (punteada negra)
+  geom_abline(intercept = b1_true, slope = b2_true,
+              linetype = "dashed", linewidth = 0.8, color = "black") +
+  # Recta estimada (azul)
+  geom_abline(intercept = b1_eye, slope = b2_eye,
+              color = "blue", linewidth = 0.8) +
+  # Segmentos residuales (R_i -> P_i)
+  geom_segment(aes(xend = x, y = y_eye, yend = y),
+               linetype = "dotted",
+               arrow = arrow(length = unit(0.15, "cm")),
+               color = "gray40") +
+  # Puntos observados P_i
+  geom_point(shape = 21, size = 3.8, fill = "black") +
+  geom_text(aes(label = P_lab), nudge_y = 0, nudge_x = 0.2, size = 5, fontface = "bold") +
+  # Puntos proyectados R_i (sobre la recta estimada) y sus etiquetas
+  geom_point(aes(y = y_eye), shape = 21, size = 3.8,
+             fill = "white", color = "red") +
+  geom_text(aes(y = y_eye, label = R_lab),
+            nudge_y = -1.2, nudge_x = 0.08,
+            size = 4.8, color = "gray30", fontface = "bold") +
+  # Etiqueta del residual más grande e_k (en rojo suave)
+   annotate("text",
+           x = datos_plot$x[i_max] - 0.15,
+           y = mean(c(datos_plot$y[i_max], datos_plot$y_eye[i_max])),
+           label = paste0("e[", i_max, "]"),
+           parse = TRUE,
+           color = "#00BFC4", size = 5.2, fontface = "bold") +
+  # Marcas x_i bajo el eje
+  geom_text(aes(y = min(y) - 2.2, label = xi), parse = TRUE, size = 4.6) +
+  # Ejes y márgenes
+  scale_x_continuous(breaks = datos_plot$x, labels = NULL, limits = c(0.5, 4.5)) +
+  scale_y_continuous(limits = c(min(datos_plot$y) - 2.8, max(datos_plot$y) + 2.5)) +
+  labs(
+    title = "Recta estimada y residuales",
+    subtitle = expression(hat(y)[i] == b[1] + b[2]*x[i] ~~~ "," ~~ e[i] == y[i] - hat(y)[i]),
+    x = expression(x[i]),
+    y = expression(y[i])
+  ) +
+  coord_cartesian(clip = "off") +
+  theme_minimal(base_size = 16) +
+  theme(
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(10, 30, 10, 30)
+  )
+
+```
+
+</div>
+</div>
+
+El objetivo es encontrar \(b_1\) y \(b_2\) tal que los valores de \(e_i\) sean los más bajos posibles.
+
+
+
+### Aproximando la línea \(Q_1\) - \(Q_4\) (3/3)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Encuentra los valores de \(b_1\) y \(b_2\) tales que:
+
+$$
+\begin{align}
+(b_1,b_2) &= \arg\min \left\{\sum_{i=1}^n e_i \right\} \\
+&= \arg\min\left\{\sum_{i=1}^n\left(y_i-b_1-b_2x_i\right)\right\}
+\end{align}
+$$
+
+donde \(n\) es el número de observaciones. Explica y comenta.
+
+## El método de los mínimos cuadrados ordinarios
+
+### El método de los mínimos cuadrados ordinarios
+
+El método de los **mínimos cuadrados ordinarios** (MCO u OLS, por sus siglas en inglés) encuentra los valores de \(b_1\) y \(b_2\) que:
+
+$$
+(b_1,b_2) = \arg\min\sum_{i=1}^n RSS
+$$
+
+donde el **RSS** (Residual Sum of Squares) es la suma de los residuales al cuadrado:
+
+$$
+\begin{align}
+RSS &= \sum_{i=1}^n e_i^2\\
+&= \sum_{i=1}^n \left( y_i - b_1 - b_2 x_i \right)^2
+\end{align}
+$$
+
+### MCO: Ejemplo (1/2)
+
+<span class="emphasis-blue">Ejercicio</span>  
+
+<div style="display:flex; align-items:flex-start; gap:24px;">
+
+<div style="flex:1;">
+
+Considera los siguientes datos:
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Datos simples para ejercicio de MCO
+datos1 <- tibble(
+  x = c(1, 2),
+  y = c(3, 5)
+)
+knitr::kable(datos1,
+      format = "html",
+      table.attr = 'class="clean-table"')
+```
+
+</div>
+
+<div style="flex:1;">
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
+library(tidyverse)
+
+# Datos
+datos_disp <- tibble(
+  x = c(1, 2),
+  y = c(3, 5),
+  P_lab = c("P1", "P2"),
+  xi = c("x[1]", "x[2]")
+)
+
+ggplot(datos_disp, aes(x, y)) +
+  # Puntos
+  geom_point(shape = 21, size = 4, fill = "black") +
+  geom_text(aes(label = P_lab), nudge_y = 0.4, size = 5, fontface = "bold") +
+  # Marcas xi bajo el eje
+  geom_text(aes(y = min(y) - 0.6, label = xi), parse = TRUE, size = 4.6) +
+  # Ejes y límites
+  scale_x_continuous(breaks = datos_disp$x, labels = NULL, limits = c(0.5, 2.5)) +
+  scale_y_continuous(limits = c(min(datos_disp$y) - 1, max(datos_disp$y) + 1)) +
+  labs(
+    title = "Diagrama de dispersión",
+    x = expression(x[i]),
+    y = expression(y[i])
+  ) +
+  coord_cartesian(clip = "off") +
+  theme_minimal(base_size = 16) +
+  theme(
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(10, 30, 10, 30)
+  )
+```
+
+</div>
+</div>
+
+Encuentra los estimadores de mínimos cuadrados ordinarios \(b_1\) y \(b_2\). Comenta tus resultados.
+
+### MCO: Ejemplo (2/2)
+
+<span class="emphasis-blue">Ejercicio</span>  
+
+<div style="display:flex; align-items:flex-start; gap:24px;">
+
+<div style="flex:1;">
+
+Considera los siguientes datos:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+datos2 <- tibble(
+  x = c(1, 2, 3),
+  y = c(3, 5, 6)
+)
+knitr::kable(datos2,
+             format = "html",
+             table.attr = 'class="clean-table"')
+```
+
+</div>
+
+<div style="flex:1;">
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
+library(tidyverse)
+
+# Datos con tres puntos
+datos_disp <- tibble(
+  x = c(1, 2, 3),
+  y = c(3, 5, 6),
+  P_lab = c("P1", "P2", "P3"),
+  xi = paste0("x[", 1:3, "]")
+)
+
+ggplot(datos_disp, aes(x, y)) +
+  # Puntos
+  geom_point(shape = 21, size = 4, fill = "black") +
+  geom_text(aes(label = P_lab), nudge_y = 0.4, size = 5, fontface = "bold") +
+  # Marcas xi bajo el eje
+  geom_text(aes(y = min(y) - 0.8, label = xi), parse = TRUE, size = 4.6) +
+  # Ejes y límites
+  scale_x_continuous(breaks = datos_disp$x, labels = NULL, limits = c(0.5, 3.5)) +
+  scale_y_continuous(limits = c(min(datos_disp$y) - 1, max(datos_disp$y) + 1)) +
+  labs(
+    title = "Diagrama de dispersión",
+    x = expression(x[i]),
+    y = expression(y[i])
+  ) +
+  coord_cartesian(clip = "off") +
+  theme_minimal(base_size = 16) +
+  theme(
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(10, 30, 10, 30)
+  )
+```
+
+</div>
+</div>
+
+Encuentra los estimadores de mínimos cuadrados ordinarios \(b_1\) y \(b_2\). Comenta tus resultados.
+
+
+### MCO: Caso general (1/3)
+
+Para \(n\) observaciones, el problema:
+
+$$
+\min_{b_1, b_2} \sum_{i=1}^n \left( y_i - b_1 - b_2 x_i \right)^2
+$$
+
+lleva a las siguientes **ecuaciones normales**:
+
+$$
+n b_1 + b_2 \sum_{i=1}^n x_i - \sum_{i=1}^n y_i = 0
+$$
+
+$$
+ b_1 \sum_{i=1}^n x_i + b_2 \sum_{i=1}^n x_i^2 - \sum_{i=1}^n x_i y_i = 0
+$$
+
+
+### MCO: Caso general (2/3)
+
+Nota que las ecuaciones normales de la regresión no son otra cosa que las condiciones de primer orden del problema de minimización. Manipulando estas obtenemos la solución al problema:
+
+$$
+\begin{align}
+b_2 &= \frac{\sum_{i=1}^n (x_i - \bar{x})(y_i - \bar{y})}{\sum_{i=1}^n (x_i - \bar{x})^2} \\
+&= \frac{\mathbb{C}ov(x,y)}{\mathbb{V}ar(x)}
+\end{align}
+$$
+Y:
+
+$$
+b_1 = \bar{y} - b_2 \bar{x}
+$$
+
+
+### MCO: Caso general (3/3)
+
+<span class="emphasis-blue">Ejercicio</span>  
+
+Considera los siguientes datos que miden la relación entre el promedio escolar y el ingreso familiar:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+datos3 <- tibble(
+  Promedio = c(8.0, 6.0, 7.0, 4.0, 6.0, 7.0, 5.0, 5.0),
+  Ingreso_familiar = c(21.00, 15.00, 15.00, 9.00, 12.00, 18.00, 6.00, 12.00)
+)
+knitr::kable(datos3,
+             format = "html",
+             table.attr = 'class="clean-table"',
+             caption = "Relación entre promedio escolar e ingreso familiar (miles de pesos)")
+
+```
+
+Encuentra los estimadores de mínimos cuadrados ordinarios \(b_1\) y \(b_2\). Comenta tus resultados.
+
+### Fórmulas alternativas para \(b_2\)
+
+<span class="emphasis-blue">Ejercicio*</span>  
+
+Muestra que \(b_2\) también puede encontrarse mediante las siguientes fórmulas alternativas:
+
+$$
+b_2 = \frac{\sum_{i=1}^n x_iy_i - n\bar{x}\bar{y}}{\sum_{i=1}^n x_i^2 - n\bar{x}^2}
+$$
+Y:
+
+$$
+\begin{align}
+b_2 &= \sum_{i=1}^n w_iy_i; \\
+w_i&= \frac{x_i - \bar{x}}{\sum_{i=1}^n (x_i - \bar{x})^2}
+\end{align}
+$$
+
+## Descomposición de la variable dependiente
+
+### Descomposición de la variable dependiente (1/3)
+
+Podemos descomponer la variable dependiente, \(y_i\) de dos maneras alternativas:
+
+- Descomposición de la variable dependiente en un _componente no estocástico y el término de error_.
+- Descomposición de la variable dependiente en su _valor estimado y el residual_.
+
+### Descomposición de la variable dependiente (2/3)
+
+Descomposición de la variable dependiente en un _componente no estocástico y el término de error_:
+
+$$
+y_i = \beta_1 + \beta_2 x_i + u_i
+$$
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="50%"}
+
+library(tidyverse)
+
+# Datos de ejemplo
+xi <- 2
+yi <- 5.5
+b1 <- 1.2
+b2 <- 1.0
+
+# Coordenadas de P, Q, T
+P <- tibble(x = xi, y = yi)
+Q <- tibble(x = xi, y = b1 + b2 * xi)
+Tpt <- tibble(x = xi, y = 0)
+
+# Base plot
+ggplot() +
+  # Línea verdadera (punteada negra)
+  geom_abline(intercept = b1, slope = b2,
+              linetype = "dotted", color = "black", linewidth = 0.8) +
+  # Línea estimada (azul)
+  geom_abline(intercept = 1.0, slope = 0.8,
+              color = "blue", linewidth = 0.8) +
+  # Puntos P, Q, T
+  geom_point(data = P,   aes(x, y), size = 3.5, shape = 21, fill = "black") +
+  geom_point(data = Q,   aes(x, y), size = 3.5, shape = 21, fill = "white", color = "black") +
+  geom_point(data = Tpt, aes(x, y), size = 3.5, shape = 21, fill = "black") +
+  # Segmentos
+  geom_segment(data = P, aes(x = xi, y = yi, xend = xi, yend = Q$y),
+               linetype = "dotted") +
+  geom_segment(data = Q, aes(x = xi, y = Q$y, xend = xi, yend = 0),
+               linetype = "dotted") +
+  # Etiquetas
+  geom_text(data = P, aes(x, y, label = "P"), nudge_y = 0.4, fontface = "bold") +
+  geom_text(data = Q, aes(x, y, label = "Q"), nudge_y = -0.4, fontface = "bold") +
+  geom_text(data = Tpt, aes(x, y, label = "T"), nudge_y = 0.4, fontface = "bold") +
+ annotate("text", x = 2.5, y = b1 + b2 * 2.5, label = "beta[1] + beta[2]*x[i]",
+           parse = TRUE, color = "red", size = 4, hjust = 0) +
+  annotate("text", x = xi + 0.1, y = (P$y + Q$y)/2, label = "u[i]",
+           parse = TRUE, color = "red", size = 4, hjust = 0) +
+  # Ejes y formato
+  scale_x_continuous(breaks = c(0, 1, 3), limits = c(0, 3.2), expand = c(0,0),
+                     labels = c("0", "1", "3")) +
+  scale_y_continuous(limits = c(0, 7), expand = c(0,0)) +
+  labs(x = expression(x[i]), y = expression(y[i])) +
+  coord_cartesian(clip = "off") +
+  theme_minimal(base_size = 16) +
+  theme(panel.grid.minor = element_blank(),
+        plot.margin = margin(10, 30, 10, 30))
+
+```
+
+
+Descomposición de la variable dependiente en un _componente no estocástico, QT_, y el _término de error, PQ_.
+
+
+### Descomposición de la variable dependiente (3/3)
+
+Descomposición de la variable dependiente en su _valor estimado y el residual_.
+
+$$
+\begin{align}
+y_i &= \hat{y}_i + e_i \\
+&= b_1 + b_2 x_i + e_i
+\end{align}
+$$
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="50%"}
+
+library(tidyverse)
+
+# Datos de ejemplo
+xi <- 2
+yi <- 5.5
+b1 <- 1.2
+b2 <- 1.0
+
+# Coordenadas de P, Q, T
+P <- tibble(x = xi, y = yi)
+R <- tibble(x = xi, y = 1 + 0.8 * xi)
+Tpt <- tibble(x = xi, y = 0)
+
+# Base plot
+ggplot() +
+  # Línea verdadera (punteada negra)
+  geom_abline(intercept = b1, slope = b2,
+              linetype = "dotted", color = "black", linewidth = 0.8) +
+  # Línea estimada (azul)
+  geom_abline(intercept = 1.0, slope = 0.8,
+              color = "blue", linewidth = 0.8) +
+  # Puntos P, Q, T
+  geom_point(data = P,   aes(x, y), size = 3.5, shape = 21, fill = "black") +
+  geom_point(data = R,   aes(x, y), size = 3.5, shape = 21, fill = "white", color = "black") +
+  geom_point(data = Tpt, aes(x, y), size = 3.5, shape = 21, fill = "black") +
+  # Segmentos
+  geom_segment(data = P, aes(x = xi, y = yi, xend = xi, yend = R$y),
+               linetype = "dotted") +
+  geom_segment(data = R, aes(x = xi, y = R$y, xend = xi, yend = 0),
+               linetype = "dotted") +
+  # Etiquetas
+  geom_text(data = P, aes(x, y, label = "P"), nudge_y = 0.4, fontface = "bold") +
+  geom_text(data = R, aes(x, y, label = "R"), nudge_y = -0.4, fontface = "bold") +
+  geom_text(data = Tpt, aes(x, y, label = "T"), nudge_y = 0.4, fontface = "bold") +
+  annotate("text", x = 2.5, y = 1 + 0.8 * 2.5, label = "b[1] + b[2]*x[i]",
+           parse = TRUE, color = "red", size = 4, hjust = 0) +
+  annotate("text", x = xi + 0.1, y = (P$y + R$y)/2, label = "e[i]",
+           parse = TRUE, color = "red", size = 4, hjust = 0) +
+  # Ejes y formato
+  scale_x_continuous(breaks = c(0, 1, 3), limits = c(0, 3.2), expand = c(0,0),
+                     labels = c("0", "1", "3")) +
+  scale_y_continuous(limits = c(0, 7), expand = c(0,0)) +
+  labs(x = expression(x[i]), y = expression(y[i])) +
+  coord_cartesian(clip = "off") +
+  theme_minimal(base_size = 16) +
+  theme(panel.grid.minor = element_blank(),
+        plot.margin = margin(10, 30, 10, 30))
+
+```
+
+
+Descomposición de la variable dependiente en su  _valor estimado, RT_, y el _residual, PR_.
+
+
+## Resultados importantes de la regresión por MCO
+
+
+### Resultados importantes de la regresión por MCO (1/2)
+
+Podemos demostrar que:
+
+1. El valor promedio de los residuales es cero:
+$$
+\frac{1}{n} \sum_{i=1}^n e_i = 0
+$$
+
+2. La correlación muestral entre \(x_i\) y el residual es cero:
+$$
+\mathbb{C}ov (x, e) = 0
+$$
+
+### Resultados importantes de la regresión por MCO (2/2)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Demuestra que:
+
+1. El valor estimado promedio de la variable dependiente es igual al valor promedio observado:
+$$
+\overline{\hat{y}} = \bar{y}
+$$
+2. La correlación muestral entre \(\hat{y}_i\) y \(e_i\) es cero:
+$$
+\mathbb{C}ov(\hat{y}, e) = 0
+$$
+
+
+## Interpretación de los coeficientes estimados
+
+### Interpretación de los coeficientes estimados (1/6)
+
+¿Cómo interpretamos los coeficientes de la ecuación estimada?
+
+$$
+\hat{y}_i = b_1 + b_2 x_i
+$$
+
+
+- Si \(x_i\) aumenta en una unidad, el valor estimado de \(y_i\) cambia en \(b_2\) unidades (signo positivo o negativo según el caso).
+
+- El valor estimado de \(y_i\) es igual a \(b_1\) cuando \(x_i = 0\).
+
+
+### Interpretación de los coeficientes estimados (2/6)
+
+<span class="emphasis-blue">Ejemplo</span>
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+library(tidyverse)
+library(broom)
+library(here)
+
+lexpectancy <- read_csv(here("data/lexpectancy.csv"))
+
+# Estimar modelo OLS
+modelo <- lm(life_exp ~ rgdp, data = lexpectancy)
+
+# Resumen limpio del modelo
+resultados <- tidy(modelo)
+
+# Mostrar tabla
+tabla <- tidy(modelo) %>%
+  mutate(
+    term = if_else(term == "(Intercept)", "Constante", "Ingreso per cápita"),
+    # Redondeos
+    estimate = round(estimate, 6),
+    std.error = round(std.error, 6),
+    statistic = round(statistic, 3),
+    p.value = format.pval(p.value, digits = 3, eps = 0.001),
+    estimate = sprintf("<span style='color:#F8766D; font-weight:bold;'>%s</span>",
+                   format(estimate, nsmall = 6))
+  ) %>%
+  select(
+    Término = term,
+    `Coeficiente` = estimate,
+    `Desv. Estándar` = std.error,
+    `Estadístico t` = statistic,
+    `Valor p` = p.value
+  )
+
+# Mostrar tabla
+kable(tabla, format = "html", escape = FALSE,
+      caption = "Relación entre ingreso per cápita y esperanza de vida",
+      table.attr = 'class="clean-table"')
+```
+
+$$
+\begin{align}
+\\
+\widehat{\text{Esperanza de vida}}_i &= b_1 + b_2 \text{Ingreso per cápita}_i \\
+&= 67.35 + 0.00024\text{Ingreso per cápita}_i
+\end{align}
+$$
+
+### Interpretación de los coeficientes estimados (3/6)
+
+Los estimadores estimados también nos permiten calcular la **elasticidad** de la variable \(x_i\) sobre \(y_i\):
+
+$$
+\begin{align}
+\varepsilon_{y,x} &= \frac{\%\Delta y}{\%\Delta x} \\
+&=\frac{\partial y}{\partial x} \cdot \frac{x}{y} = b_2 \cdot \frac{x}{y}
+\end{align}
+$$
+
+<span class="emphasis-blue">Nota</span>. En la práctica, \(x\) y \(y\) se reemplazan por los valores promedio.
+
+
+### Interpretación de los coeficientes estimados (4/6)
+
+De igual forma, los coeficientes estimados pueden utilizarse para hacer pronósticos:
+
+$$
+\begin{align}
+\mathbb{E}(y_i \mid x_i = x_0) & = \widehat{y}_0 \\
+&= b_1 + b_2 x_0
+\end{align}
+$$
+Donde \(x_0\) es algún valor de \(x\). Por ejemplo, ¿cuál es la esperanza de vida para un país cuyo ingreso per capita es de $18,000?
+
+
+### Interpretación de los coeficientes estimados (5/6)
+
+
+<span class="emphasis-blue">Ejercicio*</span>
+
+Supongamos que el modelo es:
+
+$$
+y_i = \beta_1 + \beta_2 x_i + u_i
+$$
+
+¿Qué pasa con los coeficientes estimados, \(b_1\) y \(b_2\), si cambias las unidades de medición? Específicamente, explica qué pasa si regresamos el modelo:
+
+$$
+\begin{align}
+y_i^* &= \beta_1^* + \beta_2^* x_i + u_i^*\\
+y_i^* & = \lambda_1 + \lambda_2 y_i
+\end{align}
+$$
+
+### Interpretación de los coeficientes estimados (6/6)
+
+
+<span class="emphasis-blue">Ejercicio*</span>
+
+Supongamos que el modelo es:
+
+$$
+y_i = \beta_1 + \beta_2 x_i + u_i
+$$
+
+Explica qué pasa con los coeficientes estimados si regresamos el modelo:
+
+$$
+\begin{align}
+y_i   &= \beta_1^* + \beta_2^* x_i^* + u_i^*\\
+x_i^* &= x_i - \bar{x}
+\end{align}
+$$
+
+
+
+## Propiedades de los coeficientes estimados
+
+### Supuestos del modelo de regresión simple (1/4)
+
+Para mostrar las propiedades de los coeficientes estimados, necesitamos primero conocer cuáles son los supuestos del modelo de regresión simple. 
+
+<ol start="1">
+  <li>El modelo es lineal en sus parámetros y está correctamente especificado:
+  
+  $$
+  y_i = \beta_1 + \beta_2 x_i + u_i
+  $$
+</li>
+</ol>
+
+
+### Supuestos del modelo de regresión simple (2/4)
+
+Los siguientes son los supuestos relacionados con el _término de error_, \(u_i\). Estos se conocen como **supuestos de Gauss-Markov**:
+
+<ol start="2">
+  <li>El valor esperado del error es igual a cero para todas las observaciones:
+
+  $$
+  \mathbb{E}(u_i) = 0; \ \forall \ i
+  $$
+  
+</li> 
+
+  <li> La varianza del error es constante para todas las observaciones (este es el supuesto de **homoscedasticidad**):
+
+  $$
+  \begin{align}
+  \mathbb{V}ar(u_i) &= \mathbb{E}(u_i^2) \\
+  &= \sigma^2_i \\
+  &= \sigma^2; \ \forall \ i
+  \end{align}
+  $$
+</li>
+</ol>
+
+
+### Supuestos del modelo de regresión simple (3/4)
+
+<ol start="4">
+  <li>La covarianza entre los errores de cualesquiera dos observaciones es cero. Este es el supuesto de la **no autocorrelación**:
+
+  $$
+  \begin{align}
+  \mathbb{C}ov(u_i,u_j) &= \mathbb{E}(u_i u_j) \\
+  &= 0; \ \forall \ i
+  \end{align}
+  $$
+  
+</li> 
+
+<li> Las \(x_i\) y las \(u_i\) _ortogonales_ (las \(x_i\) son **exógenas**). Este supuesto viene en dos versiones:
+
+- Versión fuerte: Las \(x_i\) son _deterministas_.
+- Versión débil: Las \(x_i\) son estocásticas, pero siguen una distribución independiente de la distribución de las \(u_i\).
+
+
+</li>
+</ol>
+
+### Supuestos del modelo de regresión simple (4/4)
+
+<ol start="6">
+  <li>(_Conveniencia_). Finalmente, se supone que el error, \(u_i\), sigue una distribución normal.
+  </li>
+</ol>
+
+Entonces, si se cumplen todos los supuestos sobre el error, tenemos:
+
+$$
+u_i \sim iid\mathcal{N}(0,\sigma^2)
+$$
+
+### Componentes de los coeficientes estimados (1/3)
+
+Recordemos que la variable \(y_i\) puede descomponerse en: 1) Un componente aleatorio y 2) Un componente determinista. Es de esperar que los coeficientes estimados admitan también la misma descomposición.Por ejemplo, para \(\beta_2\) podemos mostrar que:
+
+
+$$
+b_2 = 
+\text{\(\displaystyle \color{#F8766D}{\beta_2}\)} 
++ 
+\text{\(\displaystyle \color{#00BFC4}{\frac{\mathbb{C}ov(x,u)}{\mathbb{V}ar(x)}}\)}
+$$
+
+
+1. El elemento \(\text{\(\displaystyle \color{#F8766D}{\beta_2}\)}\) es la parte no aleatoria (determinista).
+
+
+2. El elemento \(\text{\(\displaystyle \color{#00BFC4}{\frac{\mathbb{C}ov(x,u)}{\mathbb{V}ar(x)}}\)}\) es la parte aleatoria.
+
+### Componentes de los coeficientes estimados (2/3)
+
+<span class="emphasis-blue">Ejercicio</span>  
+
+Muestra que:
+$$
+b_2 = \beta_2 + \sum_{i=1}^n w_i u_i
+$$
+
+donde, igual que antes:
+$$
+w_i=\frac{x_i - \bar{x}}{\sum_{i=1}^n (x_i - \bar{x})^2}
+$$
+
+### Componentes de los coeficientes estimados (2/3)
+
+<span class="emphasis-blue">Ejercicio</span>  
+
+Muestra que:
+$$
+\begin{align}
+\sum_{i=1}^n w_i &= 0 \\
+\sum_{i=1}^n w_i^2 &= \frac{1}{\sum_{i=1}^n (x_i - \bar{x})^2} \\
+\sum_{i=1}^n w_i x_i  &= 1 \\
+\end{align}
+$$
+
+
+### Propiedades de los estimadores de MCO
+
+Los supuestos anteriores (_específicamente los de Gauss-Markov_) nos permiten demostrar que los estimadores son:
+
+- **Insesgados**:
+$$
+\mathbb{E}(b_1) = \beta_1; \qquad \mathbb{E}(b_2) = \beta_2
+$$
+- **Eficientes**: De toda la gama de estimadores insesgados para \(\beta_1\) y \(\beta_2\), \(b_1\) y \(b_2\) son los de mínima varianza.
+  
+- **Consistentes**: los estimadores para \(\beta_1\) y \(\beta_2\) convergen en probabilidad a sus verdaderos parámetros cuando \(n \to \infty\).
+
+
+### Los coeficientes son insesgados
+
+<span class="emphasis-blue">Ejercicio</span>  
+
+Demuestra que:
+$$
+\begin{align}
+\mathbb{E}(b_1) &= \beta_1\\
+\mathbb{E}(b_2) &= \beta_2
+\end{align}
+$$
+
+
+### Los estimadores son eficientes (1/5)
+
+Para saber si los estimadores de MCO son eficientes, primero tenemos que calcular su varianza:
+
+$$
+\begin{align}
+\mathbb{V}ar(b_1) &= \mathbb{E}\left(\left[b_1 - \mathbb{E}(b_1)\right]^2\right)\\
+\mathbb{V}ar(b_2) &= \mathbb{E}\left(\left[b_2 - \mathbb{E}(b_2)\right]^2\right)
+\end{align}
+$$
+
+### Los estimadores son eficientes (2/5)
+
+<span class="emphasis-blue">Ejercicio</span>  
+
+
+Muestra que:
+$$
+\mathbb{V}ar(b_2) = \frac{\sigma^2}{\sum_{i=1}^n (x_i - \bar{x})^2}
+$$
+Luego muestra que*:
+
+$$
+\mathbb{V}ar(b_1) = \sigma^2 \left[ \frac{\sum_{i=1}^n x_i^2}{n \sum_{i=1}^n (x_i - \bar{x})^2}\right]; \qquad \mathbb{C}ov(b_1,b_2) = \sigma^2 \left[ \frac{-\overline{x}}{ \sum_{i=1}^n (x_i - \bar{x})^2}\right]
+$$
+
+### Los estimadores son eficientes (3/5)
+
+Para demostrar que los estimadores de MCO tienen la varianza más pequeña, definimos toda la gama posible de estimadores lineales insesgados para \(\beta_2\):
+$$
+\tilde{b}_2 = \sum_{i=1}^n c_i y_i
+$$
+
+Nota que esta gama incluye a los estimadores de MCO en tanto que:
+
+$$
+c_i = w_i
+$$
+
+### Los estimadores son eficientes (4/5)
+
+<span class="emphasis-blue">Ejercicio</span>  
+
+Muestra que la gama de estimadores que hemos definido es insesgada en tanto que:
+
+$$
+\sum_{i=1}^n c_i = 0; \qquad \sum_{i=1}^n c_i x_i = 1 
+$$
+Muestra que, si los estimadores son insesgados:
+
+$$
+\mathbb{V}ar(\tilde{\beta}_2) = \frac{\sigma^2}{\sum_{i=1}^n (x_i - \bar{x})^2} + \sigma^2 \sum_{i=1}^n\left(c_i - w_i\right)^2
+$$
+
+### Los estimadores son eficientes (5/5)
+
+Concluimos que los estimadores de MCO con eficientes dado que:
+
+$$
+\begin{align}
+\mathbb{V}ar(\tilde{\beta}_2) &= \frac{\sigma^2}{\sum_{i=1}^n (x_i - \bar{x})^2} + \sigma^2 \sum_{i=1}^n\left(c_i - w_i\right)^2 \\
+&=\mathbb{V}ar(b_2) + \sigma^2 \sum_{i=1}^n\left(c_i - w_i\right)^2 \\
+&>\mathbb{V}ar(b_2)
+\end{align}
+$$
+
+### Teorema de Gauss–Markov
+
+Los resultados que hemos encontrado se resumen en el **Teorema de Gauss - Markov**:
+
+Si los supuestos 1–5 del modelo de regresión simple se satisfacen, los estimadores de MCO, \(b_1\) y \(b_2\), son **MELI** (Mejores Estimadores Lineales Insesgados).
+
+
+<span class="emphasis-blue">Nota. </span> Los estimadores son **BLUE** (_Best Linear Unbiased Estimators_)  
+
+
+### Los estimadores son consistentes(1/3)
+
+Para saber si los estimadores son consistentes, debemos recordar primero algunas de las reglas de los límites en probabilidad, **plim**. Sean \(x\) y \(y\) dos series de valores:
+
+<ol start="1">
+  <li>Si \(z = x/y\):  
+$$\text{plim}(z) = \frac{\text{plim}(x)}{\text{plim}(y)}$$
+  <li>Si \(z = xy\):  
+$$\text{plim}(z) = \text{plim}(x) \cdot \text{plim}(y)$$
+</li> 
+</ol> 
+
+### Los estimadores son consistentes(2/3)
+
+
+<ol start="3">
+  <li>Si \(z = x + y\):  
+$$\text{plim}(z) = \text{plim}(x) + \text{plim}(y)$$
+  <li>Si \(a\) es constante:  
+$$\text{plim}(a) = a$$
+  <li>**Teorema de Slutsky**: si \(g(\cdot)\) es continua:  
+$$\text{plim}(g(x)) = g(\text{plim}(x))$$
+</li> 
+</ol> 
+
+
+### Los estimadores son consistentes (3/3)
+
+<span class="emphasis-blue">Ejercicio</span>  
+
+Utiliza las reglas anteriores y el hecho que los estimadores para la varianza y covarianza son ambos consistentes, para mostrar que:
+$$
+\begin{align}
+\text{plim}(b_1) &= \beta_1\\
+\text{plim}(b_2) &= \beta_2
+\end{align}
+$$
+
+
+### Distribución de los estimadores de MCO
+
+<span class="emphasis-blue">Ejercicio*</span>  
+
+Muestra que si el supuesto 6 del modelo de regresión simple se satisface, entonces:
+
+$$
+\begin{align}
+b_1 &\sim \mathcal{N}\left( \beta_1, \ \mathbb{V}ar(b_1) \right)\\
+b_2 &\sim \mathcal{N}\left( \beta_2, \ \mathbb{V}ar(b_2) \right)
+\end{align}
+$$
+
+## Estimadores para las varianzas de \(b_1\) y \(b_2\)
+
+### Estimadores para las varianzas de \(b_1\) y \(b_2\) (1/4)
+
+<span class="emphasis-blue">Nota importante</span>
+
+Nota que, dado que \(u_i\) es desconocido \(\sigma^2\) también lo es. Esto implica que, para estimar la varianza de los estimadores, primero tenemos que estimar la varianza de los errores.
+
+Se puede demostrar que un estimador insesgado de la varianza de los errores es:
+
+$$
+\begin{align}
+s^2 &= \frac{1}{n-2}\sum_{i=1}^n e_i^2 \\
+&= \frac{RSS}{n-2}
+\end{align}
+$$
+
+¿Porqué no utilizar simplemente la varianza de los residuales como estimador de \(\sigma^2\)?
+
+
+### Estimadores para las varianzas de \(b_1\) y \(b_2\) (2/4)
+
+<span class="emphasis-blue">Ejercicio*</span>
+
+Encontrar un estimador insesgado para \(\sigma^2\).
+
+
+_Pista:_
+
+- Demuestra primero que los residuales pueden calcularse como:
+$$
+e_i = (x_i-\bar{x})(\beta_2 - b_2) + (u_i - \bar{u})
+$$
+
+- Calcula luego:
+
+$$
+\mathbb{E}\left(\sum_{i=1}^n e_i^2\right)
+$$
+
+
+### Estimadores para las varianzas de \(b_1\) y \(b_2\) (3/4)
+
+Una vez estimada la varianza de los errores, podemos calcular:
+
+$$
+\begin{align}
+\widehat{\mathbb{V}ar}(b_2) &= \frac{s^2}{\sum_{i=1}^n (x_i - \bar{x})^2}\\
+\widehat{\mathbb{V}ar}(b_1) &= s^2\left[\frac{\sum_{i=1}^n x_i^2}{n\sum_{i=1}^n (x_i - \bar{x})^2}\right]
+\end{align}
+$$
+
+### Estimadores para las varianzas de \(b_1\) y \(b_2\) (4/4)
+
+
+<span class="emphasis-blue">Ejemplo</span>
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+tabla2 <- tidy(modelo) %>%
+  mutate(
+    term = if_else(term == "(Intercept)", "Constante", "Ingreso per cápita"),
+    # Redondeos
+    estimate = round(estimate, 6),
+    std.error = round(std.error, 6),
+    statistic = round(statistic, 3),
+    p.value = format.pval(p.value, digits = 3, eps = 0.001),
+    std.error = sprintf("<span style='color:#F8766D; font-weight:bold;'>%s</span>",
+                   format(std.error, nsmall = 6))
+  ) %>%
+  select(
+    Término = term,
+    `Coeficiente` = estimate,
+    `Desv. Estándar` = std.error,
+    `Estadístico t` = statistic,
+    `Valor p` = p.value
+  )
+
+# Mostrar tabla
+kable(tabla2, format = "html", escape = FALSE,
+      caption = "Relación entre ingreso per cápita y esperanza de vida",
+      table.attr = 'class="clean-table"')
+```
+
+
+<span class="emphasis-blue">Nota:</span> La mayoría de los software de econometría calculan la desviación estándar estimada, que no es más que la raíz cuadrada de las fórmulas presentadas anteriormente.
+
+
+## Bondad de ajuste: \(R^2\)
+
+### Análisis de varianza, la \(R^2\) (1/6)
+
+El objetivo de un análisis de regresión es explicar el comportamiento de la variable dependiente \(y_i\). Estas pueden resumirse calculando la **Suma total de cuadrados (TSS)**:
+
+$$
+TSS = \sum_{i=1}^n (y_i - \bar{y})^2
+$$
+
+### Análisis de varianza, la \(R^2\)(2/6)
+
+Recordemos que:
+
+$$
+y_i = \widehat{y}_i + e_i
+$$
+
+A partir de esta, podemos mostrar que:
+
+$$
+\sum_{i=1}^n (y_i - \bar{y})^2 = \sum_{i=1}^n (\widehat{y}_i - \bar{y})^2 + \sum_{i=1}^n e_i^2
+$$
+Esto es la suma total de cuadrados (TSS) se descompone en la **suma de cuadrados explicados (ESS)** y la suma del cuadrado de los residuales (RSS).
+
+### Análisis de varianza, la \(R^2\) (3/6)
+
+La \(R^2\), o **coeficiente de determinación**, es la proporción de las variaciones totales en \(y_i\) que sí podemos explicar a través de la estimación del modelo. Es decir: 
+
+
+$$
+R^2 = \frac{ \sum_{i=1}^n (\widehat{y}_i - \bar{y})^2}{\sum_{i=1}^n (y_i - \bar{y})^2} = \frac{ESS}{TSS}
+$$
+
+Nota que también es posible calcular la \(R^2\) mediante la fórmula:
+
+$$
+R^2 = 1- \frac{ \sum_{i=1}^n e_i^2}{\sum_{i=1}^n (y_i - \bar{y})^2} = 1 - \frac{RSS}{TSS}
+$$
+
+### Análisis de varianza, la \(R^2\) (4/6)
+
+A partir de su definición, es claro que:
+
+$$
+0 \leq R^2 \leq 1
+$$
+
+Tenemos que:
+
+- Cuando la \(R^2\) se acerca a 1, más de la variabilidad de \(y_i\) se explica por el modelo. Entonces, _a mayor \(R^2\) mejor ajuste_ (sin implicar necesariamente causalidad).
+
+- Cuando la \(R^2\) se acerca a 0, menos de la variabilidad de \(y_i\) se explica por el modelo (más de la variabilidad de \(y_i\) es inexplicable). Entonces, _a menor \(R^2\) peor ajuste_.
+
+### Análisis de varianza, la \(R^2\) (5/6)
+
+<span class="emphasis-blue">Ejemplo</span>
+
+Para el modelo de la esperanza de vida y el ingreso per capita tenemos:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+
+# ---- Si no existe `modelo`, creo uno de ejemplo (lo elimino al final) ----
+._tmp_modelo_created <- FALSE
+if (!exists("modelo")) {
+  set.seed(1)
+  df_tmp <- tibble(x = c(1,2,3,4,5,6), y = 2 + 1.5*x + rnorm(6, 0, 1))
+  modelo <- lm(y ~ x, data = df_tmp)
+  ._tmp_modelo_created <- TRUE
+}
+
+# ---- Extraer métricas del summary ----
+sm   <- summary(modelo)
+y    <- model.response(model.frame(modelo))
+n    <- length(y)
+k    <- length(coef(modelo))     # # parámetros (incluye intercepto)
+ll   <- as.numeric(logLik(modelo))
+aic  <- AIC(modelo)
+bic  <- BIC(modelo)
+hq   <- -2*ll + 2*log(log(n))*k  # Hannan–Quinn
+
+fobj <- sm$fstatistic
+Fval <- unname(fobj[1]); df1 <- unname(fobj[2]); df2 <- unname(fobj[3])
+pF   <- pf(Fval, df1, df2, lower.tail = FALSE)
+
+fmt  <- function(x, d=6) formatC(x, digits=d, format="f", big.mark = ",")
+fmt3 <- function(x) fmt(x, d=3)
+
+items <- tibble::tribble(
+  ~nombre,                     ~valor,
+  "Media de la vble. dep.",     fmt(mean(y), 6),
+  "D.T. de la vble. dep.",      fmt(sd(y), 6),
+  "Suma de cuad. residuos",     fmt(sum(residuals(modelo)^2), 2),
+  "D.T. de la regresión",       fmt(sm$sigma, 6),
+  "R-cuadrado",                 fmt(sm$r.squared, 6),
+  "R-cuadrado corregido",       fmt(sm$adj.r.squared, 6),
+  paste0("F(", df1, ", ", df2, ")"), fmt(Fval, 6),
+  "Valor p (de F)",             formatC(pF, format = "e", digits = 2),
+  "Log-verosimilitud",          fmt(ll, 4),
+  "Criterio de Akaike",         fmt(aic, 3),
+  "Criterio de Schwarz",        fmt(bic, 3),
+  "Crit. de Hannan-Quinn",      fmt(hq, 3)
+)
+
+# Colorear R^2 en rojo (valor y etiqueta)
+items <- items %>%
+  mutate(
+    nombre = if_else(nombre %in% c("R-cuadrado"),
+                     cell_spec(nombre, "html", color = "#F8766D", bold = TRUE), nombre),
+    valor  = if_else(nombre %in% c(
+                       cell_spec("R-cuadrado","html", color="#F8766D", bold=TRUE)),
+                     cell_spec(valor, "html", color = "#F8766D", bold=TRUE), valor)
+  )
+
+# Presentación a 2 columnas por fila (Nombre/Valor | Nombre/Valor)
+# (si hay número impar, se rellena con vacío)
+if (nrow(items) %% 2 == 1) items <- add_row(items, nombre = "", valor = "")
+left  <- items %>% slice(seq(1, n(), by = 2))
+right <- items %>% slice(seq(2, n(), by = 2))
+tabla <- tibble(
+  ` ` = left$nombre, `  ` = left$valor,
+  `   ` = right$nombre, `    ` = right$valor
+)
+
+kable(tabla, format = "html", escape = FALSE,
+      col.names = c("", "", "", ""),
+      table.attr = 'class="clean-table"',
+      align = c("l","r","l","r")) %>%
+  kable_styling(full_width = FALSE)
+
+# Limpiar si creé un modelo temporal
+if (._tmp_modelo_created) rm(modelo, df_tmp)
+
+```
+
+### Análisis de varianza, la \(R^2\) (6/6)
+
+<span class="emphasis-blue">Ejercicio*</span>
+
+Calcular \(R^2\) para el siguiente conjunto de datos:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+datos_r2 <- tibble(
+  x = c(1, 2, 3),
+  y = c(3, 5, 6)
+)
+kable(datos_r2, format = "html", escape = FALSE,
+      table.attr = 'class="clean-table"')
+
+```
+
+
+### Relación entre la \(R^2\) y el coeficiente de correlación
+
+<span class="emphasis-blue">Ejercicio*</span>
+
+Consideremos el coeficiente de correlación entre la variable dependiente y su valor estimado:
+
+$$
+r_{y,\widehat{y}} = \frac{\mathbb{C}ov(y,\widehat{y})}{\sqrt{\mathbb{V}ar(y)\mathbb{V}ar(\widehat{y})}}
+$$
+
+Muestra que:
+
+$$
+r_{y,\widehat{y}} = \sqrt{R^2}
+$$
+

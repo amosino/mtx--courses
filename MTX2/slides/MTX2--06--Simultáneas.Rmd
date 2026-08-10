@@ -1,0 +1,502 @@
+---
+title: "Ecuaciones simultáneas"
+author: 
+  - "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v. 2025.04.09"
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    transition: 0
+    slide_level: 3
+    css: ../src/custom.css
+---
+
+## Modelos estructural y reducido
+
+### Modelo estructural (1/2)
+
+Consideremos el siguiente ejemplo:
+
+
+$$
+\begin{align}
+p &= \beta_1+\beta_2w+u_p\\
+w & =\alpha_1+\alpha_2p+\alpha_3 U + u_w,
+\end{align}
+$$
+
+donde las **variables endógenas** son \(p\), la inflación en precios, y \(w\), la inflación en salarios;  y \(U\), la tasa de desempleo, es una **variable exógena**. Además:
+
+$$
+\begin{align}
+u_p\sim iid \mathcal{N}(\mu_p, \sigma_p^2) \\
+u_w\sim iid\mathcal{N}(\mu_w,\sigma_w^2)
+\end{align}
+$$
+
+Por simplicidad, supondremos que \(u_p\) y \(u_w\) son independientes.
+
+
+### Modelo estructural
+
+<span class="emphasis-blue">Ejercicio</span>
+
+El sistema anterior se conoce como **modelo en forma estructural**. Muestra que este también puede escribirse en forma matricial:
+
+$$
+\mathbf{DY}+ \boldsymbol{\Gamma}\mathbf{X}=\mathbf{U}
+$$
+
+
+donde \(\mathbf{D}\) es la matriz de los coeficientes de las variables endógenas, \(\boldsymbol{\Gamma}\) es la matriz de los coeficientes de las variables exógenas, \(\mathbf{Y}\) es un vector de variables endógenas, \(\mathbf{X}\) es un vector de variables exógenas. \(\mathbf{U}\) es un vector de errores que, en este caso, toma la forma:
+
+
+$$
+\mathbf{U}=\begin{pmatrix}
+u_p \\
+u_w
+\end{pmatrix}\;\sim\; \mathcal{N}(\mathbf{0},\boldsymbol{\Sigma})
+$$
+
+
+### Modelo reducido (1/5)
+
+
+El sistema estructural de nuestro ejemplo puede resolverse para encontrar el **modelo en forma reducida**:
+
+
+
+$$
+\begin{align}
+p= &\frac{\beta_1+\alpha_1\beta_2}{1-\alpha_2\beta_2}+\frac{\alpha_3\beta_2}{1-\alpha_2\beta_2}U+\frac{u_p+\beta_2u_w}{1-\alpha_2\beta_2}\\
+w= &\frac{\alpha_2\beta_1+\alpha_1}{1-\alpha_2\beta_2}+\frac{\alpha_3}{1-\alpha_2\beta_2}U+\frac{u_w+\alpha_2u_p}{1-\alpha_2\beta_2}
+\end{align}
+$$
+
+
+Nota que en el lado derecho de estas ecuaciones aparecen exclusivamente variables exógenas (y constantes).
+
+
+### Modelo reducido (2/5)
+
+En nuestro ejemplo, el sistema reducido puede expresarse en una forma más compacta:
+
+
+$$
+\begin{align}
+p&=\pi_{11}+\pi_{12}U+\nu_p\\
+w&=\pi_{21}+\pi_{22}U+\nu_w
+\end{align}
+$$
+Dado que  \(p\) y \(w\) son funciones de \(U\), una variable exógena, cada ecuación del sistema reducido puede estimarse por el método de los MCO. (¿Por qué?)
+
+
+### Modelo reducido (3/5)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Muestra que en el sistema reducido:
+
+$$
+\begin{align}
+p&=\pi_{11}+\pi_{12}U+\nu_p\\
+w&=\pi_{21}+\pi_{22}U+\nu_w,
+\end{align}
+$$
+
+los errores \(\nu_p\) y \(\nu_w\) satisfacen todos los supuestos de Gauss-Markov.
+
+### Modelo reducido (4/5)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Naturalmente, el sistema reducido también puede encontrarse como:
+
+
+$$
+\mathbf{Y}=\boldsymbol{\Pi}\mathbf{X}+\mathbf{V};\quad \mathbf{V}\;\sim\;\mathcal{N}(\mathbf{0},\mathbf{D}^{-1}\boldsymbol{\Sigma}(\mathbf{D}^{-1})')
+$$
+
+donde:
+
+
+$$
+\begin{align}
+\boldsymbol{\Pi}=&-\mathbf{D}^{-1}\boldsymbol{\Gamma}\\
+\mathbf{V}= & \mathbf{D}^{-1}\mathbf{U}
+\end{align}
+$$
+
+Encuentra el sistema reducido usando esta forma matricial.
+
+
+### Modelo reducido (5/5)
+
+<span class="emphasis-blue">Nota</span>
+
+
+En el sistema reducido \(w\) depende de \(u_p\), y \(p\) depende de \(u_w\). Esto implica que no deberíamos estimar por MCO y por separado cada ecuación  del sistema estructural. (¿Por qué?)
+
+
+
+### Estimación por MCO (1/3)
+
+
+Supongamos que deseamos estimar por MCO solo la primera ecuación del sistema estructural:
+
+
+
+$$
+p=\beta_1+\beta_2w+u_p
+$$
+
+
+En este caso:
+
+
+
+$$
+b_2^{MCO}=\frac{\text{cov}(w,p)}{\text{var}(w)}
+$$
+
+### Estimación por MCO (2/3)
+
+Para calcular el tamaño del sesgo (para muestras grandes), aplicamos el límite en probabilidad a ambos lados de esta ecuación:
+
+
+
+$$
+p\lim(b_2^{MCO})= \beta_2+\;
+\frac{(1-\alpha_2\beta_2)\alpha_2\sigma_p^2}{\alpha_3^2\sigma_u^2+\sigma_w^2+\alpha_2^2\sigma_p^2}
+$$
+
+
+
+Naturalmente, como se espera que \(\alpha_2>0\), el sesgo del estimador será positivo si \(\alpha_2\beta_2<1\).
+
+
+### Estimación por MCO (3/3)
+
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+
+Muestra que el límite en probabilidad del estimador de \(\beta_2\) en la primera ecuación estructural es:
+
+
+
+$$
+p\lim(b_2^{MCO})= \beta_2+\;
+\frac{(1-\alpha_2\beta_2)\alpha_2\sigma_p^2}{\alpha_3^2\sigma_u^2+\sigma_w^2+\alpha_2^2\sigma_p^2}
+$$
+
+
+## Estimación del modelo: Variables instrumentales
+
+
+### Estimación por VI (1/9)
+
+Consideremos nuevamente el modelo:
+
+
+$$
+\begin{align}
+p=& \beta_1+\beta_2w+u_p \\
+w=& \alpha_1+\alpha_2p+\alpha_3U+u_w
+\end{align}
+$$
+
+
+Pero esta vez estimemos la primera ecuación del modelo estructural usando el **método de las variables instrumentales**. Sabemos que:
+
+
+$$
+\mathbf{b}^{VI}=(\mathbf{z}'\mathbf{x})^{-1}\mathbf{z}'\mathbf{y}
+$$
+
+Esta, para el caso de la primera ecuación del sistema estructural, se vuelve:
+
+
+$$
+b_2^{VI}=\frac{\text{cov}(z,p)}{\text{cov}(z,w)}
+$$
+
+
+### Estimación por VI (2/9)
+
+
+Pero...¿quién es \(z\) en la ecuación anterior?
+
+
+
+Un buen instrumento puede identificarse observando el modelo en su forma reducida. En nuestro ejemplo, un buen instrumento para \(w\) que nos permite estimar la primera ecuación del modelo estructural es \(U\). (¿Por qué?)
+
+
+Entonces:
+
+
+$$
+b_2^{VI}=\frac{\text{cov}(U,p)}{\text{cov}(U,w)}
+$$
+
+
+### Estimación por VI (3/9)
+
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+Muestra que el estimador de variables instrumentales para \(\beta_2\) es insesgado para muestras grandes (es decir, es consistente).
+
+
+
+### Estimación por VI (4/9)
+
+Supongamos ahora que deseamos estimar la segunda ecuación del modelo estructural:
+
+
+
+
+$$
+w=\alpha_1+\alpha_2p+\alpha_3U+u_w
+$$
+
+
+¿Qué variable utilizamos para instrumentar \(p\)? La única exógena que tenemos a la mano es \(U\). Sin embargo, si utilizamos \(U\), se puede mostrar que el estimador de variables instrumentales se indefine.
+
+
+
+### Estimación por VI (5/9)
+
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+Muestra que si usamos \(U\) para instrumentar a \(p\) en la segunda ecuación del modelo estructural, el estimador de variables instrumentales se indefine.
+
+
+_Nota._ 
+
+Observa que el modelo estructural propuesto tiene dos variables endógenas (\(p\) y \(w\)) y solamente un instrumento (\(U\)). Cuando esto ocurre decimos que el sistema está **sub-identificado**.
+
+
+
+### Estimación por VI (6/9)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+Considera el modelo:
+
+$$
+\begin{align}
+p=& \beta_1 +\beta_2w+\beta_3m+u_p\\
+w=& \alpha_1+\alpha_2p+\alpha_3U+u_w
+\end{align}
+$$
+
+donde \(m\) representa la oferta monetaria. Encuentra los estimadores de variables instrumentales para ambas ecuaciones del modelo estructural.
+
+
+_Nota._ 
+
+Observa que el modelo estructural propuesto ahora tiene dos varibles endógenas (\(p\) y \(w\)) y dos posibles instrumentos (\(m\) y \(U\)). Cuando esto ocurre decimos que el sistema está **exáctamente identificado**.
+
+
+### Estimación por VI (7/9)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+Considera el modelo:
+
+
+$$
+\begin{align}
+p=&\beta_1+\beta_2w+u_p \\
+w=&\alpha_1+\alpha_2p+\alpha_3U+\alpha_4x+u_w
+\end{align}
+$$
+
+
+donde \(x\) representa la tasa de crecimiento de la productividad. Encuentra el estimador de variables instrumentales para \(\beta_2\) en la primera ecuación del modelo estructural.
+
+
+_Nota._ 
+
+Observa que para estimar la primera ecuación estructural tenemos más de un instrumento disponible para \(w\). Cuando esto ocurre decimos que una de las ecuaciones del modelo estructural está **sobre-identificada**. ¿Cuál de los dos instrumentos es preferible?
+
+### Estimación por VI (8/9)
+
+En el ejemplo anterior, \(U\) y \(x\) son dos buenos instrumentos para \(w\). Por lo tanto, podemos usar cualquiera de los dos para obtener estimadores consistentes de \(\beta_2\). La varianza del estimador sería:
+
+
+
+
+$$
+\sigma_{b_2^{VI}}^2=\frac{\sigma_{u_p}^2}{n\text{var}(w)}\times\frac{1}{r_{w,U}^2} \quad o \quad \sigma_{b_2^{VI}}^2=\frac{\sigma_{u_p}^2}{n\text{var}(w)}\times\frac{1}{r_{w,x}^2}
+$$
+
+
+El instrumento más fuerte es el que tenga un _coeficiente de correlación más_ alto con la variable \(w\).
+
+
+### Estimación por VI (9/9)
+
+En la práctica, no tenemos que preocuparnos de cuál es el estimador más fuerte. En su lugar usamos el método de los **mínimos cuadrados en dos etapas**. Primero encontramos:
+
+$$
+z=\hat{w}=\hat{h}_1+\hat{h}_2U+\hat{h}_3x
+$$
+
+
+donde \(h_1, h_2\)  y  \(h_3\) se estiman utilizando el método de los MCO. Luego usamos \(z\) como instrumento. Nota que en este caso:
+
+
+$$
+\sigma_{b_2^{VI}}^2=\frac{\sigma_{u_p}^2}{n\text{var}(w)}\times\frac{1}{r_{w,z}^2}=\frac{\sigma_{u_p}}{n\text{var}(w)}\times \frac{1}{r_{w,\hat{w}}^2}
+$$
+
+Entre más instrumentos tengamos, más pequeña es la varianza del estimador. ¿Por qué?
+
+
+### Ejemplo (1/3)
+
+
+Considera el modelo de oferta y demanda de trufas negras:
+
+
+
+$$
+\begin{align}
+q_i=&\alpha_1+\alpha_2p_i+\alpha_3ps_i+\alpha_4di_i+u_i^d \\
+q_i=&\beta_1+\beta_2p_i+\beta_3pf_i+u_i^s
+\end{align}
+$$
+
+
+
+Las variables endógenas son \(q\) y \(p\). Podemos, sin embargo, estimar ambas ecuaciones por el método de las variables instrumentales. En la primera ecuación usamos \(pf_i\) como instrumento de \(p\). En la segunda ecuación podemos usar tanto \(ps_i\) como \(di_i\).
+
+
+### Ejemplo (2/3)
+
+Los resultados para la primera ecuación son:
+
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='50%', out.height='50%'}
+
+library(tidyverse)
+library(ivreg)
+library(here)
+data <- read_delim(here("data/E209--truffles.csv"))
+truffles_1 <- ivreg(q ~ p + ps + di | ps + di + pf, data=data)
+summary(truffles_1)
+```
+
+
+
+### Ejemplo (3/3)
+
+
+Los resultados de la segunda ecuación son:
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='50%', out.height='50%'}
+
+truffles_2 <- ivreg(q ~ p + pf | ps + di + pf, data=data)
+summary(truffles_2)
+```
+
+## Mínimos Cuadrados Indirectos
+
+### Mínimos Cuadrados Indirectos (1/5)
+
+Cuando alguna(s) de las ecuaciones del sistema estructural está(n) _exáctamente identificada(s)_ (exactamente un intrumento por cada variable endógena), esta(s) puede(n) estimarse mediante el método de los **Mínimos Cuadrados Indirectos** (MCI).
+
+
+### Mínimos Cuadrados Indirectos (2/5)
+
+Para aplicar el método de los MCI, consideremos el sistema reducido:
+
+$$
+\mathbf{Y}=\boldsymbol{\Pi}\mathbf{X}+\mathbf{V}
+$$
+donde:
+
+$$
+\boldsymbol{\Pi}=-\mathbf{D}^{-1}\boldsymbol{\Gamma}
+$$
+
+Entonces, si estimamos \(\boldsymbol{\Pi}\) por MCO y la matriz \(\mathbf{D}\) es conocida (o está normalizada), podemos obtener un estimador de \(\boldsymbol{\Gamma}\) como:
+
+$$
+\hat{\boldsymbol{\Gamma}} = -\mathbf{D} \hat{\boldsymbol{\Pi}}
+$$
+
+### Mínimos Cuadrados Indirectos (3/5)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Encuentra, si es posible, los estimadores de MCI para el siguiente sistema estructural:
+
+$$
+\begin{align}
+p &= \beta_1+\beta_2w+u_p \\
+w & =\alpha_1+\alpha_2p+\alpha_3 U + u_w
+\end{align}
+$$
+
+### Mínimos Cuadrados Indirectos (4/5)
+
+<span class="emphasis-blue">Nota</span>
+
+Aunque tradicionalmente se ha afirmado que el método de MCI sólo es válido para ecuaciones exactamente identificadas, Park (1974) muestra que este método también puede usarse cuando la ecuación está sobreidentificada, siempre y cuando tratemos a la relación \(\boldsymbol{\Gamma} = -\mathbf{D} \boldsymbol{\Pi}\) como una _relación estocástica y no exacta_.
+
+### Mínimos Cuadrados Indirectos (5/5)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Muestra que, cuando el método de los MCI se aplica a una sola ecuación del sistema estructural, sus estimadores son _idénticos_ a los de MC2E.
+
+
+## Práctica
+
+### Práctica
+
+
+
+Utiliza los datos: _E210--eawe.csv_ para analizar y estimar el modelo:
+
+
+$$
+\begin{align}
+S_i=& \alpha_1+\alpha_2ASV ABC_i+\alpha_3SM_i+u_i^S\\
+ASV ABC_i=& \beta_1 +\beta_2S_i+u_i^A
+\end{align}
+$$
+
+
+Donde:
+
+
+$$
+\begin{align}
+&S= \text{Años de escolaridad (máximo grado completado al 2011).}\\
+&ASV ABC= \text{Rendimiento escolar.}\\
+&SM= \text{Años de escolaridad de la madre (biológica).}
+\end{align}
+$$
+_Nota:_ Rendimiento escolar es el puntaje de pruebas de razonamiento aritmético, verbal y comprensión.
+
+
+
+
+
+
+

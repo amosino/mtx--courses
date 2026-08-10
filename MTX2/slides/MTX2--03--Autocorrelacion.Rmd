@@ -1,0 +1,427 @@
+---
+title: "La autocorrelación"
+author: 
+  - "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v. 2026.02.27"
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    transition: 0
+    slide_level: 3
+    css: ../src/custom.css
+---
+
+## ¿Qué es la autocorrelación?
+
+### ¿En qué consiste la autocorrelación?
+
+Uno de los problemas que podemos encontrar en datos de _series temporales_ es el de **autocorrelación**. Formalmente, existe autocorrelación cuando:
+
+$$
+\begin{align}
+\text{cov}(u_i, u_j) &= \mathbf{E}(u_iu_j)\\
+&=\sigma_{ij},
+\end{align}
+$$
+para \( i\neq j, i,j = 1,2,\dots,n \). 
+
+Por lo tanto, la matriz de covarianzas de los errores se ve como:
+
+$$
+\boldsymbol{\Omega} = \begin{pmatrix}
+\sigma^2 & \sigma_{12} & \sigma_{13} & \dots & \sigma_{1n} \\
+\sigma_{12} & \sigma^2 & \sigma_{23} & \dots & \sigma_{2n} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+\sigma_{1n} & \sigma_{2n} & \sigma_{3n} & \dots & \sigma^2
+\end{pmatrix}
+$$
+
+### ¿Cuáles son las consecuencias de la autocorrelación?
+
+(Al igual que en el caso de la heteroscedasticidad) En presencia de autocorrelación:
+
+- Los estimadores de MCO _siguen siendo_ insesgados y consistentes.
+- Los estimadores de MCO _dejan de ser_ eficientes.
+- Los resultados de las pruebas \(t\) y \(F\) _dejan de ser_ confiables.
+
+## Detección de la autocorrelación
+
+### Detección de la autocorrelación (1/2)
+
+Consideremos el modelo de regresión simple:
+
+$$
+\text{Remuneración}_t = \beta_1 + \beta_2 \text{Productividad}_t + u_t
+$$
+
+Donde medimos la relación que existe entre los índices de producción por hora y remuneración real por hora de 1960 a 2005 en los Estados Unidos. (La base de los índices es 1992=100.) 
+
+
+### Detección de la autocorrelación (2/2)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Utiliza los datos del archivo _E204--productivity.csv_. Estima el modelo utilizando el método de los MCO. Explica tus resultados.
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE}
+library(tidyverse)
+library(here)
+data <- read_delim(here("data/E204--productivity.csv"))
+#data <- ts (data, start=c(1960), end=c(2005), frequency=1)
+mod <- lm(Rcompb~Prodb, data=data)
+data$res <- residuals(mod)
+data$rstn <-rstandard(mod)
+```
+
+### Método gráfico
+
+Dado que la autocorrelación se refiere a la relación que existe entre los errores del modelo, \(u_t\), una gráfica de los residuales, \(e_t\), (o de los residuales estandarizados) contra el tiempo nos permite detectar la existencia de patrones identificables a simple vista.
+
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='50%', out.height='50%'}
+datos_largos <- data %>%
+  pivot_longer(cols = c(res, rstn), names_to = "Tipo", values_to = "Valor")
+ggplot(datos_largos, aes(x = Date, y = Valor, color = Tipo)) + 
+  geom_line() +
+  labs(color = "", x = "Tiempo", y = "Valor") +
+  scale_color_manual(values = c("res" = "#69b3a2", "rstn" = "#ff6f61"),
+                     labels = c("res" = "Residuales", "rstn" = "Residuales estandarizados")) +
+    theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+### El correlograma (1/5)
+
+Otra posible evidencia de la presencia de autocorrelación es el **correlograma**. Este no es más que la gráfica de la **función de autocorrelación** de los errores del modelo. Esta se calcula como:
+
+$$
+r_k = \frac{Cov(u_t,u_{t-k})}{Var(u_t)} \\
+$$
+para todo \(k=1,2,\dots\).
+
+### El correlograma (2/5)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Supongamos que los errores del modelo siguen un proceso autorregresivo de orden 1, AR(1). Es decir:
+
+$$
+u_t = \rho u_{t-1} + \varepsilon_t,
+$$
+para \(\varepsilon \sim \mathcal{N}(0,\sigma^2)\) y \(|\rho|<1\). Además, suponemos que \( \varepsilon_t \) y \( u_t \) son independientes y que el proceso es **estacionario**. Calcula:
+
+- El valor esperado de \( u_t \) y su varianza, suponiendo que los errores son homoscedásticos, \( \text{var}(u_t) = \lambda_0 \).
+- La \( k \)-ésima autocovarianza de los errores, \( \lambda_k \).
+- La \( k \)-ésima autocorrelación de los errores, \( r_k \).
+
+Para cualquier valor de \( |\rho| < 1 \), grafica en un mismo diagrama la \( k \)-ésima correlación para \( k = 0, 1, 2, 3, 4 \).
+
+### El correlograma (3/5)
+
+Cuando no conocemos el proceso que siguen los errores del modelo, la función de autocorrelación tiene que estimarse:
+
+$$
+\begin{align}
+\hat{r}_k &= \frac{Cov(e_t, e_{t-k})}{Var(e_t)}\\
+&= \frac{\sum_{t=1}^{T-k} (e_t - \bar{e})(e_{t+k} - \bar{e})}{\sum_{t=1}^T (e_t - \bar{e})^2},
+\end{align}
+$$
+para \(k=1,2,\dots\).
+
+### El correlograma (4/5)
+
+La estimación de la función de autocorrelación también nos permite calcular intervalos de confianza. Estos se calculan tomando en cuenta que:
+
+$$
+\sqrt{T}r_k \sim \mathcal{N}(0,1).
+$$
+Entonces, por ejemplo, el valor estimado de \(r_k\), \(\hat{r}_k\), es significativo al 5% si:
+
+$$
+-1.96 \geq \sqrt{T}r_k \geq 1.96
+$$
+
+### El correlograma (5/5)
+
+En el ejemplo anterior tenemos:
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='50%', out.height='50%'}
+
+library(tidyverse)
+library(patchwork)
+
+# Crear la serie temporal de residuales
+ts_res <- ts(data$res, start = c(1960), end = c(2005), frequency = 1)
+
+# Calcular FAC
+acf_data <- acf(ts_res, plot = FALSE)
+acf_df <- data.frame(lag = acf_data$lag[, 1, 1], acf = acf_data$acf[, 1, 1])
+
+# Calcular FACP
+pacf_data <- pacf(ts_res, plot = FALSE)
+pacf_df <- data.frame(lag = pacf_data$lag, pacf = pacf_data$acf)
+
+# Límites de confianza
+conf_limit <- 1.96 / sqrt(length(ts_res))
+
+# Gráfica de FAC
+acf_plot <- ggplot(acf_df, aes(x = lag, y = acf)) +
+  geom_bar(stat = "identity", fill = "#69b3a2", color = "#69b3a2", width = 0.4) +
+  geom_hline(yintercept = 0, color = "black") +
+  geom_ribbon(aes(ymin = -conf_limit, ymax = conf_limit), fill = "#ff6f61", alpha = 0.2) +
+  labs(x = "Rezago", y = "FAC") +
+  theme_minimal()
+
+# Gráfica de FACP
+pacf_plot <- ggplot(pacf_df, aes(x = lag, y = pacf)) +
+  geom_bar(stat = "identity", fill = "#ff6f61", color = "#ff6f61", width = 0.4) +
+  geom_hline(yintercept = 0, color = "black") +
+  geom_ribbon(aes(ymin = -conf_limit, ymax = conf_limit), fill = "#69b3a2", alpha = 0.2) +
+  labs(x = "Rezago", y = "FACP") +
+  theme_minimal()
+
+# Combinar ambas gráficas
+combined_plot <- acf_plot / pacf_plot
+
+# Mostrar las gráficas
+print(combined_plot)
+```
+
+El correlograma muestra evidencia de autocorrelación entre varios retardos de los errores.
+
+### La Q de Ljung-Box (1/2)
+
+El estadístico \( Q \) es una prueba estadística cuya hipótesis es:
+
+$$
+\begin{align}
+H_0: &\ \text{No existe correlación de orden }k\\
+H_1: &\ \text{Existe correlación de orden }k
+\end{align}
+$$
+
+El estadístico \( Q \) se calcula como:
+
+$$
+Q = T(T+2) \sum_{j=1}^k \frac{\hat{r}_k^2}{T-j}
+$$
+
+Y, si la hipótesis nula es correcta, \( Q \sim \chi^2 \) con \( k \) grados de libertad.
+
+### La Q de Ljung-Box (2/2)
+
+En el ejemplo anterior, para el primer retardo tenemos:
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE}
+Box.test(data$res, lag=1, type="Ljung-Box")
+```
+
+Y para el segundo:
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE}
+Box.test(data$res, lag=2, type="Ljung-Box")
+```
+
+### Prueba de Breusch-Godfrey (1/3)
+
+Supongamos que el modelo es:
+
+$$
+\begin{align}
+\mathbf{y} &= \mathbf{x}\boldsymbol{\beta} + \mathbf{u}\\
+u_t &= \gamma + \sum_{i=2}^k \delta_i x_{it} + \sum_{j=1}^p \rho_j u_{t-j}
+\end{align}
+$$
+
+En la prueba de Breusch-Godfrey se plantea la siguiente hipótesis:
+
+$$
+\begin{align}
+H_0: &\ \mathbb{E}(u_t u_\tau)=0 \ \text{para todo } t\neq \tau \\
+H_1: &\ \mathbb{E}(u_t u_\tau)\neq 0 \ \text{para al menos un } \ t\neq \tau
+\end{align}
+$$
+
+### Prueba de Breusch-Godfrey (2/3)
+
+Los pasos para realizar la prueba de Breusch-Godfrey son los siguientes:
+
+1. Estimar el modelo por MCO y obtener los residuales estimados, \( e_t \).
+2. Estimar por MCO la siguiente expresión:
+
+$$
+e_t = \gamma + \sum_{i=2}^k \delta_i x_{it} + \sum_{j=1}^p \rho_j e_{t-j} + \epsilon_t
+$$
+
+<ol start="3">
+  <li>Calcular el estadístico \( BG = T \times R^2 \) y compararlo contra una distribución \( \chi^2 \) con \( p \) grados de libertad.</li>
+
+### Prueba de Breusch-Godfrey (3/3)
+
+En el ejemplo, para \(p=1\) tenemos:
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE}
+library(lmtest)
+bgtest(mod, order=1)
+```
+
+### Prueba de Durbin-Watson (1/4)
+
+La **prueba de Durbin-Watson** es una de las pruebas más conocidas, pero a la vez una de las más limitadas para detectar la autocorrelación. La prueba supone que:
+
+$$
+u_t = \rho u_{t-1} + \varepsilon_t,
+$$
+donde \(\varepsilon_t\) es un ruido blanco. La hipótesis de la prueba es:
+
+$$
+\begin{align}
+H_0: &\ \rho = 0\\
+H_1: &\ \rho \neq 0\\
+\end{align}
+$$
+
+### Prueba de Durbin-Watson (2/4)
+
+Los pasos para realizar la prueba de Durbin-Watson son los siguientes:
+
+1. Estimar el modelo por MCO y recuperar los residuales estimados, \( e_t \).
+2. Calcular el estadístico \( DW \):
+
+$$
+DW = \frac{\sum_{t=2}^T (e_t - e_{t-1})^2}{\sum_{t=1}^T e_t^2}
+$$
+
+Nota que \(0\leq DW \leq 4\).
+
+### Prueba de Durbin-Watson (3/4)
+
+Para estimar un modelo con heteroscedasticidad multiplicativa seguimos los siguientes pasos:
+
+<ol start="3">
+  <li>Utilizar los valores críticos de Durbin-Watson, \( D_L \) y \( D_U \):</li>
+  
+- Si \( DW < D_L \): _Se rechaza_ \( H_0 \). Evidencia de autocorrelación positiva.
+- Si \( D_L < DW < D_U \): _No se puede tomar decisión_.
+- Si \( DW > 4 - D_L \): _Se rechaza_ \( H_0 \). Evidencia de autocorrelación negativa.
+
+### Prueba de Durbin-Watson (4/4)
+
+Como regla de oro, _se espera que el estadístico de DW tenga un valor cercano a 2_ para rechazar la hipótesis de autocorrelación.
+
+En nuestro ejemplo:
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE}
+library(car)
+durbinWatsonTest(mod)
+```
+
+## Medidas correctivas de la autocorrelación
+
+### Medidas correctivas de la autocorrelación (1/2)
+
+Si logramos mostrar que nuestro modelo presenta problemas de autocorrelación, el siguiente paso es aplicar alguna medida correctiva.
+
+Si conocemos la matriz de varianzas y covarianzas de los errores, aplicamos el método de los MCG. Sin embargo, dado que el término de error es desconocido, la aplicación de este método es inviable.
+
+### Medidas correctivas de la autocorrelación (2/2)
+
+Si logramos mostrar que nuestro modelo presenta problemas de autocorrelación, el siguiente paso es aplicar alguna medida correctiva:
+
+- Si no conocemos la matriz de varianzas y covarianzas de los errores, pero podemos "adivinar" su forma, aplicamos el método de los **MCG Factibles** (MCGF). 
+
+- Si no podemos adivinar la forma de la matriz, estimamos el modelo por MCO, pero utilizando el procedimiento de **Newey-West** para calcular **varianzas robustas** (varianzas asintóticamente válidas).
+
+### El método de los MCGF: Método de Cochrane-Orcutt (1/6)
+
+Imaginemos que “adivinamos” que los errores del modelo siguen un proceso autorregresivo de orden 1, \( AR(1) \). Es decir:
+
+$$
+u_t = \rho u_{t-1} + \varepsilon_t
+$$
+
+Esta ecuación se estima por MCO usando \( e_t \) como estimador de \( u_t \). Con el valor estimado de \( \rho \) podemos transformar las variables en nuestro modelo calculando para toda variable \( z_t \) (incluyendo la constante):
+
+$$
+\tilde{z}_t = z_t - \rho z_{t-1}
+$$
+
+### El método de los MCGF: Método de Cochrane-Orcutt (2/6)
+
+Aplicando esta transformación obtenemos:
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE}
+rho <- durbinWatsonTest(mod)$r
+data %>% mutate(tconst = 1-rho,
+                tRcompb = Rcompb - rho*lag(Rcompb),
+                tProdb = Prodb - rho*lag(Prodb)) -> data
+modar <- lm(formula = tRcompb ~ tconst + tProdb - 1, data = data)
+modar
+durbinWatsonTest(modar)
+```
+
+### El método de los MCGF: Método de Cochrane-Orcutt (3/6)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Responde lo siguiente:
+
+- ¿Presenta el modelo transformado problemas de autocorrelación? 
+
+- ¿Qué pasa si el modelo se transforma utilizando \( \rho =1 \)?
+
+### El método de los MCGF: Método de Cochrane-Orcutt (4/6)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Muestra que, si \( \rho \) es conocido, los procedimientos de MCGF y MCG son equivalentes.
+
+### El método de los MCGF: Método de Cochrane-Orcutt (5/6)
+
+<span class="emphasis-blue">Nota</span>
+
+La transformación de los datos depende de la forma del proceso \( u_t \). Por ejemplo, si \( u_t \) sigue un proceso \( AR(2) \) tenemos:
+
+$$
+u_t = \rho_1 u_{t-1} + \rho_2 u_{t-2} + \varepsilon_t
+$$
+Esta ecuación se estima por MCO usando \( e_t \) como estimador de \( u_t \). 
+
+En este caso, se usan los valores estimados para \(\rho_1\) y \(\rho_2\) para transformar las variables en nuestro modelo (incluyendo la constante):
+
+$$
+\tilde{z}_t = z_t - \rho_1 z_{t-1} - \rho_2 z_{t-2}
+$$
+
+### El método de los MCGF: Método de Cochrane-Orcutt (6/6)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Estima el modelo por MCGF bajo el supuesto que el error sigue un proceso \( AR(2) \). Comenta.
+
+### Varianzas robustas de Newey-West
+
+Si no conocemos la forma de la matriz de covarianzas de los errores, podemos estimar el modelo por el método de los MCO, pero modificando los errores estándar para que estos tomen cuenta la autocorrelación.
+
+En nuestro ejemplo, si usamos los **errores estándar robustos de Newey-West** obtenemos:
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE}
+library(sandwich)
+coeftest(mod,vcov=vcovHAC(mod))
+```
+
+Naturalmente, los residuales siguen presentando autocorrelación, pero los estimadores son insesgados y las pruebas \( t \) y \( F \) son válidas.
+
+
+## Práctica
+
+### Práctica
+
+Utiliza los datos: _E205--usconsumption_. El objetivo es determinar el gasto real en consumo en el periodo 1947-2000 en los Estados Unidos
+
+Usando la variable consumption (Real Consumption Expenditure) como dependiente y el resto de las variables como explicativas, realiza un análisis completo del problema de la autocorrelación.

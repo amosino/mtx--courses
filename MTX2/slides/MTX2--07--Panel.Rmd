@@ -1,0 +1,1189 @@
+---
+title: "Modelos con datos de panel"
+author: 
+  - "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v. 2026.05.06"
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    transition: 0
+    slide_level: 3
+    css: ../src/custom.css
+---
+
+## Estructura de los datos panel
+
+
+### ¿Qué son los datos de panel? (1/2)
+
+
+En los modelos con **datos de panel**, tenemos simultáneamente las dimensiones de _espacio_ y de _tiempo_: _la misma unidad de corte transversal se estudia a lo largo del tiempo_.
+
+
+$$
+\begin{align}
+y_{it}=& \beta_1x_{it}^1+\beta_2x_{it}^2+\ldots+\beta_kx_{it}^k+u_{it}\\
+i=& 1,\ldots,N\\
+t=&1,\ldots,T
+\end{align}
+$$
+
+
+### ¿Qué son los datos de panel? (2/2)
+
+Un modelo con datos de panel se puede escribir de forma más compacta:
+
+
+
+$$
+y_{it}=\mathbf{x}_{it}\boldsymbol{\beta}+u_{it}
+$$
+
+
+donde:
+
+
+$$
+\mathbf{x}_{it}=\begin{bmatrix}
+x_{it}^1 & x_{it}^2 & \ldots & x_{it}^k
+\end{bmatrix}
+$$
+
+y:
+
+
+$$
+\boldsymbol{\beta}=\begin{bmatrix}
+\beta_1 \\
+\beta_2 \\
+\vdots  \\
+\beta_k  
+\end{bmatrix}
+$$
+
+
+
+### Terminología
+
+
+Se dice que:
+
+
+- Un panel de datos es **balanceado** si cada sujeto tiene el mismo número de observaciones. El panel es **desbalanceado** si no.
+
+- Un panel es **corto** si \(N>T\). En cambio, un panel es **largo** si \(T>N\).
+
+
+Aquí estudiaremos paneles balanceados.
+
+
+### Cómo organizamos un panel de datos? (1/4)
+
+
+La forma más común de organizar un panel de datos es por unidades de sección cruzada. 
+Especificamente:
+
+
+$$
+\mathbf{y}_i=\begin{bmatrix}
+y_{i1}\\
+y_{i2}\\
+\vdots \\
+y_{iT}
+\end{bmatrix}_{(T\times 1)} \quad \quad
+\mathbf{x}_i=\begin{bmatrix}
+\mathbf{x}_{i1}\\
+\mathbf{x}_{i2}\\
+\vdots \\
+\mathbf{x}_{iT}
+\end{bmatrix}_{(T\times K)}\quad \quad
+\mathbf{u}_i=\begin{bmatrix}
+u_{i1}\\
+u_{i2}\\
+\vdots\\
+u_{iT}
+\end{bmatrix}_{(T\times 1)}
+$$
+
+
+### ¿Cómo organizamos un panel de datos? (2/4)
+
+
+Además, también podemos apilar los datos como sigue:
+
+
+$$
+\mathbf{y}=\begin{bmatrix}
+\mathbf{y}_{1}\\
+\mathbf{y}_{2}\\
+\vdots \\
+\mathbf{y}_{N}
+\end{bmatrix}_{(NT\times 1)} \quad \quad
+\mathbf{x}=\begin{bmatrix}
+\mathbf{x}_{1}\\
+\mathbf{x}_{2}\\
+\vdots \\
+\mathbf{x}_{N}
+\end{bmatrix}_{(NT\times K)}\quad \quad
+\mathbf{u}=\begin{bmatrix}
+\mathbf{u}_{1}\\
+\mathbf{u}_{2}\\
+\vdots\\
+\mathbf{u}_{N}
+\end{bmatrix}_{(NT\times 1)}
+$$
+
+
+Esto nos permite escribir el modelo como:
+
+
+$$
+\mathbf{y}=\mathbf{x}\boldsymbol{\beta}+\mathbf{u}
+$$
+
+
+
+### ¿Cómo organizamos un panel de datos? (3/4)
+
+
+A manera de ejemplo, considera el siguiente modelo de aerolineas:
+
+
+
+$$
+\begin{align}
+C_{it}=&\beta_1+\beta_2Q_{it}+\beta_3PF_{it}+\beta_4LF_{it}+u_{it}\\
+i=&1,2,\ldots,6\\
+t=& 1,2,\ldots,15
+\end{align}
+$$
+
+
+Donde:
+
+
+$$
+\begin{align}
+C_{it}& : \quad \text{Costo total, 1000's de dólares}\\
+Q_{it} &: \quad \text{Poducción, ingresos por milla por pasajero}\\
+PF_{it} &: \quad \text{Precio del combustible}\\
+LF_{it} &: \quad \text{Factor de carga}
+\end{align}
+$$
+
+
+
+### ¿Cómo organizamos un panel de datos? (4/4)
+
+El panel de datos se ve:
+
+$$
+\begin{array}{cccc}
+\textbf{C} & \textbf{Q} & \textbf{PF} & \textbf{LF} \\ \hline 
+C_{1,1} & Q_{1,1} & PF_{1,1} & LF_{1,1} \\
+C_{1,2} & Q_{1,2} & PF_{1,2} & LF_{1,2} \\
+\vdots & \vdots & \vdots & \vdots \\
+C_{1,15} & Q_{1,15} & PF_{1,15} & LF_{1,15} \\[5pt]
+C_{2,1} & Q_{2,1} & PF_{2,1} & LF_{2,1} \\
+C_{2,2} & Q_{2,2} & PF_{2,2} & LF_{2,2} \\
+\vdots & \vdots & \vdots & \vdots \\
+C_{2,15} & Q_{2,15} & PF_{2,15} & LF_{2,15} \\[5pt]
+\vdots & \vdots & \vdots & \vdots \\[5pt]
+C_{6,15} & Q_{6,15} & PF_{6,15} & LF_{6,15} \\
+\end{array}
+$$
+
+
+### Estimación del modelo básico: datos agrupados (1/2)
+
+Si suponemos que se satisfacen los supuestos del modelo de regresión lineal (\(u_{it}\sim iid(0,\sigma^2\)) para todo \(i\) y \(t\), y que las variables explicativas sean exógenas), el estimador de mínimos cuadrados ordinarios (MCO):
+
+
+$$
+\mathbf{b}=(\mathbf{x}'\mathbf{x})^{-1}\mathbf{x}'\mathbf{y}
+$$
+
+
+es _insesgado_, _eficiente_ y _consistente_.
+
+
+_Problema._ El modelo ignora la estructura de panel que tienen los datos. En particular, el modelo no toma en cuenta la **heterogeneidad** que existe entre las observaciones.
+
+
+### Estimación del modelo básico: datos agrupados (2/2)
+
+
+Si estimamos por MCO el modelo de las aerolineas obtenemos:
+
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='50%', out.height='50%'}
+
+library(tidyverse)
+library(plm)
+library(here)
+
+data <- read_delim(here("data/E211--airlines.csv"))
+
+pls <- plm(C ~ Q + PF + LF, 
+           model = "pooling",
+           data=data)
+summary(pls)
+
+```
+
+## Extensiones al modelo simple
+
+
+### Extensiones al modelo simple (1/2)
+
+Como hemos dicho, el modelo básico no toma en cuenta la heterogeneidad que existe entre observaciones. Esto puede conducir a problemas de **endogeneidad**. Varias alternativas se han propuesto para evitar este problema. En general, consideraremos el siguiente modelo:
+
+
+$$
+y_{it}=\mathbf{x}_{it}\boldsymbol{\beta}+u_{it}
+$$
+
+
+donde suponemos que el número de individuos, \(N\), es grande y el número de periodos, \(T\), es corto. Además, suponemos que:
+
+
+$$
+u_{it}=\alpha_i+\eta_{it}
+$$
+
+
+donde \(\eta_{it}\) y \(\mathbf{x}_{it}\) no están correlacionados. Aquí, \(\eta_{it}\) es un **efecto idiosincrático** y \(\alpha_i\) es un **efecto individual**, o componente de error de corte transversal.
+
+
+
+### Extensiones al modelo simple (2/2)
+
+Dependiendo de los supuestos sobre el efecto individual, tenemos:
+
+
+- **Modelo de efectos aleatorios**: \(\alpha_i\) y \(\mathbf{x}_{it}\) no están correlacionados.
+
+
+- **Modelo de efectos fijos**: \(\alpha_i\) y \(\mathbf{x}_{it}\) están correlacionados.
+
+
+## El modelo con efectos aleatorios
+
+### El modelo con efectos aleatorios (1/8)
+
+En el modelo con efectos aleatorios tenemos que:
+
+
+$$
+\begin{align}
+y_{it}=&\mathbf{x}_{it}\boldsymbol{\beta}+u_{it}\\
+u_{it}=&\alpha_i+\eta_{it}
+\end{align}
+$$
+
+
+Además, el termino \(\alpha_i\) no está correlacionado con \(\mathbf{x}_{it}\) y:
+
+$$
+\begin{align}
+\mathbb{E}[\boldsymbol{\eta}] &= 0 
+& \quad \mathbb{E}[\boldsymbol{\eta \: \eta}'] &= \sigma_\eta^2\mathbf{I}_{NT} \\[5pt]
+\mathbb{E}[\alpha_i \alpha_j] &= 0, \; \text{para} \; i \neq j 
+& \quad \mathbb{E}[\alpha_i \alpha_i] &= \sigma_\alpha^2 \\[5pt]
+\mathbb{E}[\alpha_i \eta_{jt}] &= 0 
+& \quad \mathbb{E}[\alpha_i] &= 0
+\end{align}
+$$
+
+
+donde todos los valores esperados son condicionales a \(\mathbf{x}\).
+
+
+### El modelo con efectos aleatorios (2/8)
+
+
+Cuando el modelo verdadero es el modelo con efectos aleatorios, la estimación por MCO:
+
+
+1. Produce estimadores _consistentes_ de \(\boldsymbol{\beta}\), pero subestima los errores estándar de la regresión.
+
+
+2. No es eficiente comparado con el procedimiento de **mínimos cuadrados generalizados (MCG)**.
+
+
+### El modelo con efectos aleatorios (3/8)
+
+Como hemos aprendido, para estimar el modelo usando el método de mínimos cuadrados generalizados necesitamos factorizar la matriz de covarianzas de los errores.
+
+
+Para este modelo:
+
+
+$$
+\begin{align}
+\boldsymbol{\Omega}=& \mathbf{I}_N \otimes \boldsymbol{\Sigma}\\[5pt]
+=& \mathbb{E}[\mathbf{uu}']\\[5pt]
+=&\begin{bmatrix}
+\boldsymbol{\Sigma} & 0 & \ldots & 0\\
+0 & \boldsymbol{\Sigma} & \ldots & 0\\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \ldots & \boldsymbol{\Sigma}
+\end{bmatrix}_{NT\times NT}
+\end{align}
+$$
+
+
+### El modelo con efectos aleatorios (4/8)
+
+Dados nuestros supuestos, tenemos que:
+
+
+$$
+\boldsymbol{\Sigma} = \mathbb{E}[\mathbf{u}_i \mathbf{u}_i'] = \sigma_\eta^2 \mathbf{I}_T + \sigma_\alpha^2 \mathbf{i} \mathbf{i}' =
+\begin{bmatrix}
+\sigma_\eta^2 + \sigma_\alpha^2 & \sigma_\alpha^2 & \cdots & \sigma_\alpha^2 \\
+\sigma_\alpha^2 & \sigma_\eta^2 + \sigma_\alpha^2 & \cdots & \sigma_\alpha^2 \\
+\vdots & \vdots & \ddots & \vdots \\
+\sigma_\alpha^2 & \sigma_\alpha^2 & \cdots & \sigma_\eta^2 + \sigma_\alpha^2
+\end{bmatrix}_{T \times T}
+$$
+
+
+
+donde \(\mathbf{i}\) es un vector de unos de tamaño \(T \times 1 \).
+
+
+
+
+### El modelo con efectos aleatorios (5/8)
+
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+Muestra que:
+
+$$
+\boldsymbol{\Sigma}=\mathbb{E}[\mathbf{u}_i\mathbf{u}'_i]=\sigma_\eta^2\mathbf{I}_T+\sigma_\alpha^2\mathbf{ii}'
+$$
+
+
+
+### El modelo con efectos aleatorios (6/8)
+
+
+Adémas, se puede demostrar que:
+
+
+$$
+\begin{align}
+\boldsymbol{\Sigma}^{-1/2}=&\left[\mathbf{I}_T-\frac{\theta_i}{T}\mathbf{ii}'\right]\\[10pt]
+\theta=& 1- \sqrt{\frac{\sigma_\eta^2}{\sigma_\eta^2+T\sigma_\alpha^2}}
+\end{align}
+$$
+
+
+
+### El modelo con efectos aleatorios (7/8)
+
+
+
+Finalmente, podemos transformar las variables del modelo. Por ejemplo, para la variable dependiente:
+
+
+
+$$
+\boldsymbol{\Sigma}^{-1/2}\mathbf{y}_i=\frac{1}{\sigma_\eta^2}\begin{bmatrix}
+y_{i1}-\theta\overline{y}_{i\cdot}\\
+y_{i2}-\theta\overline{y}_{i\cdot}\\
+\vdots \\
+y_{iT}-\theta\overline{y}_{i\cdot}
+\end{bmatrix}\; ; \quad\overline{y}_{i\cdot}=\frac{1}{T} \sum_{t=1}^{T} y_{it}
+$$
+
+
+Lo mismo para las variables explicativas del modelo.
+
+
+### El modelo con efectos aleatorios (8/8)
+
+
+Para poder estimar el modelo por el método de los MCG (factibles), es necesario estimar las varianzas, \(\sigma_\eta\) y \(\sigma_\alpha\). Estas pueden obtenerse combinando dos diferentes estimadores:
+
+
+
+- Estimador _entre_ grupos o **between**.
+
+- Estimador _intra_ grupos o **within**.
+
+
+_Nota._ 
+
+Ambos estimadores son consistentes, aunque no eficientes comparados con el estimador de MCG.
+
+
+
+### Estimador between (1/4)
+
+Calculamos el promedio temporal de todas las variables del modelo:
+
+
+$$
+\begin{align}
+\overline{y}_{i\cdot}= & \frac{1}{T} \sum_{t=1}^{T} y_{it}\: ;\quad i= 1,\ldots, N\\[5pt]
+\overline{x}_{i\cdot}^j= & \frac{1}{T} \sum_{t=1}^{T} x_{it}^j\: ;\quad j= 1,\ldots, K
+\end{align}
+$$
+
+
+
+Y planteamos el modelo:
+
+
+$$
+\overline{y}_{i\cdot}=\overline{\mathbf{x}}_{i\cdot}\boldsymbol{\beta}+\text{error}
+$$
+
+
+### Estimador between (2/4)
+
+
+El modelo tambien se puede expresar en términos matriciales. Para hacer esto:
+ 
+
+- Definimos una matriz \(\mathbf{D}\) formada de \(N\) variables dummy, una por cada unidad de observación. Nota que \(\mathbf{D}\) es una matriz de dimensión \(NT\times N\).
+
+
+- Definimos ahora la siguiente matriz _simétrica_ e _idempotente_.
+
+
+$$
+\mathbf{P}_D=\mathbf{D}(\mathbf{D}'\mathbf{D})^{-1}\mathbf{D}'
+$$
+
+
+- Premultiplicamos el modelo de base por la matriz \(\mathbf{P}_D\).
+
+
+
+### Estimador between (3/4)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+Muestra que los modelos:
+
+
+$$
+\mathbf{P}_D\mathbf{y}=\mathbf{P}_D \mathbf{X} \boldsymbol{\beta}+ \mathbf{P}_D\mathbf{u}
+$$
+
+
+
+y:
+
+
+
+$$
+\overline{y}_{i\cdot}=\overline{\mathbf{x}}_{i\cdot}\boldsymbol{\beta}+\text{error}
+$$
+
+
+son equivalentes.
+
+
+
+### Estimador between (4/4)
+
+
+El **estimador between** resulta de estimar el _modelo transformado_ por el método de los MCO:
+
+
+$$
+\mathbf{b}_B=(\mathbf{X}'\mathbf{P}_D\mathbf{X})^{-1} \mathbf{X}'\mathbf{P}_D \mathbf{y}
+$$
+
+
+_Nota._ En otro contexto, a \(\mathbf{b}_B\) también se le conoce como **estimador de Wald**.
+
+
+
+### Estimador within (1/2)
+
+
+Si ahora definimos la matriz (_simétrica_ e _idempotente_):
+
+
+$$
+\mathbf{M}_D=\mathbf{I}_{NT}-\mathbf{P}_D
+$$
+
+
+
+y estimamos por el método de los MCO el modelo:
+
+
+$$
+\mathbf{M}_D\mathbf{y}=\mathbf{M}_D\mathbf{X}\boldsymbol{\beta}+\mathbf{M}_D\mathbf{u}
+$$
+
+Obtenemos el **estimador within**:
+
+
+$$
+\mathbf{b}_W=(\mathbf{X}'\mathbf{M}_D\mathbf{X})^{-1}\mathbf{X}'\mathbf{M}_D \mathbf{y}
+$$
+
+
+### Estimador within (2/2)
+
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+Muestra que el estimador within es el resultado de estimar por MCO a todos los datos incluyendo un conjunto de variables dummy. Muestra, además, que el estimador within también se obtiene de estimar por MCO:
+
+
+
+
+$$
+y_{it}-\overline{y}_{i \cdot}=(\mathbf{x}_{it}-\overline{\mathbf{x}}_{i\cdot})\boldsymbol{\beta}+\text{error}
+$$
+
+
+
+### Estimadores para \(\sigma_\eta\) y \(\sigma_\alpha\) (1/2)
+
+
+Ahora podemos calcular los estimadores para las varianzas de \(\sigma_\eta\) y \(\sigma_\alpha\). Estos son:
+
+
+
+$$
+\begin{align}
+\hat{\sigma}_\eta^2&=\frac{1}{NT-NK-N}\;\hat{\mathbf{u}}'_W \hat{\mathbf{u}}_W \\[5pt]
+\hat{\sigma}_B^2&= \frac{\hat{\mathbf{u}}'_B \;\hat{\mathbf{u}}_B}{N-K}\\[5pt]
+\hat{\sigma}_\alpha^2&=\hat{\sigma}_B^2-\frac{\hat{\sigma}_\eta}{T}
+\end{align}
+$$
+
+
+donde:
+
+
+$$
+\begin{align}
+\hat{\mathbf{u}}_W &: \quad \text{Residuales del modelo within}\\
+\hat{\mathbf{u}}_B &: \quad \text{Residuales del modelo between}
+\end{align}
+$$
+
+
+### Estimadores para \(\sigma_\eta\) y \(\sigma_\alpha\) (2/2)
+
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+
+Muestra que los estimadores de \(\sigma_\eta\) y \(\sigma_\alpha\) son asintóticamente insesgados.
+
+
+
+### Estimadores between y within y el estimador de efectos aleatorios (1/5)
+
+
+Si no contamos con una computadora que calcule el estimador de efectos aleatorios directamente, podemos utilizar el siguiente procedimiento:
+
+
+
+- Calculamos los estimadores _between_ y _within_.
+
+
+- Utilizamos los residuales para calcular los términos de la varianza.
+
+
+
+
+### Estimadores between y within y el estimador de efectos aleatorios (2/5)
+
+
+- Calculamos el estimador de \(\theta\).
+
+- Calculamos el estimador de MCO de la siguiente regresión:
+
+
+$$
+\begin{align}
+\tilde{\mathbf{y}}=& \tilde{\mathbf{X}}\boldsymbol{\beta}+ \text{error}\\[5pt]
+\tilde{y}_{it}=& y_{it} -\overline{y}_{i \cdot}+\hat{\theta}\overline{y}_{i\cdot}\\[5pt]
+\tilde{\mathbf{X}}_{it}=&\mathbf{x}_{it}-\overline{\mathbf{x}}_{i\cdot}+\hat{\theta}\overline{\mathbf{x}}_{i\cdot}
+\end{align}
+$$
+
+
+Nota que cuando \(\sigma_\alpha^2=0\), \(\theta=1 \) y el estimador de efectos aleatorios se reduce al estimador de MCO del modelo de base.
+
+
+
+### Estimadores between y within y el estimador de efectos aleatorios (3/5)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+Calcula _manualmente_ los estimadores de efectos aleatorios mediante el cálculo de los estimadores between y within.
+
+
+### Estimadores between y within y el estimador de efectos aleatorios (4/5)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+Muestra que cuando \(\sigma_\alpha^2=0,\; \theta=1 \) y el estimador de efectos aleatorios se reduce al estimador de MCO del modelo de base.
+
+
+
+### Estimadores between y within y el estimador de efectos aleatorios (5/5)
+
+
+La estimación por MCG del modelo de las aerolineas con efectos aleatorios resulta en:
+
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='50%', out.height='50%'}
+
+rem <- plm(C ~ Q + PF + LF, 
+           model = "random",
+           data=data)
+summary(rem)
+
+```
+
+
+## El modelo con efectos fijos
+
+
+### El modelo con efectos fijos (1/4)
+
+En el modelo co efectos fijos tenemos:
+
+
+$$
+\begin{align}
+y_{it}=&\mathbf{x}_{it}\boldsymbol{\beta}+z_i\boldsymbol{\delta}+u_{it},\\[5pt]
+u_{it}=&\alpha_i + \eta_{it}
+\end{align}
+$$
+
+
+y:
+
+
+
+$$
+\begin{align}
+\mathbb{E}[\boldsymbol{\eta}] &= 0 
+& \quad \mathbb{E}[\boldsymbol{\eta \: \eta}'] &= \sigma_\eta^2\mathbf{I}_{NT} \\[5pt]
+\mathbb{E}[\alpha_i \alpha_j] &= 0, \; \text{para} \; i \neq j 
+& \quad \mathbb{E}[\alpha_i \alpha_i] &= \sigma_\alpha^2 \\[5pt]
+\mathbb{E}[\alpha_i \eta_{jt}] &= 0 
+& \quad \mathbb{E}[\alpha_i] &= 0
+\end{align}
+$$
+
+
+
+donde todos los valores esperados son condicionales a \(\mathbf{x}\) y a \(\mathbf{z}\).
+
+
+
+### El modelo con efectos fijos (2/4)
+
+
+En el modelo con efectos fijos tenemos un supuesto adicional:
+
+
+
+$$
+\mathbb{E}[\mathbf{w}_{it}'u_{it}]\neq 0\; ; \quad \mathbf{w}_{it}=\begin{bmatrix}
+\mathbf{x}_{it} & \mathbf{z}_i
+\end{bmatrix}
+$$
+
+
+
+Dado que ahora \(\alpha_i\) esta correlacionado con las variables explicativas, el estimador de MCO no será insesgado.
+
+
+### El modelo con efectos fijos (3/4)
+
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+Muestra que el estimador de MCO no es insesgado en el modelo con efectos fijos.
+
+
+
+### El modelo con efectos fijos (4/4)
+
+
+El modelo de efectos fijos toma en cuenta la posible  correlación entre \(\alpha_i\) y las variables explicativas. Para esto, tenemos dos posibilidades equivalentes:
+
+
+- Estimar explícitamente el efecto fijo, \(\alpha_i\).
+
+
+- Eliminar el efecto fijo, \(\alpha_i\).
+
+
+
+### Opción 1: Estimar el efecto fijo (1/3)
+
+Para estimar explícitamente el efecto fijo, basta con definir una matriz \(\mathbf{D}\) formada de \(N\) variables dummy, una por cada unidad de observación:
+
+
+
+$$
+\mathbf{D}_{NT\times T}=\mathbf{N}\otimes \mathbf{i}_{T}
+$$
+
+
+
+Esto nos permite correr por MCO el siguiente modelo:
+
+
+$$
+\mathbf{y}=\mathbf{X}\boldsymbol{\beta}+\mathbf{D}\boldsymbol{\alpha}+\mathbf{u}
+$$
+
+
+Este modelo se conoce como modelo de **mínimos cuadrados con variable binaria**.
+
+
+
+### Opción 1: Estimar el efecto fijo (2/3)
+
+
+
+Por ejemplo, el modelo de las aerolíneas sería ahora:
+
+
+$$
+\begin{align}
+C_{it}&=\alpha_1+\alpha_2D_{2t}+\alpha_3D_{3t}+\alpha_4D_{4t}+\alpha_5D_{5t}\\   
+& \quad \quad \quad+\beta_2Q_{it}+\beta_3PF_{it}+\beta_4LF_{it}+u_{it}\\[5pt]
+i&=1,\ldots,6\\[5pt]
+t&=1,\ldots,15
+\end{align}
+$$
+
+
+
+### Opción 1: Estimar el efecto fijo (3/3)
+
+
+La estimación por MCO del modelo de aerolíneas con variables _dummy_ resulta en:
+
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='50%', out.height='50%'}
+
+dvm <- plm(C ~ Q + PF + LF + factor(I) -1,
+           model = "pooling",
+           data=data)
+summary(dvm)
+
+```
+
+
+### Opción 2: Eliminar el efecto fijo (1/6)
+
+
+La otra opción para tratar con los efectos fijos es eliminarlos del modelo. Una posibilidad es calcular _primeras diferencias_:
+
+
+
+$$
+\begin{align}
+\Delta y_{it}=&\beta_1\Delta x_{it}^1+\beta_2\Delta x_{it}^2+\ldots+\beta_k \Delta x_{it}^k+\Delta u_{it}\\[5pt]
+\Delta z_{it}=&z_{it}-z_{it-1}\\[5pt]
+z_{it}=&\{y_{it},\:x_{it}^j,\:u_{it}\}
+\end{align}
+$$
+
+
+
+### Opción 2: Eliminar el efecto fijo (2/6)
+
+Para ver la lógica de esto, suponemos por un momento que \(T=2\). En este caso tenemos:
+
+
+$$
+\begin{align}
+y_{i1}=\mathbf{x}_{i1}\boldsymbol{\beta}+\mathbf{z}_i\boldsymbol{\delta}+u_{i1}\\[5pt]
+y_{i2}=\mathbf{x}_{i2}\boldsymbol{\beta}+\mathbf{z}_i\boldsymbol{\delta}+u_{i2}
+\end{align}
+$$
+
+
+
+### Opción 2: Eliminar el efecto fijo (3/6)
+
+
+Ahora, consideramos la siguiente combinación lineal de \(y_{i1}\) y \(y_{i2}\), tal que eliminen los efectos fijos:
+
+
+$$
+\begin{align}
+y_{i1}-y_{i2}=&(\mathbf{x}_{i2}-\mathbf{x}_{i1})\boldsymbol{\beta}+(\mathbf{z}_i-\mathbf{z}_i)\boldsymbol{\delta}+(u_{i2}-u_{i1})\\[5pt]
+\Delta\mathbf{y}=& \Delta \mathbf{x}\boldsymbol{\beta}+\Delta \mathbf{z}\boldsymbol{\delta}+\Delta \mathbf{u}\\[5pt]
+=&\Delta \mathbf{X}\boldsymbol{\beta} + \Delta \mathbf{\eta}
+\end{align}
+$$
+
+
+Para esta transformación tenemos que:
+
+$$
+\mathbb{E}[\Delta\mathbf{X}'\Delta\eta]=0\; !
+$$
+
+
+### Opción 2: Eliminar el efecto fijo (4/6)
+
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Muestra que para cualquier número de periodos, el **estimador de primeras diferencias** se puede obtener si post-multiplicamos el vector:
+
+
+$$
+\begin{bmatrix}
+y_{i1} & y_{i2} & \ldots & y_{iT}
+\end{bmatrix}_{1\times T}
+$$
+
+
+por la matriz:
+
+
+$$
+\mathbf{F}= \begin{bmatrix}
+-1 & 0 & 0 & \ldots & 0 \\
+1 & -1 & 0 & \ldots & 0 \\
+0 & 1 & -1 & \ldots & 0 \\
+\vdots & \vdots & \vdots & \ddots & \vdots\\
+0 & 0 & 0 & \ldots & -1 \\
+0 & 0 & 0 & \ldots & 1
+\end{bmatrix}_{T\times(T-1)}
+$$
+
+
+
+### Opción 2: Eliminar el efecto fijo (5/6)
+
+
+La estimación por MCO del modelo de aerolíneas en primeras diferencias resulta en:
+
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='50%', out.height='50%'}
+
+fdm <- plm(C ~ Q + PF + LF + factor(I),
+           model = "fd",
+           data=data)
+summary(fdm)
+```
+
+
+### Opción 2: Eliminar el efecto fijo (6/6)
+
+
+De  nuestro análisis anterior deducimos que:
+
+
+- Transformando los datos del modelo, podemos obtener estimadores _consistentes_ aun cuando los estimadores de MCO ecuación por ecuación sean _sesgados_.
+
+- Sin embargo, cuando calculamos los estimadores de _efectos fijos_ no podemos recuperar los estimadores de cualquier variable que no dependa del tiempo.
+
+- El estimador de efectos fijos es _robusto_ aun cuando se excluyan variables que no dependan del tiempo.
+
+- Cuando el modelo de _efectos aleatorios_ es válido, el modelo de _efectos fijos_ aun produce estimadores _consistentes_.
+
+
+### El modelo con efectos fijos: estimador *within* (1/4)
+
+Consideremos nuevamente el modelo:
+
+
+$$
+y_{it}=\mathbf{x}_{it}\boldsymbol{\beta}+\alpha_i+\eta_{it}
+$$
+
+
+Otra opción para eliminar el efecto individal consiste en calcular el **estimador within**:
+
+
+$$
+\begin{align}
+\mathbf{b}_W=&(\mathbf{X}'\mathbf{M}_D\mathbf{X})'(\mathbf{X}'\mathbf{M}_D\mathbf{y})\\[5pt]
+\mathbf{M}_D=&\mathbf{I}-\mathbf{D}(\mathbf{D}'\mathbf{D})\mathbf{D}'\\[5pt]
+\mathbf{D}=&\mathbf{I}_N \otimes \mathbf{i}_T
+\end{align}
+$$
+
+
+### El modelo con efectos fijos: estimador *within* (2/4)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+Muestra que el estimador _within_ elimina los efectos fijos, \(\alpha_i\), del modelo original.
+
+
+_Pista_. Nota como el modelo con efectos fijos puede escribirse en forma matricial como
+
+
+$$
+\mathbf{y}=\mathbf{X}\boldsymbol{\beta}+\mathbf{D}\boldsymbol{\alpha}+\boldsymbol{\eta}
+$$
+
+
+
+### El modelo con efectos fijos: estimador *within* (3/4)
+
+
+*Nota*. Cuando usamos el estimador within para estimar los efectos fijos, los errores estándar tienen que corregirse. Los errores estándar correctos se calculan a partir de:
+
+$$
+\mathbf{\Omega}_{bw} = \sigma_\eta^2(\mathbf{X}'\mathbf{M}_D \mathbf{X})'
+$$
+
+
+donde el estimador de \(\sigma_\eta\) deberia calcularse como:
+
+
+$$
+\hat{\sigma}_\eta^2=\frac{\mathbf{u}'_W\:\mathbf{u}_W}{NT-N-K}
+$$
+
+
+Sin embargo, la computadora calcula este estimador como (¿Por qué?):
+
+
+
+$$
+\hat{\sigma}_{\text{computadora}}^2=\frac{\mathbf{u}'_W\:\mathbf{u}_W}{NT-K}
+$$
+
+Entonces para corregir los grados de libertad calculamos:
+
+
+$$
+\hat{\sigma}_\eta^2=\frac{NT-K}{NT-NK-K} \; \hat{\sigma}_{\text{computadora}}^2
+$$
+
+
+### El modelo con efectos fijos: estimador *within* (4/4)
+
+
+La estimación por MCO del modelo de aerolíneas con efectos fijos versión _within_ resulta en:
+
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='50%', out.height='50%'}
+
+fem <- plm(C ~ Q + PF + LF,
+           model = "within",
+           data=data)
+summary(fem)
+
+```
+
+
+
+## ¿Efectos fijos o efectos aleatorios?
+
+### La prueba de Wu-Hausman (1/3)
+
+
+Normalmente, los resultados de estimar un modelo con efectos fijos y un modelo con efectos aleatorios son diferentes. Entonces, ¿cuál de los dos modelos debemos elegir?
+
+Como hemos dicho:
+
+
+
+- Si los efectos individuales _no están correlacionados_ con las variables explicativas, el estimador de efectos aleatorios es consistente y eficiente. El estimador de efectos fijos es consistente, pero no eficiente.
+
+
+- Si los efectos individuales _están correlacionados_ con las variables explicativas, el estimador de efectos fijos es consistente y eficiente. El estimador de efectos aleatorios es inconsistente.
+
+
+### La prueba de Wu-Husman (2/3)
+
+
+La prueba de **Wu-Hausman** consiste en calcular el estadístico:
+
+
+$$
+H=(\mathbf{b}_{RE}-\mathbf{b}_{FE})'(\boldsymbol{\Sigma}_{FE}-\boldsymbol{\Sigma}_{RE})^{-1}(\mathbf{b}_{RE}-\mathbf{b}_{FE})
+$$
+
+
+Y plantear la siguiente:
+
+
+$$
+\begin{align}
+H_0 &: \quad \text{Modelo con efectos aleatorios}\\
+H_1 &: \quad \text{Modelo sin efectos aleatorios}
+\end{align}
+$$
+
+
+Se puede mostrar que si \(H_0\) es verdadero:
+
+
+$$
+H\:\sim\; \chi_k^2
+$$
+
+### La prueba de Wu-Husman (3/3)
+
+En el ejemplo de las aerolíneas tenemos:
+
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='50%', out.height='50%'}
+
+phtest(fem, rem)
+
+```
+
+### La prueba de Breush-Pagan (1/2)
+
+
+Es importante resaltar que aun si rechazamos \(H_0\) en la prueba de Wu-Hausman _no podemos estar completamente seguros de que el modelo verdadero es el de efectos fijos_. La única conclusión que podemos derivar de la prueba de Wu-Hausman es que la diferencia entre los dos estimadores \(\mathbf{b}_{RE}\) y \(\mathbf{b}_{FE}\) no es estadísticamente significativa.
+
+
+Otra prueba que suele aplicarse es la de *Breush-Pagan*. En esta:
+
+$$
+\begin{align}
+H_0 &: \quad \sigma_\alpha^2=0 \implies  \text{No hay efectos aleatorios}\\[5pt]
+H_a &: \quad \sigma_\alpha^2\neq0 \implies \text{Hay efectos aleatorios}
+\end{align}
+$$
+
+Se puede mostrar que si \(H_0\) es verdadero:
+
+$$
+BP\: \sim \; \chi_1^2
+$$
+
+
+### La prueba de Breush-Pagan (2/2)
+
+
+En el ejemplo de las aerolíneas tenemos:
+
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='50%', out.height='50%'}
+
+plmtest(fem, type=("bp"))
+
+```
+
+
+Nota que ambas pruebas indican la conveniencia de utilizar un modelo de efectos fijos.
+
+
+### La prueba de Welch (1/2)
+
+Otra prueba que suele realizarse cuando estimamos modelos con datos de panel es la **prueba de Welch**, la cual nos permite detectar si existe _heterogeneidad entre unidades_. En particular:
+
+$$
+\begin{align}
+H_0 &: \quad \mu_1=\mu_2=\cdots=\mu_N \\[5pt]
+H_a &: \quad \text{Al menos una media de grupo es diferente}
+\end{align}
+$$
+
+El estadístico de Welch se construye como:
+
+$$
+W=
+\frac{
+\displaystyle \sum_{i=1}^{N} w_i(\bar{y}_i-\bar{y})^2/(N-1)
+}{
+\displaystyle 1+\frac{2(N-2)}{N^2-1}
+\sum_{i=1}^{N}
+\frac{1}{T_i-1}
+\left(1-\frac{w_i}{\sum_{j=1}^{N}w_j}\right)^2
+}; \quad  \quad w_i=\frac{T_i}{s_i^2}
+$$
+
+La prueba de Welch contrasta si las medias de los grupos pueden considerarse iguales, permitiendo que las varianzas difieran entre grupos. Si rechazamos \(H_0\), tenemos evidencia de que las unidades no son homogéneas entre sí.
+
+### La prueba de Welch (2/2)
+
+Bajo \(H_0\) tenemos:
+
+$$
+W \sim F_{N-1,\nu}
+$$
+
+donde \(\nu\) es un número aproximado de grados de libertad dado por:
+
+$$
+\nu=
+\frac{N^2-1}{
+3\displaystyle \sum_{i=1}^{N}
+\frac{1}{T_i-1}
+\left(1-\frac{w_i}{\sum_{j=1}^{N}w_j}\right)^2
+}
+$$
+
+Si rechazamos \(H_0\), tenemos evidencia de heterogeneidad entre las unidades de corte transversal. Esto sugiere que el modelo agrupado podría ser demasiado restrictivo y que conviene considerar modelos con efectos individuales.
+
+
+
+## Práctica
+
+### Práctica
+
+
+Utiliza los datos: _E212--charity.csv_ para hacer un análisis completo utilizando los modelos de datos de panel. El objetivo es determinar cuáles son las variables que determinan el monto donado a la caridad.
+
+
+$$
+\begin{align}
+&\textbf{charity}: \text{Suma de dinero destinado a la caridad.}\\
+&\textbf{income}: \text{Ingreso bruto.}\\
+&\textbf{price}:  \text{1-tasa impositiva al ingreso.}\\
+&\textbf{age}:  \text{Variable dummy = 1 si la persona tiene más de 64 años.}\\
+&\textbf{ms}:  \text{Variable dummy = 1 si la persona está casada.}\\
+&\textbf{deps}:  \text{Número de dependientes económicos.}
+\end{align}
+$$
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

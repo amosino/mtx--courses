@@ -1,0 +1,266 @@
+---
+title: "El método de los Mínimos Cuadrados Generalizados"
+author: 
+  - "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v. 2026.01.27"
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output: 
+  ioslides_presentation:
+    widescreen: true
+    transition: 0
+    slide_level: 3
+    css: ../src/custom.css
+---
+
+## Varianzas y covarianzas de los errores
+
+### Varianzas y covarianzas de los errores
+
+La **matriz de varianzas y covarianzas de los errores** puede calcularse como:
+
+$$
+\boldsymbol{\Omega} = \mathbb{E}(\mathbf{uu'})
+$$
+
+
+_Cuando se cumplen todos los supuestos de Gauss-Markov_:
+
+$$
+\boldsymbol{\Omega} = \sigma^2 \mathbf{I}_n,
+$$
+  
+donde \( \sigma^2 \) es la varianza constante de los errores y \( \mathbf{I}_n \) es una matriz identidad \( n \times n \).
+
+### ¿En qué consiste la heteroscedasticidad?
+
+En presencia de **heteroscedasticidad**:
+
+$$
+\begin{align}
+\text{var}(u_i) &= \mathbb{E}(u_i^2)\\
+&= \sigma_i^2, 
+\end{align}
+$$
+
+para \( i=1,2,\dots,n\). Entonces:
+
+$$
+\boldsymbol{\Omega} = \begin{pmatrix}
+\sigma_1^2 & 0 & 0 & \dots & 0 \\
+0 & \sigma_2^2 & 0 & \dots & 0 \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+0 & 0 & 0 & \dots & \sigma_n^2
+\end{pmatrix}
+$$
+
+### ¿En qué consiste la autocorrelación?
+
+En presencia de **autocorrelación**:
+
+$$
+\begin{align}
+\text{cov}(u_i, u_j) &= \mathbf{E}(u_iu_j)\\
+&=\sigma_{ij},
+\end{align}
+$$
+para \( i\neq j, i,j = 1,2,\dots,n \). Esto implica:
+
+$$
+\boldsymbol{\Omega} = \begin{pmatrix}
+\sigma^2 & \sigma_{12} & \sigma_{13} & \dots & \sigma_{1n} \\
+\sigma_{12} & \sigma^2 & \sigma_{22} & \dots & \sigma_{2n} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+\sigma_{1n} & \sigma_{2n} & \sigma_{3n} & \dots & \sigma^2
+\end{pmatrix}
+$$
+
+### Heteroscedasticidad y autocorrelación
+
+Naturalmente, en presencia de **heteroscedasticidad y autocorrelación** de forma simultánea, tenemos: 
+
+$$
+\boldsymbol{\Omega} = \begin{pmatrix}
+\sigma_1^2 & \sigma_{12} & \sigma_{13} & \dots & \sigma_{1n} \\
+\sigma_{12} & \sigma_2^2 & \sigma_{22} & \dots & \sigma_{2n} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+\sigma_{1n} & \sigma_{2n} & \sigma_{3n} & \dots & \sigma_n^2
+\end{pmatrix}
+$$
+
+## Propiedades de los estimadores de MCO
+
+### Propiedades de los estimadores de MCO (1/3)
+
+En presencia de heteroscedasticidad y/o autocorrelación, los estimadores de MCO siguen siendo **insesgados**. Nota que:
+
+$$
+\begin{align}
+  \boldsymbol{\hat{\beta}} &= (\mathbf{x}'\mathbf{x})^{-1}\mathbf{x}'\mathbf{y} \\
+  &= \boldsymbol{\beta} + (\mathbf{x}'\mathbf{x})^{-1}\mathbf{x}'\mathbf{u}
+\end{align}
+$$
+
+Dado que:
+
+$$
+\mathbf{E}(u_i)=0,
+$$
+entonces:
+
+$$
+\mathbb{E}(\mathbf{b})=\boldsymbol{\beta}
+$$
+
+### Propiedades de los estimadores de MCO (2/3)
+
+Calculamos ahora la varianza de los estimadores de MCO. En presencia de heteroscedasticidad y/o autocorrelación podemos demostrar que:
+
+$$
+\begin{align}
+\mathbb{E}[(\mathbf{b}-\boldsymbol{\beta})(\mathbf{b}-\boldsymbol{\beta})'] &= (\mathbf{x}'\mathbf{x})^{-1}\mathbf{x}'\boldsymbol{\Omega}\mathbf{x}(\mathbf{x}'\mathbf{x})^{-1} \\
+&\geq \sigma^2 (\mathbf{x}'\mathbf{x})^{-1}
+\end{align}
+$$
+
+
+- El lado derecho de la desigualdad corresponde a la varianza de los estimadores cuando todos los supuestos de Gauss-Markov se satisfacen. 
+
+- La desigualdad implica que, aunque los estimadores de MCO siguen siendo insesgados (y consistentes), son ineficientes.
+
+
+### Propiedades de los estimadores de MCO (3/3)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Prueba que los estimadores de MCO siguen siendo consistentes en presencia de heteroscedasticidad y/o autocorrelación.
+
+## Mínimos Cuadrados Generalizados
+
+### Mínimos Cuadrados Generalizados (MCG) (1/4)
+
+¿Cómo hacemos la estimación de los coeficientes en presencia de heteroscedasticidad y/o autocorrelación? 
+
+Consideremos el modelo:
+
+$$
+\begin{align}
+&\mathbf{y} = \mathbf{x}\boldsymbol{\beta} + \mathbf{u}, \\
+&\mathbb{E}(\mathbf{u}\mathbf{u}') = \boldsymbol{\Omega}
+\end{align}
+$$
+
+Si conocemos la matriz \( \boldsymbol{\Omega} \), podemos utilizar el método de los **Mínimos Cuadrados Generalizados** (MCG o GLS, por sus siglas en inglés).
+
+
+### Mínimos Cuadrados Generalizados (MCG) (2/4)
+
+Dado que \( \boldsymbol{\Omega} \) es simétrica y definida positiva, existe una matriz \( \mathbf{P} \) tal que:
+
+$$ 
+\begin{align}
+\mathbf{P}\boldsymbol{\Omega}\mathbf{P}' &= \mathbf{I}_n \\ \Rightarrow \boldsymbol{\Omega}^{-1} & = \mathbf{P}\mathbf{P}'
+\end{align}
+$$
+
+Esta matriz \( \mathbf{P} \) puede ser utilizada para transformar el modelo:
+
+$$ 
+\begin{align}
+\mathbf{Py} &= \mathbf{Px}\boldsymbol{\beta} + \mathbf{Pu}  \\ \Rightarrow \tilde{\mathbf{y}} &= \tilde{\mathbf{x}}\boldsymbol{\beta} + \tilde{\mathbf{u}}
+\end{align}
+$$
+
+
+### Mínimos Cuadrados Generalizados (MCG) (3/4)
+
+Este nuevo modelo satisface todos los supuestos de Gauss-Markov. En particular, nota que:
+
+$$
+\begin{align}
+\mathbb{E}(\mathbf{\tilde{u}\tilde{u}}') &= \mathbf{P}\boldsymbol{\Omega}\mathbf{P}'\\
+& = \mathbf{I}_n
+\end{align}
+$$
+
+Entonces, el nuevo modelo puede ser estimado por el más habitual método de los MCO.
+
+
+### Mínimos Cuadrados Generalizados (MCG) (4/4)
+
+<span class="emphasis-blue">Ejercicio</span> 
+
+Encuentra los estimadores de MCO del modelo transformado. Muestra que estos son insesgados y que su matriz de covarianzas es:
+
+$$
+\begin{align}
+\boldsymbol{\Omega}_b &= \mathbb{E}[(\mathbf{\tilde{b}}-\boldsymbol{\beta})(\mathbf{\tilde{b}}-\boldsymbol{\beta})'] \\
+&= (\mathbf{x}'\boldsymbol{\Omega}^{-1}\mathbf{x})^{-1}
+\end{align}
+$$
+
+### El método de los MCG: Heteroscedasticidad
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Consideremos el modelo:
+
+$$
+y_i = \beta_1 + \beta_2 x_i + u_i
+$$
+
+Para cada uno de los siguientes casos, encuentra la matriz \( \mathbf{P} \) que nos permite estimar el modelo por MCG.
+
+1. \( \mathbb{E}(u_i^2) = \sigma^2 x_i^2 \)
+2. \( \mathbb{E}(u_i^2) = \sigma^2 x_i \)
+3. \( \mathbb{E}(u_i^2) = \sigma^2 \mathbb{E}(y_i) \)
+
+<span class="emphasis-blue">Nota</span>. Cuando solo existe heteroscedasticidad, el modelo de los MCG se conoce como el método de los **Mínimos Cuadrados Ponderados** (MCP). ¿Por qué?
+
+### El método de los MCG: Autocorrelación (1/2)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Supongamos que los errores del modelo siguen un proceso autorregresivo de orden 1:
+
+$$
+\begin{align}
+u_i &= \rho u_{t-1} + \epsilon_t, \\
+|\rho| &<1 \\
+\mathbb{E}(u_t)&=\mathbb{E}(u_{t-1})\\
+\epsilon_t &\sim iid\mathcal{N}(0,\sigma^2_\epsilon)
+\end{align}
+$$
+
+Muestra que la matriz de varianzas y covarianzas del error, \( \boldsymbol{\Omega} \), se calcula como:
+
+$$
+\boldsymbol{\Omega} = \frac{\sigma^2_\epsilon}{1-\rho^2}
+\begin{pmatrix}
+1 & \rho & \rho^2 & \dots & \rho^{T-1}\\
+\rho  & 1 &\rho & \dots & \rho^{T-2}\\
+\rho^2  &\rho  & 1 & \dots & \rho^{T-3}\\
+\vdots  &\vdots& \vdots   & \ddots & \vdots \\
+\rho^{T-1}  & \rho^{T-2} & \rho^{T-3}   & \dots     & 1\\
+  \end{pmatrix}
+$$
+
+
+### El método de los MCG: Autocorrelación (2/2)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Supongamos por un momento que:
+
+$$
+\boldsymbol{\Omega} = \frac{\sigma^2_\epsilon}{1-\rho^2}
+\begin{pmatrix}
+1 & \rho \\
+\rho  & 1
+  \end{pmatrix}
+$$
+Encuentra la matriz \( \mathbf{P} \) que nos permitirá utilizar el método de los MCG.
+
+<span class="emphasis-blue">Pista</span>: Utiliza el método de Cholesky para factorizar la matriz \( \boldsymbol{\Omega} \).

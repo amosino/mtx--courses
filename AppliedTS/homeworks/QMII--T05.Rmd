@@ -1,0 +1,133 @@
+---
+title: "Métodos Cuantitativos II"
+subtitle: "Tarea 5"
+author: "Alejandro Mosiño"
+date: "v. 2026-05-12"
+
+
+output:
+  html_document:
+    toc: false
+  pdf_document:
+    toc: false
+    
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, 
+  encoding = encoding, 
+  output_dir = "../docs", 
+  output_format = "all") })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(forecast)
+```
+
+---
+
+# Ejercicio 1
+
+Considera el modelo ARCH(1):
+
+$$
+\varepsilon_t = \upsilon_t\sqrt{h_t},
+\qquad
+\upsilon_t \sim iid(0,1)
+$$
+donde: 
+
+$$
+h_t = 0.4 + 0.7\varepsilon_{t-1}^2
+$$
+
+1. ¿El proceso es estacionario?
+2. Calcula la varianza no condicional de \(\varepsilon_t\).
+3. Explica qué implica el valor de \(\alpha_1\) sobre la persistencia de la volatilidad.
+4. ¿Esperarías observar _volatility clustering_? Explica.
+
+---
+
+# Ejercicio 2
+
+Después de estimar un modelo ARMA para una serie financiera, se estimó el siguiente modelo auxiliar:
+
+$$
+e_t^2 = 0.15 + 0.42e_{t-1}^2 + 0.31e_{t-2}^2 + u_t
+$$
+
+Además, se sabe que:
+
+$$
+T = 120, \qquad R^2 = 0.18.
+$$
+
+
+1. Calcula el estadístico ARCH-LM.
+2. Establece la hipótesis nula y la hipótesis alternativa.
+3. ¿Existe evidencia de heteroscedasticidad condicional al 5%?
+4. ¿Qué sugiere este resultado respecto al uso de modelos ARCH/GARCH?
+
+---
+
+# Ejercicio 3
+
+Considera el modelo GARCH(1,1):
+
+$$
+\varepsilon_t = \upsilon_t\sqrt{h_t},
+\qquad
+\upsilon_t \sim iid(0,1)
+$$
+donde: 
+
+$$
+h_t = 0.2 + 0.15\varepsilon_{t-1}^2 + 0.8h_{t-1}.
+$$
+
+1. ¿Es este proceso es estacionario?
+2. Calcula la varianza no condicional.
+3. ¿Qué tan persistente es la volatilidad?
+4. Explica qué ocurre con \(\widehat{h}_{T+s\mid T}\) cuando \(s\to\infty\).
+5. Compara intuitivamente este modelo con un ARCH(1).
+
+
+---
+
+# Ejercicio 4
+
+
+Descarga los precios de cierre de alguna serie financiera (puedes utilizar, por ejemplo, Yahoo Finance). Utiliza el software de tu preferencia para realizar lo siguiente:
+
+1. Grafica los rendimientos.
+2. Grafica los rendimientos al cuadrado.
+3. Describe visualmente si existe evidencia de _volatility clustering_.
+4. Estima un modelo ARCH(1).
+5. Estima un modelo GARCH(1,1).
+6. Reporta e interpreta los parámetros estimados.
+7. Calcula la persistencia de la volatilidad en ambos modelos.
+8. Calcula la varianza no condicional en ambos modelos.
+9. Genera un pronóstico de la varianza condicional para 20 periodos.
+10. Compara el comportamiento del pronóstico en el modelo ARCH(1) y en el modelo GARCH(1,1).
+
+---
+
+# Ejercicio 5
+
+Investiga una de las siguientes extensiones de los modelos ARCH/GARCH:
+
+- EGARCH
+- TGARCH / GJR-GARCH
+- IGARCH
+- Modelos de cambio de régimen con volatilidad
+
+Responde:
+
+1. ¿Qué limitación de los modelos ARCH/GARCH estándar intenta resolver esta extensión?
+2. Escribe la ecuación básica del modelo.
+3. ¿Qué cambia en la interpretación económica de la volatilidad?
+4. ¿Qué tipo de fenómenos financieros puede capturar mejor?
+5. ¿Cómo cambia el análisis de persistencia o pronóstico de volatilidad respecto al modelo GARCH estándar?
+6. Presenta una aplicación empírica real del modelo. Puede ser un artículo académico, un working paper o una aplicación documentada.
+7. ¿Consideras que el modelo GARCH estándar es suficiente para describir la volatilidad financiera real? Justifica tu respuesta.

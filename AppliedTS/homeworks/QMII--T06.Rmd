@@ -1,0 +1,107 @@
+---
+title: "Métodos Cuantitativos II"
+subtitle: "Tarea 6"
+author: "Alejandro Mosiño"
+date: "v. 2026-05-18"
+
+
+output:
+  html_document:
+    toc: false
+  pdf_document:
+    toc: false
+    
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, 
+  encoding = encoding, 
+  output_dir = "../docs", 
+  output_format = "all") })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(forecast)
+```
+
+---
+
+# Ejercicio 1
+
+Considera el siguiente sistema:
+
+$$
+\begin{align*}
+y_{1,t} &= 0.6y_{1,t-1} + 0.2y_{2,t-1} + \varepsilon_{1,t} \\
+y_{2,t} &= 0.1y_{1,t-1} + 0.5y_{2,t-1} + \varepsilon_{2,t}
+\end{align*}
+$$
+
+donde \(\varepsilon_{1,t}\) y \(\varepsilon_{2,t}\) son ruidos blancos.
+
+
+1. Reescribe el sistema en forma matricial:
+
+$$
+\mathbf y_t = \Phi\mathbf y_{t-1} + \boldsymbol\varepsilon_t.
+$$
+
+2. Utilizando el operador de rezagos, muestra que puedes reescribir el sistema como:
+$$
+(\mathbf{I}_2 - \Phi_1 L )\mathbf y_t =  \boldsymbol\varepsilon_t,
+$$
+donde \(\mathbf{I}_2\) es una matriz identidad de tamaño 2. 
+
+3. Un VAR(1) es estacionario si las raíces del determinante del polinomio \(\boldsymbol{\Phi}(L) = \mathbf{I}_2 - \Phi_1 L \) se encuentran fuera del círculo unitario. ¿Es el sistema estacionario?
+
+4. Explica intuitivamente qué significa la estacionariedad en un modelo VAR.
+
+---
+
+# Ejercicio 2
+
+Considera el siguiente modelo ARDL:
+
+$$
+y_t = \phi_0 + \phi_1 y_{t-1} + \gamma_1 x_{t-1} + \varepsilon_t.
+$$
+
+
+1. Explica la diferencia entre: 1) un modelo autorregresivo, 2) un modelo de rezagos distribuidos y 3) un modelo ARDL.
+
+2. ¿Por qué este modelo puede utilizarse para realizar pronósticos no condicionales?
+
+3. ¿Qué interpretación económica tiene el coeficiente \(\gamma_1\)?
+
+4. Explica qué representa una función impulso-respuesta en un modelo ARDL.
+
+---
+
+# Ejercicio 3
+
+Utiliza los datos `E319--Housing.csv`. Las variables corresponden al inicio y al fin de construcción de nuevas viviendas en Estados Unidos. Realiza lo siguiente:
+
+1. Grafica ambas series y comenta brevemente su comportamiento.
+
+2. Estima un VAR utilizando criterios de información para seleccionar el número de rezagos.
+
+3. Reporta: 1) el orden seleccionado y 2) las ecuaciones estimadas.
+
+4. Realiza pruebas de causalidad de Granger. ¿El inicio de construcción ayuda a predecir el fin de construcción? ¿El fin de construcción ayuda a predecir el inicio de construcción?
+
+5. Interpreta económicamente los resultados.
+
+---
+
+# Ejercicio 4
+
+Usando el VAR estimado en el ejercicio anterior:
+
+1. Calcula las funciones impulso-respuesta.
+
+2. Interpreta: 1) la dirección del efecto, 2) la persistencia y 3) el tiempo aproximado que tarda en disiparse el shock.
+
+3. Calcula la descomposición de la varianza.
+
+4. Explica qué información adicional proporciona la descomposición de la varianza respecto a las funciones impulso-respuesta.

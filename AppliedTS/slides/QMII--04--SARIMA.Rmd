@@ -1,0 +1,1103 @@
+---
+title: "Métodos Cuantitativos II"
+subtitle: "Modelos no estacionarios II: componente estacional"
+author: 
+  - "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v. 2026.03.20"
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    transition: 0
+    slide_level: 3
+    css: ../src/custom.css
+---
+
+<a class="qmii-footer" href="QMII--04--SARIMA.pdf" target="_blank">
+  PDF
+</a>
+
+## Introducción
+
+### Estacionariedad (1/4)
+
+Recordemos que para que una serie de tiempo, \( y_t \), sea estacionaria (en covarianza), es necesario que:
+
+- Su media y varianza sean constantes. Esto es, para todo \(t\in\mathbb{Z}\):
+
+$$
+\begin{align}
+\mathbb{E}(y_t) &= \mu;\\
+\mathbb{V}ar(y_t)&= \gamma_0<\infty
+\end{align}
+$$
+
+- Su función de autocovarianza dependa solo del desfase \( h \) y no del tiempo \( t \):
+
+$$
+\gamma(t,\tau) = \gamma(h); \ h=|t-\tau| \ \in \mathbb{Z}
+$$
+
+
+### Estacionariedad (2/4)
+
+Las siguientes series de tiempo podrían ser estacionarias:
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+library(tidyverse)
+library(astsa)
+library(here)
+
+culer = c('cyan4', 4, 2, 6)
+
+
+Quarterly <- read.csv(here("data", "E306--Quarterly.csv"))
+Unemp <- ts(Quarterly$Unemp, start =c(1960,1), frequency = 4)
+Tbill <- ts(Quarterly$Tbill , start =c(1960,1), frequency = 4)
+
+par(mfrow = c(2,1), cex.main=1)
+tsplot(Unemp, type='o', pch=19, col=culer, main="Tasa de desempleo", xlab="Tiempo", ylab="Desempleo")
+tsplot(Tbill, type='o', pch=19, col=culer, main= "Bonos del tesoro", xlab="Tiempo", ylab="Rendimiento")
+dev.off()
+
+```
+
+
+### Estacionariedad (3/4)
+
+¿Qué pasa si las series de tiempo presentan un **patrón estacional**? Por ejemplo:
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+AirPassengers.data <- read.csv(here("data", "E312--AirPassengers.csv"))
+Hawai.data <- read.csv(here("data", "E313--Hawai.csv"))
+
+AirPassengers <- ts(AirPassengers.data$passengers, start =c(1949,1), frequency = 12)
+Hawai <- ts(Hawai.data$x , start =c(2002,1), frequency = 4)
+
+par(mfrow = c(2,1), cex.main=1)
+tsplot(AirPassengers, type='o', pch=19, col=culer, main="No. Pasajeros internacionales en líneas aéreas", xlab="Tiempo", ylab="Pasajeros")
+tsplot(Hawai, type='o', pch=19, col=culer, main="Ocupación hotelera en Hawai", xlab="Tiempo", ylab="Ocupación")
+dev.off()
+
+```
+
+### Estacionariedad (4/4)
+
+_Los modelos con patrón estacional violan directamente la condición de estacionariedad_, esto es debido a que:
+
+
+$$
+\mathbb{E}(y_t) = \mu_s
+$$
+
+donde \(s\) indica la estación (mes, trimestre, etc.)
+
+
+### Incorporación del componente estacional en el modelo (1/3)
+
+El componente de la serie de tiempo que representa la variabilidad en los datos debida a influencias de las estaciones, se llama **componente estacional**. Existen dos formas diferentes para incorporar este componente en el modelo:
+
+
+- **Componente determinista**. Incorporamos _explícitamente_ en el modelo un patrón estacional.
+
+
+- **Componente estocástico**. El patrón estacional proviene de una _raíz unitaria estacional_.
+
+
+### Incorporación del componente estacional en el modelo (2/3)
+
+Componente determinista vs. Componente estocástico
+
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+library(latex2exp)
+
+set.seed(18)
+
+# Longitud de la serie: 10 años mensuales
+n <- 120
+S <- 12
+
+# -----------------------------
+# 1. Patrón estacional determinista
+# -----------------------------
+# Efectos estacionales fijos por mes
+season_pattern <- c(-4, -2, 0, 2, 4, 6, 8, 7, 4, 1, -1, -3)
+
+# Repetimos el patrón a lo largo del tiempo
+det_season <- rep(season_pattern, length.out = n)
+
+# Componente cíclico estacionario
+cycle_det <- arima.sim(model = list(ar = 0.7), n = n, sd = 1.5)
+
+# Serie determinista estacional
+det_process <- 20 + det_season + cycle_det
+
+
+# -----------------------------
+# 2. Patrón estacional estocástico
+# -----------------------------
+# Serie con raíz unitaria estacional:
+# y_t = y_{t-12} + epsilon_t
+sto_process <- numeric(n)
+
+# Inicializamos el primer año
+sto_process[1:S] <- 20 + season_pattern + rnorm(S, 0, 1.5)
+
+# Generamos la dinámica estacional estocástica
+for (t in (S + 1):n) {
+  sto_process[t] <- sto_process[t - S] + rnorm(1, 0, 1.5)
+}
+
+# Convertimos a series de tiempo mensuales
+det_process <- ts(det_process, start = c(1,1), frequency = 12)
+sto_process <- ts(sto_process, start = c(1,1), frequency = 12)
+
+# -----------------------------
+# 3. Gráfica
+# -----------------------------
+tsplot(cbind(Determinista = det_process, Estocástica = sto_process),
+       spaghetti = TRUE,
+       type = 'o',
+       pch = 19,
+       col = culer,
+       main = "Patrón estacional determinista vs. estocástico",
+       xlab = "Tiempo",
+       ylab = TeX("$y_t$"))
+
+legend("topleft",
+       legend = c("Determinista", "Estocástica"),
+       col = culer,
+       lty = 1,
+       pch = 19,
+       bty = "n")
+
+dev.off()
+
+```
+
+
+### Incorporación del componente estacional en el modelo (3/3)
+
+Aunque los dos tipos de componente estacional son visualmente parecidos, las implicaciones teóricas y prácticas son diferentes:
+
+- En un modelo con componente estacional determinista, los shocks tienen _efectos transitorios_. En un modelo con componente estacional estocástico, los shocks tienen _efectos persistentes_.
+
+- El procedimiento para _remover_ el componente estacional y hacer la serie estacionaria es distinto para cada caso.
+
+## Componente estacional determinista
+
+### Componente estacional determinista
+
+Las siguientes series muestran un patrón estacional muy claro:
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+gas_data <- read.csv(here("data/E309--Gasoline.csv"))
+gas <- ts(gas_data$gasales, start =c(1980,1), frequency = 12)
+liquor_data <- read.csv(here("data/E310--Liquor.csv"))
+liquor <- ts(liquor_data$liquor, start =c(1967,1), frequency = 12)
+
+
+par(mfrow = c(2,1), cex.main=1)
+tsplot(gas, type='o', pch=19, col=culer, main="Ventas de gasolina en Estados Unidos", xlab="Tiempo", ylab="Ventas de gasolina")
+tsplot(liquor, type='o', pch=19, col=culer, main="Ventas de licor en Estados Unidos", xlab="Tiempo", ylab="Ventas de licor")
+
+dev.off()
+
+```
+
+
+
+### Modelo estacional puro (1/2)
+
+Para incorporar el componente estacional determinista en el modelo, supongamos que \( s \) es el número de estaciones en un año. Debemos construir un conjunto de \( s \) **variables dummy estacionales**. Por ejemplo, si \( s = 4 \) (datos trimestrales):
+  
+$$
+  \begin{align}
+D_1 &= \begin{pmatrix} 1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 1 & \dots \end{pmatrix}\\
+D_2 &= \begin{pmatrix} 0 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & \dots \end{pmatrix}\\
+D_3 &= \begin{pmatrix} 0 & 0 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & \dots \end{pmatrix}\\
+D_4 &= \begin{pmatrix} 0 & 0 & 0 & 1 & 0 & 0 & 0 & 1 & 0 & \dots \end{pmatrix}\\
+\end{align}
+$$
+  
+  
+### Modelo estacional puro (2/3)
+  
+El **modelo estacional puro** es:
+  
+$$
+  y_t = \sum_{i=1}^s \gamma_i D_{it} + \varepsilon_t
+$$
+  
+Básicamente, tenemos un modelo en el que el intercepto es diferente en cada estación. Los coeficientes \( \gamma_i \) se conocen como **factores estacionales**.
+
+_Nota_. Como siempre, debemos tener cuidado de no caer en la _trampa de las dummies_.
+
+### Modelo estacional con tendencia (1/2)
+
+También podemos incluir una _tendencia determinista_ en un modelo estacional. Por ejemplo, si aumentamos el modelo estacional puro con una tendencia lineal tenemos:
+  
+$$
+  y_t = \beta_1 t + \sum_{i=1}^s \gamma_i D_{it} + \varepsilon_t
+$$
+También es posible tener modelos más complejos:
+  
+$$
+  y_t = \beta_1 t + \sum_{i=1}^s \gamma_i D_{it} + \sum_{i=1}^{\nu_1} \delta_i^{HD} HDV_{it} + \sum_{i=1}^{\nu_2} \delta_i^{TD} TDV_{it} + \varepsilon_t
+$$
+  
+donde \(HDV\) representa periodos de fiesta relevantes, y \(TDV\) son periodos de comercio relevantes. Estas también son variables dummy. 
+
+_Los estimadores de los coeficientes de todos estos modelos pueden obtenerse por MCO._
+
+
+### Modelo estacional con tendencia (2/2)
+
+Por ejemplo, considera las ventas de gasolina en Estados Unidos (en dólares):
+  
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+library(forecast)
+
+d <- seasonaldummy(gas)
+S <- lm(gas~time(gas) + d, data=gas)
+
+tsplot(gas, type='o', pch=19, col=culer, main="Ventas de gasolina en Estados Unidos", xlab="Tiempo", ylab="Ventas de gasolina")
+lines(ts(fitted(S), start =c(1980,1), frequency = 12), col=culer[2], lwd=1)
+
+dev.off()
+
+```
+
+
+### Ejercicio (1/4)
+
+<span class="emphasis-blue">Ejercicio</span>
+  
+Considera el modelo:
+  
+$$
+  y_t = \sum_{i=1}^s \gamma_i D_{it} + \varepsilon_t
+$$
+  
+Muestra que \(y_t\) no es estacionario.
+
+### Ejercicio (2/4)
+
+<span class="emphasis-blue">Nota</span>
+  
+Considera el modelo:
+  
+$$
+  y_t = \sum_{i=1}^s \gamma_i D_{it} + \varepsilon_t
+$$
+  
+Una forma de hacer que este modelo sea estacionario, consiste en calcular:
+  
+  
+$$
+  \begin{align}
+y_t^\ast &= y_t - \sum_{i=1}^s \gamma_i D_{it}  \\
+& = \varepsilon_t
+\end{align}
+$$
+  
+Esta transformación puede hacerse operacional reemplazando los \(\gamma_i\) por sus estimadores de MCO.
+
+### Ejercicio (3/4)
+
+<span class="emphasis-blue">Ejercicio</span>
+  
+A diferencia de los modelos con tendencia, aplicar diferencias a un modelo con componente estacional no hace que la serie de tiempo sea estacionaria. Por ejemplo, considera el modelo:
+  
+$$
+  y_t = \sum_{i=1}^s \gamma_i D_{it} + \varepsilon_t
+$$
+  
+  Muestra que \(\Delta y_t\) no es estacionario.
+
+### Ejercicio (4/4)
+
+<span class="emphasis-blue">Ejercicio</span>
+  
+Considera el modelo con datos trimestrales (\(s=4\)):
+  
+$$
+  y_t = \sum_{i=1}^4 \gamma_i D_{it} + \varepsilon_t
+$$
+  
+Muestra que \(\Delta^4 y_t = y_t - y_{t-4}\) es estacionario. Este es un ejemplo de modelos **ARIMA estacionales**, también conocidos como modelos **SARIMA**.
+
+<span class="emphasis-blue">Nota.</span> Los modelos SARIMA nos permiten tratar la **estacionalidad estocástica**, la cual ocurre cuando _el patrón estacional no es constante sino que evoluciona en el tiempo_.
+
+### Ejemplo
+
+<span class="emphasis-blue">Ejemplo</span>
+
+Las técnicas habituales para analizar y pronosticar series de tiempo, aplican también para los modelos con componente estacional (ver modelos ARMA). Por ejemplo, para las ventas de gasolina en Estados Unidos (en dólares) tenemos:
+  
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+
+gas_s <- window(gas, start =c(1980,1), end = c(1989,12))
+d_s <- seasonaldummy(gas_s)
+S_s <- lm(gas_s~time(gas_s) + d_s, data=gas_s)
+
+sarima.for(gas_s, n.ahead=24, p=0, d=0, q=0, plot.all=TRUE, xreg=cbind(time(gas_s), d_s), newxreg= window(cbind(time(gas), d), start=c(1990,1)), main="Ventas de gasolina en Estados Unidos", xlab="Tiempo", ylab="Ventas de gasolina")
+lines(gas)
+lines(ts(fitted(S_s), start=c(1980,1), frequency = 12), col='red')
+
+dev.off()
+
+```
+
+## Componente estacional estocástico: Modelos SARMA
+
+### Componente estacional estocástico (1/2)
+
+Sea \(y_t\) una serie de tiempo que presenta un patrón estacional estocástico. En este caso, la dependencia serial no ocurre en todos los retardos, sino en aquellos que son múltiplos de \(s\). Por ejemplo:
+
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+
+library(TSA)
+data(milk)
+tsplot(milk, type='l', col=culer[2],
+       ylab="Producción de leche 1994-2005",
+       xlab="Tiempo")
+
+points(milk, pch=19, col=culer[3])
+
+
+```
+
+En el caso de la producción de leche en los Estados Unidos (datos mensuales de enero 1994 a diciembre 2005), la dependencia serial ocurre en cada trimestre (\(s=12\)). ¿Cómo incorporamos esta estructura en el modelo?
+
+
+### Componente estacional estocástico (2/2)
+
+Para incorporar la dependencia serial en retardos múltiplos de \(s\), podemos extender los modelos ARMA para incluir retardos estacionales.
+
+
+### Modelo \(MA(Q)_{s}\)
+
+Una serie de tiempo, \(y_t\) sigue un proceso MA estacional (SMA) de orden \(Q,s\) o \(MA(Q)_s\) si:
+
+$$
+\begin{align}
+y_t &= \varepsilon_{t} + \Theta_1\varepsilon_{t-s} +  \Theta_2\varepsilon_{t-2s}+\dots+ \Theta_Q\varepsilon_{t-Qs};\\
+\varepsilon_{t} &\sim iid(0,\sigma^2)
+\end{align}
+$$
+
+
+### Modelo \(MA(1)_{12}\) (1/4)
+
+Por ejemplo, sean \(Q=1\) y \(s=12\). Entonces:
+
+$$
+y_t = \varepsilon_{t} + \Theta_1\varepsilon_{t-12}
+$$
+
+En este caso, se puede demostrar que:
+
+$$
+\begin{align}
+\mu &= \mathbb{E}(y_t)\\
+&=0
+\end{align}
+$$
+
+
+### Modelo \(MA(1)_{12}\) (2/4)
+
+Además:
+
+$$
+\gamma_k = \begin{cases}
+(1+\Theta_1^2)\sigma^2 & \text{si } k=0\\
+\Theta_1\sigma^2 & \text{si } k=12\\
+0 & \text{de otra forma }\\
+\end{cases} 
+\qquad
+\rho_k = \begin{cases}
+1 & \text{si } k=0\\
+\frac{\Theta_1}{1+\Theta_1^2} & \text{si } k=12\\
+0 & \text{de otra forma }\\
+\end{cases} 
+$$
+
+Entonces, un proceso \(MA(1)_{12}\) es estacionario.
+
+
+
+### Modelo \(MA(1)_{12}\) (3/4)
+
+Los siguientes datos simulan un proceso \(MA(1)_{12}\):
+
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+seasonal.ma1.sim <- arima.sim(list(order = c(0,0,12), ma = c(rep(0,11),0.9)), n = 200)
+
+tsplot(seasonal.ma1.sim, type='l', col=culer[2],
+       ylab=expression(y[t]),
+       xlab="Tiempo")
+points(seasonal.ma1.sim, pch=19, col=culer[3])
+
+
+```
+
+
+Nota que este proceso es equivalente a un \(MA(12)\) con \(\theta_1=\theta_2=\dots=\theta_11=0\).
+
+
+### Modelo \(MA(1)_{12}\) (4/4)
+
+Para este proceso tenemos:
+  
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+par(mfrow=c(2,2))
+y = ARMAacf(ma = c(rep(0,11),0.9), lag.max = 50)
+y = y[2:51]
+plot(y, x = 1:50, type = "h", ylim = c(-1,1), xlab = "k",
+     ylab = "Autocorrelation", main = "Population ACF")
+abline(h = 0)
+y = ARMAacf(ma = c(rep(0,11),0.9), lag.max = 50, pacf=TRUE)
+plot(y, x = 1:50, type = "h", ylim = c(-1,1), xlab = "k",
+     ylab = "Partial autocorrelation", main = "Population PACF")
+abline(h = 0)
+acf(seasonal.ma1.sim,main="Sample ACF",lag.max=50)
+pacf(seasonal.ma1.sim,main="Sample PACF",lag.max=50)
+
+
+```
+  
+### Modelo \(MA(2)_{12}\) (1/2)
+  
+Ahora, sean \(Q=2\) y \(s=12\). Entonces:
+
+$$
+y_t = \varepsilon_{t} + \Theta_1\varepsilon_{t-12} + \Theta_2\varepsilon_{t-24}
+$$
+
+Se puede demostrar que:
+
+$$
+\begin{align}
+\mu &= \mathbb{E}(y_t)\\
+&=0
+\end{align}
+$$
+  
+  
+### Modelo \(MA(2)_{12}\) (2/2)
+  
+Además:
+
+$$
+\gamma_k = \begin{cases}
+(1+\Theta_1^2+\Theta_2^2)\sigma^2 & \text{si } k=0\\
+(\Theta_1+\Theta_1\Theta_2)\sigma^2 & \text{si } k=12\\
+\Theta_2\sigma^2 & \text{si } k=24\\
+0 & \text{de otra forma }\\
+\end{cases} 
+\qquad
+\rho_k = \begin{cases}
+1 & \text{si } k=0\\
+\frac{\Theta_1+\Theta_1\Theta_2}{1+\Theta_1^2+\Theta_2^2} & \text{si } k=12\\
+\frac{\Theta_2}{1+\Theta_1^2+\Theta_2^2} & \text{si } k=24\\
+0 & \text{de otra forma }\\
+\end{cases} 
+$$
+  
+Nota que este proceso es equivalente a un \(MA(24)\) con \(\theta_1=\theta_2=\dots=\theta_{11}=\theta_{13}, \theta_{14}, \dots,\theta_{23} =0\).
+
+### Modelo \(AR(P)_{s}\)
+  
+  
+Una serie de tiempo, \(y_t\) sigue un proceso AR estacional (SAR) de orden \(P,s\) o \(AR(P)_s\) si:
+
+$$
+\begin{align}
+y_t &= \Phi_1 y_{t-s} + \Phi_2 y_{t-2s} + \dots + \Phi_P y_{t-Ps} + \varepsilon_{t};\\
+\varepsilon_{t} &\sim iid(0,\sigma^2)
+\end{align}
+$$
+
+
+### Modelo \(AR(1)_{12}\) (1/4)
+  
+Por ejemplo, sea \( P = 1 \) y \( s = 12 \). Entonces:
+
+$$
+y_t = \Phi_1 y_{t-s}  + \varepsilon_{t}; \quad |\Phi_1|<1
+$$
+  
+En este caso, se puede demostrar que:
+
+$$
+\begin{align}
+\mu &= \mathbb{E}(y_t)\\
+&=0
+\end{align}
+$$
+  
+  
+### Modelo \(AR(1)_{12}\) (2/4)
+  
+Además:
+
+$$
+\gamma_0 = \frac{\sigma^2}{1-\Phi_1^2}
+$$
+  
+  
+
+y:
+  
+$$
+\rho_k = \begin{cases}
+\Phi_1^{k/12} & \text{si } k= 0, 12, 24, \dots \\
+0 & \text{de otra forma }
+\end{cases}
+$$
+  
+### Modelo \(AR(1)_{12}\) (3/4)
+  
+Los siguientes datos simulan un proceso \(AR(1)_{12}\):
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+seasonal.ar1.sim <- arima.sim(list(order = c(12,0,0), ar = c(rep(0,11),0.9)), n = 200)
+
+tsplot(seasonal.ar1.sim, type='l', col=culer[2],
+       ylab=expression(y[t]),
+       xlab="Tiempo")
+points(seasonal.ar1.sim, pch=19, col=culer[3])
+
+
+```
+
+
+Nota que este proceso es equivalente a un \(AR(12)\) con \(\phi_1=\phi_2=\dots=\phi_11=0\).
+  
+### Modelo \(AR(1)_{12}\) (4/4)
+  
+Para este proceso tenemos:
+  
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+par(mfrow=c(2,2))
+y = ARMAacf(ar = c(rep(0,11),0.8), lag.max = 50)
+y = y[2:51]
+plot(y, x = 1:50, type = "h", ylim = c(-1,1), xlab = "k",
+     ylab = "Autocorrelation", main = "Population ACF")
+abline(h = 0)
+y = ARMAacf(ar = c(rep(0,11),0.8), lag.max = 50, pacf=TRUE)
+plot(y, x = 1:50, type = "h", ylim = c(-1,1), xlab = "k",
+     ylab = "Partial autocorrelation", main = "Population PACF")
+abline(h = 0)
+acf(seasonal.ar1.sim,main="Sample ACF",lag.max=50)
+pacf(seasonal.ar1.sim,main="Sample PACF",lag.max=50)
+
+```
+  
+### Modelo \(AR(2)_{12}\)
+  
+Para un proceso \(AR(2)_{12}\) se pede demostrar que:
+
+- La función de autocorrelación decrece exponencialmente u oscilatoriamente en los retardos: \(k=12, 24, 36, 48, \dots\)
+
+
+- La función de autocorrelación parcial es diferente de cero en los retardos \(k=12\) y \(k=24\). Es cero en todos los demás valores de \(k\).
+
+- Un proceso \(AR(2)_{12}\) es equivalente a un \(AR(24)\) con \(\phi_1=\phi_2=\dots=\phi_{11}=\phi_{13}, \phi_{14}, \dots,\phi_{23} =0\).
+
+  
+### Modelo \(ARMA(P,Q)_{s}\) (1/2)
+
+Una serie de tiempo, \(y_t\) sigue un proceso ARMA estacional (SARMA) de orden \(P,Q, s\) o \(ARMA(P,Q)_s\) si:
+
+$$
+\begin{align}
+y_t &= \Phi_1 y_{t-s} + \Phi_2 y_{t-2s} + \dots + \Phi_P y_{t-Ps} + \varepsilon_{t} +  \Theta_1\varepsilon_{t-s} +  \Theta_2\varepsilon_{t-2s}+\dots+ \Theta_Q\varepsilon_{t-Qs};\\
+\varepsilon_{t} &\sim iid(0,\sigma^2)
+\end{align}
+$$
+  
+### Modelo \(ARMA(P,Q)_{s}\) (2/2)
+  
+Un proceso \(ARMA(P,Q)_{s}\):
+
+- Es equivalente a un \(ARMA(p,q)\) con autocorrelaciones diferentes de cero en los retardos \(k=s, 2s, 3s, \dots\).
+
+
+- Es estacionario si y solo si las raíces del polinomio \(\boldsymbol{\Phi}_P(L^s)=0\) se encuentran _fuera del círculo unitario_.
+
+
+- Es invertible si y solo si las raíces del polinomio \(\boldsymbol{\Theta}_Q(L^s)=0\) se encuentran _fuera del círculo unitario_.
+
+
+## Modelos SARMA Multiplicativos
+  
+### Modelos SARMA Multiplicativos
+  
+Un proceso con componente estacional multiplicativo implica, como su nombre lo indica, multiplicar un proceso \(ARMA(p,q)\) por un proceso \(SARMA(P,Q)_{s}\).
+
+
+
+
+### \(MA(1) \times MA(1)_{12}\) (1/4)
+
+Considera un proceso \(MA(1)\):
+
+$$
+\begin{align}
+y_t &= \varepsilon_t + \theta_1\varepsilon_{t-1}\\
+&= (1+\theta_1 L)\varepsilon_t
+\end{align}
+$$
+  
+Y considera un proceso \(MA(1)_{12}\):
+  
+$$
+\begin{align}
+y_t &= \varepsilon_t + \Theta_1\varepsilon_{t-s}\\
+&=(1+\Theta_1 L^{12})\varepsilon_t
+\end{align}
+$$
+  
+### \(MA(1) \times MA(1)_{12}\) (2/4)
+  
+Entonces, un proceso \(MA(1) \times MA(1)_{12}\):
+
+$$
+\begin{align}
+y_t &= (1+\theta_1 L)(1+\Theta_1 L^{12})\varepsilon_t\\
+&=(1+\theta_1L+\Theta_1 L^{12}+\theta_1\Theta_1L^{13})\varepsilon_t
+\end{align}
+$$
+  
+O, de forma equivalente:
+
+$$
+y_t = \varepsilon_t + \theta_1 \varepsilon_{t-1} + \Theta_1 \varepsilon_{t-12}  + \theta_1\Theta_1\varepsilon_{t-13}
+$$
+  
+  
+  
+### \(MA(1) \times MA(1)_{12}\) (3/4)
+  
+Para este proceso, se puede demostrar que:
+
+$$
+\mathbb{E}(y_t) = 0
+$$
+  
+Y que:
+
+$$
+\begin{matrix}
+\rho_1 = \frac{\theta_1}{1+\theta_1^2} & \rho_{11} = \frac{\theta_1\Theta_1}{(1+\theta_1^2)(1+\Theta_1^2)}
+\\
+\rho_{12} = \frac{\Theta_1}{1+\Theta_1^2}& \rho_{13} = \frac{\theta_1\Theta_1}{(1+\theta_1^2)(1+\Theta_1^2)}
+\end{matrix}
+$$  
+  
+  
+### \(MA(1) \times MA(1)_{12}\) (4/4)
+  
+Entonces, un proceso \(MA(1) \times MA(1)_{12}\):
+
+- Tiene una FAC que es diferente de cero para los retardos \(k=1\) y \(k=12\).
+
+
+- Tiene una FAC que es diferente de cero para los retardos \(k=11\) y \(k=13\).
+
+- Es matemáticamente equivalente a un \(MA(13)\) con parámetros: \(\theta_1 = \theta_1\), \(\theta_2=\theta_2=\dots=\theta_{11}=0\) y \(\theta_{13}=\Theta_1\).
+
+  
+### \(MA(1) \times AR(1)_{12}\) (1/3)
+  
+Considera un proceso \(MA(1)\):
+  
+$$
+\begin{align}
+y_t &= \varepsilon_t + \theta_1\varepsilon_{t-1}\\
+&= (1+\theta_1 L)\varepsilon_t
+\end{align}
+$$
+  
+
+Y considera un proceso \(AR(1)_{12}\):
+
+
+$$
+\begin{align}
+y_t &= \Phi_1 y_{t-12} + \varepsilon_t\\
+(1-\Phi_1 L^{12})y_t &=\varepsilon_t
+\end{align}
+$$
+  
+  
+  
+### \(MA(1) \times AR(1)_{12}\) (2/3)
+  
+Entonces, un proceso \(MA(1) \times AR(1)_{12}\):
+
+$$
+(1-\Phi_1 L^{12})y_t =(1+\theta_1L)\varepsilon_t
+$$
+  
+
+
+O, de forma equivalente:
+  
+$$
+y_t =\Phi_1 y_{t-12} + \varepsilon_t + \theta_1\varepsilon_{t-1}
+$$
+  
+### \(MA(1) \times AR(1)_{12}\) (3/3)
+  
+Entonces, un proceso \(MA(1) \times AR(1)_{12}\):
+
+- Tiene una FAC que es del tipo AR en los retardos \(k=12, 24, 26 \dots\).
+
+
+- Tiene una FAC que es del tipo MA en el retardo \(k=1\) y en \(k=11, 13, 25,\dots\).
+
+- Es matemáticamente equivalente a un \(ARMA(12,1)\) con parámetros: \(\phi_1=\phi_2=\dots=\phi_{11}=0\), \(\phi_{12}=\Phi_1\) y \(\theta_1 = \theta_1\).
+
+  
+### FAC y FACP
+  
+Para los procesos multiplicativos que hemos visto tenemos:
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+
+par(mfrow=c(2,2))
+phi.ar12=c(rep(0,11),0.9)
+theta.Theta=c(-0.5,rep(0,10),-0.9,0.45)
+# ARMAacf function includes the k=0 lag for ACF
+# Use y = y[2:51] to remove k=0 lag from ARMAacf output; only for ACF
+y = acf.ma.ma = ARMAacf(ma=theta.Theta,lag.max=50)
+y = y[2:51]
+plot(y, x = 1:50, type = "h", ylim = c(-1,1), xlab = "k",
+     ylab = "Autocorrelation", main = "MA1*MA1(12) ACF")
+abline(h=0)
+pacf.ma.ma = ARMAacf(ma=theta.Theta,lag.max=50,pacf=T)
+plot(pacf.ma.ma,type='h',xlab="k",ylab="PACF",main = "MA1*MA1(12) PACF")
+abline(h=0)
+y = acf.ma.ar = ARMAacf(ar=phi.ar12,ma=-0.5,lag.max=50)
+y = y[2:51]
+plot(y, x = 1:50, type = "h", ylim = c(-1,1), xlab = "k",
+     ylab = "Autocorrelation", main = "MA1*AR1(12) ACF")
+abline(h=0)
+pacf.ma.ar = ARMAacf(ar=phi.ar12,ma=-0.5,lag.max=50,pacf=T)
+plot(pacf.ma.ar,type='h',xlab="k",ylab="PACF",main = "MA1*AR1(12) PACF")
+abline(h=0)
+```
+  
+  
+### \(ARMA(p,q) \times ARMA(P,Q)_{s}\)
+
+El proceso \(ARMA(p,q) \times ARMA(P,Q)_{s}\) es el más general de los modelos multiplicativos. Se puede demostrar que:
+
+- Es matemáticamente equivalente a un proceso ARMA con los coeficientes de su parte AR caracterizados por \(\boldsymbol{\Phi}^*(L) = \boldsymbol{\Phi}(L) \boldsymbol{\Phi}_P (L^s) \) y los coeficientes de su parte MA caracterizados por \(\boldsymbol{\Theta}^*(L) = \boldsymbol{\Theta}(L) \boldsymbol{\Theta}_Q(L^s)\).
+
+
+- Debido a esta equivalencia, podemos utilizar los mismos métodos de especificación, ajuste, diagnósticos, etc., de un modelo ARMA.
+
+  
+  
+### \(ARMA(p,q) \times ARMA(P,Q)_{s}\): Ejemplo (1/3)
+  
+Considera los siguientes datos sobre el uso de transporte (autobús y tren ligero) en Denver y Colorado. Los datos van desde agosto 2000 hasta marzo 2006. (Los datos se encuentran en escala logarítmica).
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+
+data(boardings)
+boardings = boardings[,1]
+tsplot(boardings, type='l', col=culer[2],
+       ylab="(Log) Número de abordajes",
+       xlab="Tiempo")
+points(y = boardings,
+       x = time(boardings),
+       pch = 21,           
+       bg  = "white",      
+       col = culer[3],
+       cex = 1.6)
+points(y=boardings,
+       x=time(boardings),
+       pch=as.vector(season(boardings)), 
+       )
+
+
+```
+
+
+
+### \(ARMA(p,q) \times ARMA(P,Q)_{s}\): Ejemplo (2/3)
+
+La siguiente figura presenta la FAC y la FACP. Estos sugieren un modelo \(ARMA(0,3) x ARMA(1,0)_{12}\):
+  
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+par(mfrow=c(2,2))
+acf(as.vector(boardings),main="Sample ACF",lag.max=40)
+pacf(as.vector(boardings),main="Sample PACF",lag.max=40)
+
+```
+
+
+
+### \(ARMA(p,q) \times ARMA(P,Q)_{s}\): Ejemplo (3/3)
+
+Utilizamos el periodo agosto 2000 a julio 2005 para ajustar el modelo y utilizamos el resto de los datos para analizar qué tan bueno es el pronóstico:
+  
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+# Serie de entrenamiento
+train_start <- c(2000, 8)
+train_end   <- c(2005, 7)
+freq        <- 12
+h           <- 8
+
+train_series <- window(boardings, start = train_start, end = train_end)
+
+# Pronóstico
+sarima.for(train_series,
+           n.ahead = h,
+           p = 0, d = 0, q = 3,
+           P = 1, D = 0, Q = 0, S = 12,
+           plot.all = TRUE,
+           main = "(Log) Número de abordajes",
+           xlab = "Tiempo",
+           ylab = "(Log) Número de abordajes")
+
+# Serie completa observada
+lines(boardings)
+
+# Ajuste del modelo en la muestra de entrenamiento
+fit_boardings <- arima(train_series,
+                       order = c(0,0,3),
+                       method = "ML",
+                       seasonal = list(order = c(1,0,0), period = 12))
+
+# Serie ajustada
+fitted_ts <- train_series - residuals(fit_boardings)
+
+lines(fitted_ts, col = "red")
+
+
+
+```
+
+
+
+## Modelos SARIMA
+
+### Diferencias
+
+Recordemos que las primeras diferencias de una serie de tiempo, \( y_t \), se calculan como:
+
+$$
+\begin{align}
+\Delta y_t &= y_t - y_{t-1}\\
+&=(1-L)y_t
+\end{align}
+$$
+Podemos diferenciar la serie de tiempo \( d \) veces:
+  
+$$
+\begin{align}
+\Delta^d y_t &=(1-L^d)y_t
+\end{align}
+$$
+  
+### Diferencias: Ejemplo
+  
+Considera el proceso no estacionario:
+  
+$$
+\begin{align}
+y_t &= s_t + \varepsilon_t \\
+s_t &= s_{t-12}+u_t\\
+u_t &\sim iid(0,\sigma^2_u)
+\end{align}
+$$
+
+Si tomamos primeras diferencias obtenemos:
+  
+$$
+\Delta y_t = (s_{t-12}-s_{t-13}) + (u_t - u_{t-1}) + (\varepsilon_t - \varepsilon_{t-1})
+$$
+
+Sin embargo, este proceso sigue siendo _no estacionario_. ¿Por qué?
+  
+  
+  
+### Diferencias estacionales
+
+Definimos el operador de diferencias estacionales, \(\Delta_s\):
+
+$$
+\begin{align}
+\Delta_s y_t &= y_t - y_{t-s}
+&=(1-L^s)y_t
+\end{align}
+$$
+
+Recuerda: si tenemos datos mensuales, \(s=12\), si tenemos datos trimestrales, \(s=4\), etc.
+
+  
+### Diferencias estacionales: Ejemplo (1/2)
+  
+Considera el proceso no estacionario:
+
+$$
+\begin{align}
+y_t &= s_t + \varepsilon_t \\
+s_t &= s_{t-12}+u_t\\
+u_t &\sim iid(0,\sigma^2_u)
+\end{align}
+$$
+  
+Si tomamos _primeras diferencias estacionales_ obtenemos:
+
+$$
+\Delta_{12} y_t = u_t + \varepsilon_t -\varepsilon_{t-12}
+$$
+  
+Se puede mostrar que este proceso tiene la misma FAC que un \(MA(1)_{12}\).
+
+
+
+### Diferencias estacionales: Ejemplo (2/2)
+
+Datos sobre la producción de leche en Estados Unidos:
+  
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+data(milk)
+par(mfrow=c(2,2))
+plot(milk,ylab="Cantidad producida de leche",xlab="Tiempo",type="o")
+plot(diff(milk),ylab="Primeras diferencias",xlab="Tiempo",type="o")
+plot(diff(milk,lag=12),ylab="Primeras diferencias estacionales (s=12)",xlab="Tiempo",type="o")
+plot(diff(diff(milk),lag=12),ylab="Primeras diferencias combinadas",xlab="Tiempo",type="o")
+
+```
+
+
+
+### Modelos SARIMA (1/2)
+
+Entonces, podemos extender los modelos SARMA para incorporar las dos fuentes de no estacionariedad.
+
+Supongamos que \(\varepsilon_t \sim iid(0,\sigma^2)\). Un modelo **ARIMA con componente estacional multiplicativo** (SARIMA), o \(ARIMA(p,d,q) \times ARIMA(P,D,Q)_s\):
+
+$$
+\boldsymbol{\Phi}(L)\boldsymbol{\Phi}_P(L^s)\Delta^d \Delta_s^D y_t = \boldsymbol{\Theta}(L)\boldsymbol{\Theta}_Q(L^s)\varepsilon_t
+$$
+
+
+### Modelos SARIMA (2/2)
+
+Se puede demostrar que:
+  
+$$
+y_t \sim ARIMA(p,d,q) \times ARIMA(P,D,Q)_s
+$$
+
+si y solo si:
+
+$$
+\Delta^d \Delta_s^D y_t \sim ARMA(p,q) \times ARMA(P,Q)_s
+$$
+
+  
+### Modelos SARIMA: Ejemplo (1/3)
+  
+Funciones de autocorrelación y autocorrelación parcial para las primeras diferencias combinadas sobre la producción de leche en Estados Unidos:
+  
+```{r, echo=FALSE}
+milk.diff = diff(diff(milk,lag=12))
+
+par(mfrow=c(1,2))
+acf(as.vector(milk.diff),main="Sample ACF",lag.max = 48)
+pacf(as.vector(milk.diff),main="Sample PACF",lag.max = 48)
+
+```
+
+
+
+### Modelos SARIMA: Ejemplo (2/3)
+
+De las FAC y FACP anteriores, los siguientes modelos podrían resultar adecuados:
+  
+- \(ARIMA (0,1,0) \times ARIMA (0,1,1)_{12}\)  
+
+- \(ARIMA (0,1,0) \times ARIMA (3,1,0)_{12}\)  
+
+¿Por qué?
+  
+  
+  
+### Modelos SARIMA: Ejemplo (3/3)
+  
+Utilizamos el periodo enero 1994 a diciembre 2004 para ajustar el modelo y utilizamos el resto para analizar qué tan bueno es el pronóstico:
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+# Serie de entrenamiento
+train_start <- c(1994, 1)
+train_end   <- c(2004, 12)
+freq        <- 12
+h           <- 12
+
+train_series <- window(milk, start = train_start, end = train_end)
+
+
+# Pronóstico
+sarima.for(train_series,
+           n.ahead = h,
+           p = 0, d = 1, q = 0,
+           P = 0, D = 1, Q = 1, S = 12,
+           plot.all = TRUE,
+           main = "Producción de leche en Estados Unidos",
+           xlab = "Tiempo",
+           ylab = "Producción de leche")
+
+# Serie completa observada
+lines(milk)
+
+# Ajuste del modelo en la muestra de entrenamiento
+fit_milk <- arima(train_series,
+                       order = c(0,1,0),
+                       seasonal = list(order = c(0,1,1), period = 12))
+
+# Serie ajustada
+fitted_ts <- train_series - residuals(fit_milk)
+
+lines(fitted_ts, col = "red")
+
+
+
+```
+
+
+

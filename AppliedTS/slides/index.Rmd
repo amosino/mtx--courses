@@ -1,0 +1,50 @@
+---
+title: "Métodos Cuantitativos II"
+subtitle: "Series de tiempo: modelado empírico y pronóstico"
+author:
+  - "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v. 2026.01.15"
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output:
+  html_document:
+    theme: flatly
+    toc: true
+    toc_depth: 2
+    toc_float: true
+---
+
+<style>
+  body { font-size: 16px; }
+  .course-box{
+    border: 1px solid #e6e6e6;
+    border-radius: 10px;
+    padding: 16px;
+    margin: 12px 0;
+    background: #fafafa;
+  }
+  .chapter-table td { vertical-align: top; }
+  .muted { color: #6c757d; }
+</style>
+
+
+# Temario
+
+| Bloque | Tema | Enlace |
+|---:|---|---|
+| 01 | Introducción | [Abrir](QMII--00--Intro.html) |
+| 02 | Medidas de dependencia serial y estacionariedad | [Abrir](QMII--01--Dependencia-Serial.html) |
+| 03 | Modelos Autorregresivos con Medias Móviles | [Abrir](QMII--02--ARMA.html) |
+| 04 | Procesos no estacionarios por tendencia (ARIMA / tendencia) | [Abrir](QMII--03--ARIMA.html) |
+| 05 | Modelos estacionales | [Abrir](QMII--04--SARIMA.html) |
+| 06 | Modelos de heteroscedasticidad condicional | [Abrir](QMII--05--ARCH.html) |
+| 07 | Vectores autorregresivos | [Abrir](QMII--06--VAR.html) |
+| 08 | Cointegración y corrección de errores | [Abrir](QMII--07--VECM.html) |
+
+
+# Contacto
+
+**Alejandro Mosiño**  
+Universidad de Guanajuato

@@ -1,0 +1,615 @@
+---
+title: "Modelos de respuesta binaria"
+author: 
+  - "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v. 2026.05.19"
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    transition: 0
+    slide_level: 3
+    css: ../src/custom.css
+---
+
+
+## Introducción
+
+
+### Introducción (1/4)
+
+
+Deseamos responder preguntas como las siguientes:
+
+
+- ¿Por qué algunas personas van a la escuela y otras no?
+
+- ¿Por qué algunas mujeres trabajan y otras no?
+
+- ¿Por qué algunas personas compran casa y otras rentan?
+
+- ¿Por qué algunas personas usan transporte público y otras no?
+
+
+### Introducción (2/4)
+
+
+Supongamos que estudiamos por qué algunas personas viajan en su automóvil y otras toman el autobús. Pensemos que _no existen otras opciones_. En este caso, podemos definir:
+
+
+$$
+y_i=\begin{cases}
+1 \quad \text{Viaja en automóvil}\\[5pt]
+0 \quad \text{Viaja en autobús}
+\end{cases}
+$$
+
+
+Sea \(p_i\) la probabilidad de que una persona (seleccionada al azar) viaje en automóvil. Esto implica que:
+
+
+$$
+\begin{align}
+&\mathbb{P}(y_i=1)=p_i\\[5pt]
+&\mathbb{P}(y_i=0)=1-p_i
+\end{align}
+$$
+
+### Introducción (3/4)
+
+Nota que la variable aleatoria (Bernoulli) que acabamos de definir tiene una función de probabilidad:
+
+
+$$
+f(y_i)=p_i^{y_i}(1-p_i)^{1-y_i}\: ; \quad y_i=0,1
+$$
+
+
+Para esta función tenemos:
+
+
+$$
+\begin{align}
+\mathbb{E}(y_i)&=p_i\\[5pt]
+\mathbb{V}\text{ar}(y_i)&=p_i(1-p_i)
+\end{align}
+$$
+
+
+### Introducción (4/4)
+
+¿Qué factores pueden afectar el valor de \(p_i\)? Una posibilidad es:
+
+
+
+$$
+x_i=t_i^{bus}-t_i^{auto}
+$$
+
+
+donde \(t_i^{bus}\) es el tiempo de viaje en autobús y \(t_i^{auto}\) es el tiempo de viaje en automóvil. Nota que se espera que \(p\) aumente conforme \(x\) aumenta, _ceteris paribus_. ¿Cómo podemos modelar esta relación?
+
+
+
+## El modelo de probabilidad lineal
+
+
+### El modelo de probabilidad lineal (MPL)
+
+
+Consideremos el siguiente modelo:
+
+
+$$
+\begin{align}
+y_i&=\mathbb{E}(y_i)+u_i,\\[5pt]
+\end{align}
+$$
+donde:
+
+$$
+\begin{align}
+\mathbb{E}(y_i)&=p\\
+&=\beta_1+\beta_2x_i
+\end{align}
+$$
+
+
+Esto es,nuestro modelo tiene una forma conocida:
+
+
+$$
+y_i=\beta_1+\beta_2x_i+u_i
+$$
+
+
+### Limitaciones del MPL (1/4)
+
+Nota que el MPL implica:
+
+
+$$
+u_i=\begin{cases}
+1-(\beta_1+\beta_2x_i) & \text{si}\; y_i=1\\
+-(\beta_1+\beta_2x_i) &\text{si}\; y_i=0
+\end{cases}
+$$
+
+
+Por lo tanto:
+
+
+$$
+\mathbb{V}\text{ar}(u_i)=(\beta_1+\beta_2x_i)(1-\beta_1+\beta_2x_i)
+$$
+
+¡El error del MPL es heteroscedástico, no es continuo ni normal!
+
+### Limitaciones del MPL (2/4)
+
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+Muestra que la varianza del error en el modelo de probabilidad lineal es:
+
+
+
+$$
+\mathbb{V}\text{ar}(u_i)=(\beta_1+\beta_2x_i)(1-\beta_1+\beta_2x_i)
+$$
+
+
+
+### Limitaciones del MPL (3/4)
+
+Ahora, nota que en el MPL:
+
+
+$$
+\frac{\partial p_i}{\partial x_i}=\beta_2
+$$
+
+
+
+Esto implica, en nuestro ejemplo, que la probabilidad de conducir un automóvil se incrementa (a una tasa constante) conforme \(x_i\) se incrementa. El problema es que nada garantiza que:
+
+$$
+0\:\leq\: p\: \leq 1
+$$
+
+
+### Limitaciones del MPL (4/4)
+
+
+El primer problema del MPL se soluciona estimando los coeficientes por el método de los MCG o por MV. El segundo problema se soluciona suponiendo que:
+
+
+$$
+z_i=\beta_1+\beta_2x_{i}\:,
+$$
+
+y que:
+
+
+$$
+p=F(z_i)
+$$
+
+
+donde \(F(z_i)\) es una función sigmoide.
+
+
+## El modelo probit
+
+### El modelo probit (1/4)
+
+
+Para modelar \(F(z_i)\) podemos utilizar una **función probit**. Esta se relaciona con una _función de probabilidad normal estándar_, su función de densidad es:
+
+
+$$
+\phi(z_i)=\frac{1}{\sqrt{2\pi}}e^{-\frac{1}{2}z_i^2}
+$$
+
+
+
+### El modelo probit es:
+
+
+Entonces, la función probit es:
+
+
+$$
+\begin{align}
+\Phi(z_i)&=\mathbb{P}(Z\leq z_i)\\
+&=\int_{-\infty}^{z}\frac{1}{\sqrt{2\pi}}e^{-\frac{1}{2}u_i^2}du\\
+&=F(z)
+\end{align}
+$$
+
+Lo que requerimos entonces es:
+
+
+
+$$
+\begin{align}
+p_i&=\mathbb{P}(Z\leq \beta_1+\beta_2x_i)\\
+&=\Phi(\beta_1+\beta_2x_i)
+\end{align}
+$$
+
+
+
+### El modelo probit (3/4)
+
+Nota que el efecto marginal de la variable \(x_i\) sobre la probabilidad se calcula como:
+
+
+$$
+\begin{align}
+\frac{\partial p_i}{\partial x_i}&=\frac{\partial \:\Phi (\cdot)}{\partial \:(\cdot)}\\[5pt]
+&=\phi\:(\beta_1+\beta_2x_i)\;\beta_2
+\end{align}
+$$
+
+
+### El modelo probit (4/4)
+
+Además:
+
+
+- Dado que el valor de \(\phi(\beta_1+\beta_2x_i)\) es una función de densidad, su valor es siempre positivo. Entonces, el valor del efecto marginal depende del signo de \(\beta_2\).
+
+
+- \(\phi(\beta_1+\beta_2x_i)\) cambia con el valor de \(x_i\). Su valor máximo se alcanza cuando \(\beta_1+\beta_2x_i=0 \). Además, \(p_i=\Phi(0)=0.5\).
+
+
+- Si \(\beta_1+\beta_2x_i\) es muy grande, \(\phi(\beta_1+\beta_2x_i)\) converge a cero y \(p_i=\Phi(\beta_1+\beta_2x_i)\) a \(1\).
+
+
+
+### Estimación del modelo probit (1/2)
+
+El modelo probit se estima por _máxima verosimilitud_. 
+
+Para ver la lógica de la estimación, supongamos que tres individuos son seleccionados al azar: \(y_1=1,\: y_2=1, \;y_3=0\), donde \(y=1\) si el individuo viaja en automóvil y \(y=0\) si el individuo viaja en autobús. Además, supongamos que \(x_1=15,\;x_2=6\; x_3=7\). En este caso tenemos:
+
+
+$$
+f(y_i)=[\Phi(\beta_1+\beta_2x_i)]^{y_i}[1-\Phi(\beta_1+\beta_2x_i)]^{1-y_i}\: ; \quad y_i=0,1,\quad i=1,2,3
+$$
+
+
+Y, si los tres individuos son independientes:
+
+
+$$
+\begin{align}
+f_{y_1,y_2,y_3}&=f(y_1)\:f(y_2)\:f(y_3)\\[5pt]
+&=f(1)\:f(1)\:f(0)=\mathbb{P}(y_1=1,y_2=1,y_3=0)\\[5pt]
+&=\Phi(\beta_1+15\beta_2)\times \Phi(\beta_1+6\beta_2)\times(1-\Phi(\beta_1+7\beta_2))\\[5pt]
+&=L(\beta_1,\beta_2)
+\end{align}
+$$
+
+
+### Estimación del modelo probit (2/2)
+
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+
+Encuentra la función de log-verosimilitud de este ejemplo. Encuentra los estimadores de máxima verosimilitud de \(\beta_1\) y \(\beta_2\). Interpreta tus resultados.
+
+
+_Nota_. Para interpretar los resultados de la regresión (es decir, para evaluar los efectos marginales) podemos usar el promedio de las \(x\) en lugar de las \(x_i\).
+
+
+### El modelo probit: Ejemplo (1/3)
+
+
+En el ejemplo del viaje en automóvil tenemos:
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='50%', out.height='50%'}
+
+library(tidyverse)
+library(here)
+data <- read_delim(here("data/E215--transport.csv"))
+probit_mod <- glm(auto ~ dtime, 
+                  data=data,
+                  family = binomial(link="probit"))
+summary(probit_mod)
+
+```
+
+
+
+### El modelo probit: Ejemplo (2/3)
+
+¿Cuál será la probabilidad de viajar en auto si \(dtime=3\) (30 minutos)? 
+
+Primero, calculamos el valor de la función probit, \(z_i\), cuando \(dtime=3\):
+
+
+$$
+\begin{align}
+z&=\beta_1+\beta_2x\\
+&=-0.065+0.3dtime\\
+&=0.83
+\end{align}
+$$
+
+
+- Para calcular la probabilidad de viajar en auto, evaluamos la función \(F(z_i)=\Phi(z_i)\):
+
+
+
+$$
+\Phi(z_i)=\Phi(0.83)=0.8
+$$
+
+
+- El efecto de un pequeño cambio en \(dtime\) cuando \(dtime=3\):
+
+
+$$
+\phi(z)\:\beta_2=0.3 \:\phi (0.83)=0.085
+$$
+
+
+### El modelo probit: Ejemplo (3/3)
+
+
+_Nota_. Aunque aun es posible calcular el \(RSS\), la \(R^2\) y la \(R^2\;\text{ajustada}\), estos dejan de tener un significado útil en el contexto de lo modelos probit. Entonces, es mejor calcular el número de casos predichos correctamente.
+
+
+
+En nuestro ejemplo de viaje en auto o en autobús tenemos que este es el \(90.5%\). ¿Qué implica esto?
+
+
+## El modelo logit
+
+
+### El modelo logit (1/2)
+
+Para modelar \(F(z)\) taambién podemos considerar la **función logística**:
+
+
+
+$$
+p_i=F(z_i)=\frac{1}{1+e^{-z_i}}=\Lambda(z_i)
+$$
+
+
+
+Nota que:
+
+$$
+\lim_{z\rightarrow +\infty} F(z)=1 \quad \text{y}\quad \lim_{z\rightarrow -\infty}F(z)=0
+$$
+
+
+Además:
+
+
+$$
+f(z)=\frac{\partial p}{\partial z}=\frac{e^z}{(e^z+1)^2}=\lambda(z)
+$$
+
+
+
+### El modelo logit (2/2)
+
+
+Lo anterior puede representarse de forma más útil. La probabilidad de que \(y=1\) es:
+
+
+
+$$
+p=\frac{1}{1+e^{-z}}=\frac{1}{1+e^{-(\beta_1+\beta_2x)}}=\frac{\text{exp}(\beta_1+\beta_2x)}{1+\text{exp}(\beta_1+\beta_2x)}
+$$
+
+
+Y la probabilidad de que \(y=0\):
+
+
+$$
+1-p=1-\frac{\text{exp}(\beta_1+\beta_2x)}{1+\text{exp}(\beta_1+\beta_2x)}=\frac{1}{1+\text{exp}(\beta_1+\beta_2x)}
+$$
+
+
+
+_Nota._ La estimación se hace igual que en el modelo logit, tan solo reemplazamos \(\Phi(z)\) por \(\Lambda(z)\).
+
+
+### El modelo logit: Ejemplo (1/2)
+
+
+En el ejemplo del viaje en automóvil tenemos:
+
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='50%', out.height='50%'}
+
+library(tidyverse)
+library(here)
+data <- read_delim(here("data/E215--transport.csv"))
+logit_mod <- glm(auto ~ dtime, 
+                  data=data,
+                  family = binomial(link="logit"))
+summary(logit_mod)
+
+```
+
+
+Número de resultado correctamente predichos \(= \;90.5%\).
+
+
+
+### El modelo logit: Ejemplo (2/2)
+
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+<br>
+
+
+Calcula la probabilidad de viajar en automóvil y el efecto marginal cuando \(dtime=3\). Compara tus resultados con los del modelo probit.
+
+
+### Pruebas de hipótesis (1/3)
+
+En ambos modelos, probit y logit, podemos llevar a cabo hipótesis del tipo:
+
+
+&nbsp;
+
+
+$$
+\begin{align}
+H_0\; :& \quad \beta_k=c\\[5pt]
+H_a\; :& \quad \beta_k\neq c
+\end{align}
+$$
+
+
+&nbsp;
+
+Para hacer esto utilizamos el estadístico \(t\)-asintótico o **estadístico de Wald**:
+
+
+$$
+t=\frac{\tilde{\beta}_k-c}{s.e.(\tilde{\beta}_k)}\:\sim \: t_{(n-k)}
+$$
+
+
+### Pruebas de hipótesis (2/3)
+
+
+Normalmente, sin embargo, se prefiere realizar pruebas basadas en el **cociente de verosimilitud. Este es:
+
+
+&nbsp;
+
+
+$$
+LR=2(\text{ln}\;L_u-\text{ln}\;L_R),
+$$
+
+
+
+donde \(L_u\) es la función de verosimilitud del _modelo no restringido_ y \(L_R\) es la función de verosimilitud del _modelo restringido_. Si \(H_0\) es correcta, entonces:
+
+
+$$
+LR \; \sim \; \chi_m^2
+$$
+
+
+donde \(m\) es el número de restricciones impuestas.
+
+
+
+### Pruebas de hipotesis (3/3)
+
+
+Por ejemplo, si en el modelo probit deseamos probar:
+
+$$
+\begin{align}
+H_0\; :& \quad \beta_2=0 \quad \quad \quad \text{Hipótesis nula: el parámetro de regresión es cero para \(dtime\)}\\[5pt]
+H_a\; :& \quad\beta_2\neq 0 \quad \quad \quad 
+\begin{aligned}[t]
+&\text{Estadístico de contraste: F(1,19)=8.50468, valor p 0.00885597.} \\
+&\text{Al omitir variables mejoraron 0 de 3 criterios de información.}
+\end{aligned}\\[5pt]
+\end{align}
+$$
+
+
+Y, si deseamos probar:
+
+$$
+\begin{align}
+H_0\; :& \quad \beta_2=0 \quad \quad \quad 
+\begin{aligned}[t]
+&\text{t(19: área a la derecha de 2.91628 = 0.00442797)}\\
+&\text{(valor a dos colas = 0.00885594; complemento = 0.991144)}
+\end{aligned}\\
+H_a\; :& \quad\beta_2 > 0 
+\end{align}
+$$
+
+
+### Modelo probit o logit (1/2)
+
+En la práctica no existen razones reales para preferir uno u otro modelo. Sin embargo, muchos investigadores prefieren el logit debido a que los resultados pueden expresarse en términos del cociente de probabilidades (cociente de momios, odds ratio):
+
+
+&nbsp;
+
+
+
+$$
+\frac{p}{1-p}=e^{z_i}
+$$
+
+
+
+
+### Modelo probit o logit (2/2)
+
+
+
+En nuestro ejemplo:
+
+<br>
+
+Odds-ratios for auto:
+
+
+
+| Variable | Odds-ratio | 95.0% conf. interval |
+|----------|------------|----------------------|
+| dtime    | **1.7008** | [1.135, 2.549]      |
+
+<br>
+
+
+Si \(dtime\) aumenta en 10 minutos, la probabilidad de viajar en auto en \(70.08%\:(1.708-1)\) más grande que la de viajar en autobús.
+
+
+
+## Práctica
+
+
+### Práctica
+
+
+Utiliza los datos: _11--microeconometria_datos--smoke_ para calcular la probabilidad de convertirse en fumador. La muestra contiene 1196 hombres. Calcula probabilidades y los efectos marginales utilizando modelos de probabilidad lineal, logit y probit. Los datos que tenemos son:
+
+
+
+$$
+\begin{align}
+&\textbf{smoker}:\; \text{Variable dummy = 1 si la persona fuma y cero si no.}\\[3pt]
+&\textbf{age}: \; \text{Edad (en años).}\\[3pt]
+&\textbf{educ}: \; \text{Escolaridad (en años).}\\[3pt]
+&\textbf{income}: \; \text{Ingreso familiar.}\\[3pt]
+&\textbf{pcigs79}: \; \text{Precio de los cigarrillos en Estados Unidos(1979).}
+\end{align}
+$$
+
+
+
+_Nota._ La base de datos también contiene unas variables interactivas. Puedes incluirlas en tu modelo. 
+
+
+
+

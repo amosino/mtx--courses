@@ -1,0 +1,1453 @@
+---
+title: "Econometría"
+subtitle: "_Inferencia_"
+author: "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v.2025.10.15"
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    transition: 0
+    slide_level: 3
+    css: ../src/custom.css
+---
+
+## Hipótesis sobre el k-ésimo coeficiente
+
+### Distribución de los estimadores de MCO (1/)
+
+
+Recordemos que, si todos los supuestos de Gauss-Markov se satisfacen:
+$$
+\begin{align}
+\mathbb{E}(\mathbf{b}) &= \boldsymbol{\beta}\\
+\boldsymbol{\Omega}_b &= \sigma^2(X'X)^{-1}
+\end{align}
+$$
+
+Entonces, _bajo el supuesto de normalidad_ de los errores:
+
+$$
+\mathbf{b} \sim \mathcal{N}(\boldsymbol{\beta}, \boldsymbol{\Omega}_b)
+$$
+
+O bien:
+
+$$
+\mathbf{b} - \boldsymbol{\beta} \sim \mathcal{N}(\mathbf{0}, \boldsymbol{\Omega}_b)
+$$
+
+
+### Distribución de los estimadores de MCO (2/)
+
+Para cada estimador \(k\)-ésimo tenemos:
+
+$$
+b_k - \beta_k \sim \mathcal{N}(0, \boldsymbol{\Omega}_{b,kk}),
+$$
+donde:
+
+$$
+\boldsymbol{\Omega}_{b,kk} = \sigma^2(X'X)^{-1}_{kk}
+$$
+
+### Varianza, $\sigma^2$, conocida (1/4)
+
+Consideraremos hipótesis sobre el $k$-ésimo coeficiente de la forma:
+
+$$
+H_0 : \beta_k = \beta_k^0
+$$
+
+donde $\beta_k^0$ es cualquier valor. Esta se conoce como **hipótesis nula**. También necesitamos una **hipótesis alternativa**, $H_1$. Por ejemplo:
+
+$$
+H_1 : \beta_k \neq \beta_k^0
+$$
+
+y un **nivel de significancia**, $\alpha$.
+
+
+
+### Varianza, $\sigma^2$, conocida (2/4)
+
+Dado que:
+
+$$
+(b_k - \beta_k) \sim \mathcal{N}\!\left(0,\, \sigma^2 (\mathbf{x}'\mathbf{x})^{-1}_{kk}\right)
+$$
+
+Entonces:
+
+$$
+z_k = \frac{b_k - \beta_k^0}{\sqrt{\sigma^2 (\mathbf{x}'\mathbf{x})^{-1}_{kk}}} \sim \mathcal{N}(0,1)
+$$
+Este se conoce como **estadístico $z$**
+
+
+### Varianza, $\sigma^2$, conocida (3/4)
+
+Si suponemos que $\sigma$ es conocida, entonces:
+
+- El estadístico $z_k$ puede calcularse a partir de una muestra.
+
+- La distribución de $z_k$ implica que este y $x$ son independientes.
+
+- La distribución de $z_k$ es conocida.
+
+
+
+### Varianza, $\sigma^2$, conocida (4/4)
+
+Nuestro objetivo es determinar si el error $b_k - \beta_k^0$ es demasiado grande.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="50%"}
+
+# ============================================================
+#  Distribución N(0,1) con regiones de rechazo (prueba dos colas)
+# ============================================================
+
+library(ggplot2)
+
+# ── Parámetros ───────────────────────────────────────────────
+alpha  <- 0.05                      # nivel de significancia
+z_crit <- qnorm(1 - alpha / 2)      # valor crítico ≈ 1.96
+
+# ── Datos base ───────────────────────────────────────────────
+x      <- seq(-4, 4, length.out = 1000)
+y      <- dnorm(x)
+df     <- data.frame(x = x, y = y)
+
+# Segmentos para rellenar las colas
+cola_izq <- subset(df, x <= -z_crit)
+cola_der <- subset(df, x >=  z_crit)
+
+# ── Paleta de colores ────────────────────────────────────────
+col_curva   <- "#2C6E9C"   # azul acero
+col_relleno <- "#E8635A"   # rojo ladrillo suave
+col_lineas  <- "#555555"   # gris oscuro para líneas punteadas
+col_texto   <- "#222222"
+
+# ── Gráfica ──────────────────────────────────────────────────
+p <- ggplot(df, aes(x, y)) +
+
+  # Área de rechazo izquierda
+  geom_ribbon(
+    data = cola_izq,
+    aes(ymin = 0, ymax = y),
+    fill  = col_relleno,
+    alpha = 0.55
+  ) +
+
+  # Área de rechazo derecha
+  geom_ribbon(
+    data = cola_der,
+    aes(ymin = 0, ymax = y),
+    fill  = col_relleno,
+    alpha = 0.55
+  ) +
+
+  # Curva de densidad
+  geom_line(color = col_curva, linewidth = 0.9) +
+
+  # Línea vertical en 0
+  geom_segment(
+    aes(x = 0, xend = 0, y = 0, yend = dnorm(0)),
+    linetype = "dashed", color = col_lineas, linewidth = 0.45
+  ) +
+
+  # Líneas verticales en los valores críticos
+  geom_segment(
+    aes(x = -z_crit, xend = -z_crit, y = 0, yend = dnorm(z_crit)),
+    linetype = "dashed", color = col_lineas, linewidth = 0.45
+  ) +
+  geom_segment(
+    aes(x =  z_crit, xend =  z_crit, y = 0, yend = dnorm(z_crit)),
+    linetype = "dashed", color = col_lineas, linewidth = 0.45
+  ) +
+
+  # Etiquetas de área de rechazo (colas)
+  annotate(
+    "text", x = -z_crit - 0.85, y = 0.075,
+    label = "Área de\nrechazo",
+    size = 3.5, color = col_texto, hjust = 0.5
+  ) +
+  annotate(
+    "text", x =  z_crit + 0.85, y = 0.075,
+    label = "Área de\nrechazo",
+    size = 3.5, color = col_texto, hjust = 0.5
+  ) +
+
+  # Etiqueta α/2 en cola izquierda
+  annotate(
+    "text", x = -z_crit - 0.3, y = 0.014,
+    label = "alpha/2",
+    size = 3.4, color = col_texto, parse = TRUE
+  ) +
+
+  # Etiqueta α/2 en cola derecha
+  annotate(
+    "text", x =  z_crit + 0.3, y = 0.014,
+    label = "alpha/2",
+    size = 3.4, color = col_texto, parse = TRUE
+  ) +
+
+  # Etiqueta área de no rechazo
+  annotate(
+    "text", x = 0.6, y = 0.22,
+    label = "Área de no rechazo",
+    size = 3.5, color = col_texto, hjust = 0.5
+  ) +
+  annotate(
+    "text", x = 0.6, y = 0.18,
+    label = "1 - alpha",
+    size = 3.6, color = col_texto, parse = TRUE
+  ) +
+
+  # Etiquetas en el eje x: 0 y valores críticos
+  annotate(
+    "text", x = 0, y = -0.012,
+    label = "0", size = 3.5, color = col_texto
+  ) +
+  annotate(
+    "text", x = -z_crit, y = -0.012,
+    label = "-z[alpha/2]",
+    size = 3.5, color = col_texto, parse = TRUE
+  ) +
+  annotate(
+    "text", x =  z_crit, y = -0.012,
+    label = "z[alpha/2]",
+    size = 3.5, color = col_texto, parse = TRUE
+  ) +
+
+  # Eje horizontal explícito (línea en y = 0)
+  geom_hline(yintercept = 0, color = col_lineas, linewidth = 0.4) +
+
+  # Títulos y tema
+  labs(
+    title    = expression("Distribución de " * z[k] * " bajo " * H[0]),
+    subtitle = expression("Prueba de dos colas al nivel " * alpha),
+    x        = expression(z[k]),
+    y        = "Densidad"
+  ) +
+
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title       = element_text(face = "bold", size = 14, hjust = 0.5),
+    plot.subtitle    = element_text(size = 11, hjust = 0.5, color = "#444444"),
+    axis.title.x     = element_text(size = 12, margin = margin(t = 8)),
+    axis.title.y     = element_text(size = 12, margin = margin(r = 8)),
+    axis.text.x      = element_blank(),   # usamos anotaciones manuales
+    axis.ticks.x     = element_blank(),
+    axis.line.x      = element_blank(),
+    panel.grid       = element_blank(),
+    plot.margin      = margin(15, 20, 15, 15)
+  ) +
+
+  # Rango del eje y sin espacio inferior
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+  scale_x_continuous(limits = c(-4, 4))
+
+# ── Mostrar ──────────────────────────────────────────────────
+print(p)
+
+# ── Guardar (opcional) ───────────────────────────────────────
+# ggsave("slide7_dist_normal.png", plot = p,
+#         width = 7, height = 4.5, dpi = 300)
+
+
+```
+
+El error es demasiado grande si el estadístico $z_k$ toma algún valor sorpresivo (lejos del centro de la distribución).
+
+### Errores tipo I y tipo II
+
+¿Cómo decidimos el valor de $\alpha$? Para elegir el valor de $\alpha$ debemos balancear entre cometer un error del tipo I y un error del tipo II:
+
+- Tenemos un **error del tipo I** cuando rechazamos una hipótesis nula verdadera.
+
+- Tenemos un **error del tipo II** cuando no rechazamos una hipótesis nula falsa.
+
+Entre más pequeño sea el valor de $\alpha$, más bajo es el riesgo de cometer un error del tipo I. Al mismo tiempo, al reducir el valor de $\alpha$ el riesgo de cometer un error del tipo II se hace más grande.
+
+
+
+### Varianza desconocida
+
+¿Qué pasa si la varianza del error es desconocida? En este caso:
+
+- Remplazamos $\sigma^2$ por su estimador, $s^2$. Entonces:
+
+$$
+\sqrt{s^2 (\mathbf{x}'\mathbf{x})^{-1}_{kk}} = \text{s.e.}(b_k)
+$$
+
+- Definimos el **estadístico $t$**:
+
+$$
+t_k = \frac{b_k - \beta_k^0}{\text{s.e.}(b_k)}
+$$
+
+
+### Reglas útiles para conocer la distribución de los estadísticos (1/4)
+
+Antes de continuar, necesitamos conocer algunas reglas que nos permitirán conocer la distribución del estadístico $t$:
+
+<ol start="1">
+  <li>Si $x \sim N(0,1)$, $y \sim \chi^2(m)$, y si $x$ e $y$ son independientes:
+
+$$
+\frac{x}{\sqrt{y/m}} \sim t_{(m)}
+$$
+  </li>
+  
+  <li> $\mathbf{x} \sim N(\mathbf{0}, \mathbf{I}_n)$ y $\mathbf{A}$ es una matriz idempotente, entonces:
+
+$$
+\mathbf{x}'\mathbf{A}\mathbf{x} \sim \chi^2_{\text{Rango}(\mathbf{A})}
+$$
+</li>
+</ol>
+
+
+### Reglas útiles para conocer la distribución de los estadísticos (2/4)
+
+<ol start="3">
+  <li> Si $\mathbf{A}$ es una matriz idempotente, entonces:
+
+$$
+\text{Rango}(\mathbf{A}) = \text{Traza}(\mathbf{A})
+$$
+
+</li>
+
+  <li> Si $\mathbf{x}$ e $\mathbf{y}$ son independientes, entonces $f(\mathbf{x})$ y $g(\mathbf{y})$ también lo son.
+</li>
+</ol>
+
+
+### Reglas útiles para conocer la distribución de los estadísticos (3/4)
+
+<ol start="5">
+  <li> Sea $\mathbf{x}$ un vector de dimensión $m$. Si $\mathbf{x} \sim N(\boldsymbol{\mu}, \boldsymbol{\Sigma})$, con $\boldsymbol{\Sigma}$ no singular:
+
+$$
+(\mathbf{x} - \boldsymbol{\mu})'\boldsymbol{\Sigma}^{-1}(\mathbf{x} - \boldsymbol{\mu}) \sim \chi^2(m)
+$$
+
+</li>
+  <li> Si $x \sim \chi^2(m_1)$, $y \sim \chi^2(m_2)$, y si $x$ e $y$ son independientes:
+
+$$
+\frac{x/m_1}{y/m_2} \sim F_{m_1,\, m_2}
+$$
+</li>
+</ol>
+
+
+### Reglas útiles para conocer la distribución de los estadísticos (4/4)
+
+<span class="emphasis-blue">Ejercicio </span>
+
+Demuestra que el estadístico $t$ sigue una distribución _t de Student_:
+
+$$
+t_k \sim t_{n-k}
+$$
+
+donde $n$ es el número de observaciones y $k$ el número de variables independientes incluidas en la regresión.
+
+_Pista_: Escribe el estadístico $t$ como:
+
+$$
+t_k = \frac{z_k}{\sqrt{q/(n-k)}}
+$$
+
+y utiliza las reglas 1–4 para conocer la distribución de los estadísticos.
+
+
+
+### ¿Cómo realizar la prueba de hipótesis? (1/2)
+
+Para probar una hipótesis nula, seguimos los siguientes pasos:
+
+<ol start="1">
+  <li> Calculamos el estadístico $t$. Si este está muy alejado de cero tenemos un primer síntoma de que $H_0$ es falso.
+  
+  </li>
+  
+  
+  <li> Observamos las tablas para la distribución $t$ y buscamos los valores correspondientes a $(n-k)$ grados de libertad. El objetivo es encontrar el valor crítico $t_{\alpha/2,(n-k)}$ de tal forma que el área en la distribución $t$ a la derecha de $t_{\alpha/2,(n-k)}$ sea $\alpha/2$. Nota que, dado que la distribución es simétrica:
+
+$$
+\mathbb{P}(-t_{\alpha/2,(n-k)} < t_k < t_{\alpha/2,(n-k)}) = 1 - \alpha
+$$
+</li>
+</ol>
+
+
+### ¿Cómo realizar la prueba de hipótesis? (2/2)
+
+<ol start="3">
+  <li> _No rechazamos_ $H_0$ si $|t_k| < t_{\alpha/2,(n-k)}$. Rechazamos en caso contrario. Nota que, dado que $t_k \sim t_{\alpha/2,(n-k)}$ si $H_0$ es verdadera, la probabilidad de rechazar $H_0$ cuando esta es verdadera es $\alpha$.
+  </li>
+</ol>
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="50%"}
+
+# ============================================================
+#  Distribución t con regiones de rechazo (prueba de dos colas)
+# ============================================================
+
+library(ggplot2)
+
+# ── Parámetros ───────────────────────────────────────────────
+alpha <- 0.05
+gl    <- 20                         # grados de libertad
+t_crit <- qt(1 - alpha / 2, df = gl)
+
+# ── Datos base ───────────────────────────────────────────────
+x  <- seq(-4, 4, length.out = 1000)
+y  <- dt(x, df = gl)
+df <- data.frame(x = x, y = y)
+
+cola_izq <- subset(df, x <= -t_crit)
+cola_der <- subset(df, x >=  t_crit)
+
+# ── Paleta de colores ────────────────────────────────────────
+col_curva   <- "#2C6E9C"
+col_relleno <- "#E8635A"
+col_lineas  <- "#555555"
+col_texto   <- "#222222"
+
+# ── Gráfica ──────────────────────────────────────────────────
+p <- ggplot(df, aes(x, y)) +
+
+  geom_ribbon(
+    data = cola_izq,
+    aes(ymin = 0, ymax = y),
+    fill = col_relleno,
+    alpha = 0.55
+  ) +
+
+  geom_ribbon(
+    data = cola_der,
+    aes(ymin = 0, ymax = y),
+    fill = col_relleno,
+    alpha = 0.55
+  ) +
+
+  geom_line(color = col_curva, linewidth = 0.9) +
+
+  geom_segment(
+    aes(x = 0, xend = 0, y = 0, yend = dt(0, df = gl)),
+    linetype = "dashed", color = col_lineas, linewidth = 0.45
+  ) +
+
+  geom_segment(
+    aes(x = -t_crit, xend = -t_crit, y = 0, yend = dt(t_crit, df = gl)),
+    linetype = "dashed", color = col_lineas, linewidth = 0.45
+  ) +
+  geom_segment(
+    aes(x = t_crit, xend = t_crit, y = 0, yend = dt(t_crit, df = gl)),
+    linetype = "dashed", color = col_lineas, linewidth = 0.45
+  ) +
+
+  annotate(
+    "text", x = -t_crit - 0.85, y = 0.075,
+    label = "Área de\nrechazo",
+    size = 3.5, color = col_texto, hjust = 0.5
+  ) +
+  annotate(
+    "text", x = t_crit + 0.85, y = 0.075,
+    label = "Área de\nrechazo",
+    size = 3.5, color = col_texto, hjust = 0.5
+  ) +
+
+  annotate(
+    "text", x = -t_crit - 0.3, y = 0.014,
+    label = "alpha/2",
+    size = 3.4, color = col_texto, parse = TRUE
+  ) +
+  annotate(
+    "text", x = t_crit + 0.3, y = 0.014,
+    label = "alpha/2",
+    size = 3.4, color = col_texto, parse = TRUE
+  ) +
+
+  annotate(
+    "text", x = 0.6, y = 0.22,
+    label = "Área de no rechazo",
+    size = 3.5, color = col_texto, hjust = 0.5
+  ) +
+  annotate(
+    "text", x = 0.6, y = 0.18,
+    label = "1 - alpha",
+    size = 3.6, color = col_texto, parse = TRUE
+  ) +
+
+  annotate(
+    "text", x = 0, y = -0.012,
+    label = "0", size = 3.5, color = col_texto
+  ) +
+  annotate(
+    "text", x = -t_crit, y = -0.012,
+    label = "-t[alpha/2]",
+    size = 3.5, color = col_texto, parse = TRUE
+  ) +
+  annotate(
+    "text", x = t_crit, y = -0.012,
+    label = "t[alpha/2]",
+    size = 3.5, color = col_texto, parse = TRUE
+  ) +
+
+  geom_hline(yintercept = 0, color = col_lineas, linewidth = 0.4) +
+
+  labs(
+    title    = expression("Distribución de " * t[k] * " bajo " * H[0]),
+    subtitle = expression("Prueba de dos colas al nivel " * alpha),
+    x        = expression(t[k]),
+    y        = "Densidad"
+  ) +
+
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title    = element_text(face = "bold", size = 14, hjust = 0.5),
+    plot.subtitle = element_text(size = 11, hjust = 0.5, color = "#444444"),
+    axis.title.x  = element_text(size = 12, margin = margin(t = 8)),
+    axis.title.y  = element_text(size = 12, margin = margin(r = 8)),
+    axis.text.x   = element_blank(),
+    axis.ticks.x  = element_blank(),
+    axis.line.x   = element_blank(),
+    panel.grid    = element_blank(),
+    plot.margin   = margin(15, 20, 15, 15)
+  ) +
+
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+  scale_x_continuous(limits = c(-4, 4))
+
+print(p)
+
+
+```
+
+
+### Intervalos de confianza
+
+El paso 3 para realizar la prueba de hipótesis sobre el $k$-ésimo coeficiente puede expresarse de manera diferente. _No rechazamos_ $H_0$ si:
+
+$$
+-t_{\alpha/2,(n-k)} < \frac{b_k - \beta_k^0}{\text{s.e.}(b_k)} < t_{\alpha/2,(n-k)}
+$$
+
+O bien:
+
+$$
+b_k - t_{\alpha/2,(n-k)}\,\text{s.e.}(b_k) < \beta_k^0 < b_k + t_{\alpha/2,(n-k)}\,\text{s.e.}(b_k)
+$$
+
+Este intervalo se conoce como **intervalo de confianza al nivel** $1-\alpha$. Este es más pequeño conforme más pequeño es el error estándar del coeficiente. Por lo tanto, entre más pequeño el intervalo, más preciso es $b_k$.
+
+
+## Pruebas de una sola cola
+
+
+### Pruebas de una sola cola (1/4)
+
+Supongamos que la hipótesis nula es:
+
+$$
+H_0 : \beta_k = \beta_k^0
+$$
+
+donde $\beta_k^0$ es cualquier valor, y la hipótesis alternativa:
+
+$$
+H_1 : \beta_k = \beta_k^1
+$$
+
+donde $\beta_k^1$ es cualquier otro valor. Supongamos que $\beta_k^1 > \beta_k^0$.
+
+
+### Pruebas de una sola cola (2/4)
+
+- Si $b_k$ está a la derecha de $B$, entonces $b_k$ es más compatible con la distribución de $H_1$ que con la distribución de $H_0$. No dudaríamos en rechazar $H_0$.
+
+- Si $b_k$ está a la izquierda de $A$, el procedimiento nos dirá que $H_0$ se rechaza, ¡aun cuando $b_k$ es más compatible con la distribución de $H_0$ que con la distribución de $H_1$!
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="50%"}
+
+# ============================================================
+#  Dos distribuciones normales superpuestas (H0 y H1)
+#  con regiones de rechazo bilaterales y puntos A, B, t_k
+# ============================================================
+
+library(ggplot2)
+
+# ── Parámetros ───────────────────────────────────────────────
+alpha   <- 0.05          # nivel de significancia
+mu0     <- 0             # media bajo H0 (normalizada)
+mu1     <- 2.8           # media bajo H1 (beta_k^1 > beta_k^0)
+sigma   <- 1             # desviación estándar común
+z_crit  <- qnorm(1 - alpha / 2)   # ≈ 1.96
+
+# Puntos clave
+A  <- mu0 - z_crit       # cola izquierda de H0
+B  <- mu0 + z_crit       # cola derecha de H0  → también es el valor crítico
+tk <- (A + B) / 2 + 1.5  # valor observado t_k (entre A y B, cerca de B)
+
+# ── Grilla de x ──────────────────────────────────────────────
+x <- seq(mu0 - 4.5, mu1 + 4.5, length.out = 2000)
+
+df <- data.frame(
+  x  = x,
+  y0 = dnorm(x, mu0, sigma),   # densidad bajo H0
+  y1 = dnorm(x, mu1, sigma)    # densidad bajo H1
+)
+
+# Segmentos de relleno ─────────────────────────────────────────
+# Cola izquierda de H0 (área α/2 izquierda)
+rej_izq <- subset(df, x <= A)
+
+# Cola derecha de H0 (área α/2 derecha): entre B y el cruce con H1
+# Rellenamos solo la parte de la curva H0 (la de abajo en esa zona)
+rej_der_h0 <- subset(df, x >= B & x <= mu1)
+rej_der_h0$y <- pmin(rej_der_h0$y0, rej_der_h0$y1)  # mínimo de ambas curvas
+
+# Cola derecha de H1 (para mostrar simetría visual)
+rej_der_h1 <- subset(df, x >= mu1 + z_crit)
+
+# ── Colores ───────────────────────────────────────────────────
+col_h0      <- "#2C6E9C"   # azul — distribución H0
+col_h1      <- "#C0392B"   # rojo — distribución H1
+col_relleno <- "#E8635A"   # rojo ladrillo para áreas de rechazo
+col_lineas  <- "#555555"
+col_texto   <- "#222222"
+
+# ── Gráfica ──────────────────────────────────────────────────
+p <- ggplot(df, aes(x = x)) +
+
+  # ── Áreas de rechazo ──────────────────────────────────────
+  # Cola izquierda H0
+  geom_ribbon(
+    data = rej_izq,
+    aes(ymin = 0, ymax = y0),
+    fill = col_relleno, alpha = 0.55
+  ) +
+  # Cola derecha: área compartida entre H0 y H1
+  geom_ribbon(
+    data = subset(df, x >= B),
+    aes(ymin = 0, ymax = pmin(y0, y1)),
+    fill = col_relleno, alpha = 0.55
+  ) +
+  # Cola derecha extrema de H1
+  #geom_ribbon(
+  #  data = rej_der_h1,
+  #  aes(ymin = 0, ymax = y1),
+  #  fill = col_relleno, alpha = 0.45
+  #) +
+
+  # ── Curvas de densidad ────────────────────────────────────
+  geom_line(aes(y = y0), color = col_h0, linewidth = 0.9) +
+  geom_line(aes(y = y1), color = col_h1, linewidth = 0.9) +
+
+  # ── Líneas verticales punteadas ───────────────────────────
+  # En las medias
+  geom_segment(aes(x = mu0, xend = mu0, y = 0, yend = dnorm(mu0, mu0, sigma)),
+               linetype = "dashed", color = col_lineas, linewidth = 0.4) +
+  geom_segment(aes(x = mu1, xend = mu1, y = 0, yend = dnorm(mu1, mu1, sigma)),
+               linetype = "dashed", color = col_lineas, linewidth = 0.4) +
+  # En A (cola izquierda)
+  geom_segment(aes(x = A, xend = A, y = 0, yend = dnorm(A, mu0, sigma)),
+               linetype = "dashed", color = col_lineas, linewidth = 0.4) +
+  # En B (cola derecha de H0)
+  geom_segment(aes(x = B, xend = B, y = 0, yend = dnorm(B, mu0, sigma)),
+               linetype = "dashed", color = col_lineas, linewidth = 0.4) +
+  # En t_k
+  geom_segment(aes(x = tk, xend = tk, y = 0, yend = dnorm(tk, mu0, sigma)),
+               linetype = "dashed", color = col_lineas, linewidth = 0.4) +
+
+  # ── Etiquetas α ─────────────────────────────────────────
+  
+  annotate("text", x = A - 0.5, y = 0.025,
+           label = "alpha/2", parse = TRUE,
+           size = 3.4, color = col_texto) +
+  annotate("text", x = B + 0.35, y = 0.040,
+           label = "alpha/2", parse = TRUE,
+           size = 3.4, color = col_texto) +
+
+  # ── Etiquetas del eje x ───────────────────────────────────
+ 
+  annotate("text", x = A,   y = -0.013, label = "A",
+           size = 3.6, color = col_texto) +
+  annotate("text", x = mu0, y = -0.013,
+           label = "beta[k]^0", parse = TRUE,
+           size = 3.6, color = col_h0) +
+  annotate("text", x = tk,  y = -0.013,
+           label = "t[k]", parse = TRUE,
+           size = 3.6, color = col_texto) +
+  annotate("text", x = B,   y = -0.013, label = "B",
+           size = 3.6, color = col_texto) +
+  annotate("text", x = mu1, y = -0.013,
+           label = "beta[k]^1", parse = TRUE,
+           size = 3.6, color = col_h1) +
+
+  # ── Etiquetas de las curvas ───────────────────────────────
+  annotate("text", x = mu0 - 1.5, y = dnorm(mu0, mu0, sigma) * 0.65,
+           label = "H[0]", parse = TRUE,
+           size = 4.2, color = col_h0, fontface = "bold") +
+  annotate("text", x = mu1 + 1.5, y = dnorm(mu1, mu1, sigma) * 0.65,
+           label = "H[1]", parse = TRUE,
+           size = 4.2, color = col_h1, fontface = "bold") +
+
+  # ── Eje horizontal ────────────────────────────────────────
+  geom_hline(yintercept = 0, color = col_lineas, linewidth = 0.4) +
+
+  # ── Títulos ───────────────────────────────────────────────
+  labs(
+    title    = expression("Distribución " * t * " bajo " * beta[k]^1 > beta[k]^0),
+    subtitle = expression("Prueba de dos colas"),
+    x        = expression(b[k]),
+    y        = "Densidad"
+  ) +
+
+  # ── Tema ──────────────────────────────────────────────────
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title    = element_text(face = "bold", size = 13, hjust = 0.5),
+    plot.subtitle = element_text(size = 10, hjust = 0.5, color = "#555555"),
+    axis.title.x  = element_text(size = 12, margin = margin(t = 8)),
+    axis.title.y  = element_text(size = 12, margin = margin(r = 8)),
+    axis.text.x   = element_blank(),
+    axis.ticks.x  = element_blank(),
+    axis.line.x   = element_blank(),
+    panel.grid    = element_blank(),
+    plot.margin   = margin(15, 20, 15, 15)
+  ) +
+
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+  scale_x_continuous(limits = c(mu0 - 4.2, mu1 + 4.2))
+
+print(p)
+
+# ── Guardar (opcional) ────────────────────────────────────────
+# ggsave("slide20_dos_distribuciones.png", plot = p,
+#        width = 8, height = 4.5, dpi = 300)
+
+```
+
+
+### Pruebas de una sola cola (3/4)
+
+Para hacer la prueba debemos fijarnos solo en una cola (en este caso, la cola derecha) e ignoramos la otra cola.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="50%"}
+
+# ============================================================
+#  Dos distribuciones normales superpuestas (H0 y H1)
+#  con regiones de rechazo bilaterales y puntos A, B, t_k
+# ============================================================
+
+library(ggplot2)
+
+# ── Parámetros ───────────────────────────────────────────────
+alpha   <- 0.05          # nivel de significancia
+mu0     <- 0             # media bajo H0 (normalizada)
+mu1     <- 2.8           # media bajo H1 (beta_k^1 > beta_k^0)
+sigma   <- 1             # desviación estándar común
+z_crit  <- qnorm(1 - alpha)   # ≈ 1.96
+
+# Puntos clave
+C  <- mu0 + z_crit       # cola derecha de H0
+
+# ── Grilla de x ──────────────────────────────────────────────
+x <- seq(mu0 - 4.5, mu1 + 4.5, length.out = 2000)
+
+df <- data.frame(
+  x  = x,
+  y0 = dnorm(x, mu0, sigma),   # densidad bajo H0
+  y1 = dnorm(x, mu1, sigma)    # densidad bajo H1
+)
+
+# Cola derecha de H0 (área α/2 derecha): entre B y el cruce con H1
+# Rellenamos solo la parte de la curva H0 (la de abajo en esa zona)
+rej_der_h0 <- subset(df, x >= A & x <= mu1)
+rej_der_h0$y <- pmin(rej_der_h0$y0, rej_der_h0$y1)  # mínimo de ambas curvas
+
+
+# ── Colores ───────────────────────────────────────────────────
+col_h0      <- "#2C6E9C"   # azul — distribución H0
+col_h1      <- "#C0392B"   # rojo — distribución H1
+col_relleno <- "#E8635A"   # rojo ladrillo para áreas de rechazo
+col_lineas  <- "#555555"
+col_texto   <- "#222222"
+
+# ── Gráfica ──────────────────────────────────────────────────
+p <- ggplot(df, aes(x = x)) +
+
+  # ── Áreas de rechazo ──────────────────────────────────────
+  
+  # Cola derecha: área compartida entre H0 y H1
+  geom_ribbon(
+    data = subset(df, x >= C),
+    aes(ymin = 0, ymax = pmin(y0, y1)),
+    fill = col_relleno, alpha = 0.55
+  ) +
+
+  # ── Curvas de densidad ────────────────────────────────────
+  geom_line(aes(y = y0), color = col_h0, linewidth = 0.9) +
+  geom_line(aes(y = y1), color = col_h1, linewidth = 0.9) +
+
+  # ── Líneas verticales punteadas ───────────────────────────
+  # En las medias
+  geom_segment(aes(x = mu0, xend = mu0, y = 0, yend = dnorm(mu0, mu0, sigma)),
+               linetype = "dashed", color = col_lineas, linewidth = 0.4) +
+  geom_segment(aes(x = mu1, xend = mu1, y = 0, yend = dnorm(mu1, mu1, sigma)),
+               linetype = "dashed", color = col_lineas, linewidth = 0.4) +
+  # En A (cola derecha de H0)
+  geom_segment(aes(x = C, xend = C, y = 0, yend = dnorm(C, mu0, sigma)),
+               linetype = "dashed", color = col_lineas, linewidth = 0.4) +
+  # En t_k
+  geom_segment(aes(x = tk, xend = tk, y = 0, yend = dnorm(tk, mu0, sigma)),
+               linetype = "dashed", color = col_lineas, linewidth = 0.4) +
+
+  # ── Etiquetas α ─────────────────────────────────────────
+
+  annotate("text", x = C + 0.35, y = 0.025,
+           label = "alpha", parse = TRUE,
+           size = 3.4, color = col_texto) +
+
+  # ── Etiquetas del eje x ───────────────────────────────────
+  
+  annotate("text", x = mu0, y = -0.013,
+           label = "beta[k]^0", parse = TRUE,
+           size = 3.6, color = col_h0) +
+  annotate("text", x = tk,  y = -0.013,
+           label = "t[k]", parse = TRUE,
+           size = 3.6, color = col_texto) +
+  annotate("text", x = mu1, y = -0.013,
+           label = "beta[k]^1", parse = TRUE,
+           size = 3.6, color = col_h1) +
+
+  # ── Etiquetas de las curvas ───────────────────────────────
+  annotate("text", x = mu0 - 1.5, y = dnorm(mu0, mu0, sigma) * 0.65,
+           label = "H[0]", parse = TRUE,
+           size = 4.2, color = col_h0, fontface = "bold") +
+  annotate("text", x = mu1 + 1.5, y = dnorm(mu1, mu1, sigma) * 0.65,
+           label = "H[1]", parse = TRUE,
+           size = 4.2, color = col_h1, fontface = "bold") +
+
+  # ── Eje horizontal ────────────────────────────────────────
+  geom_hline(yintercept = 0, color = col_lineas, linewidth = 0.4) +
+
+  # ── Títulos ───────────────────────────────────────────────
+  labs(
+    title    = expression("Distribución " * t * " bajo " * beta[k]^1 > beta[k]^0),
+    subtitle = expression("Prueba de cola derecha"),
+    x        = expression(b[k]),
+    y        = "Densidad"
+  ) +
+
+  # ── Tema ──────────────────────────────────────────────────
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title    = element_text(face = "bold", size = 13, hjust = 0.5),
+    plot.subtitle = element_text(size = 10, hjust = 0.5, color = "#555555"),
+    axis.title.x  = element_text(size = 12, margin = margin(t = 8)),
+    axis.title.y  = element_text(size = 12, margin = margin(r = 8)),
+    axis.text.x   = element_blank(),
+    axis.ticks.x  = element_blank(),
+    axis.line.x   = element_blank(),
+    panel.grid    = element_blank(),
+    plot.margin   = margin(15, 20, 15, 15)
+  ) +
+
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+  scale_x_continuous(limits = c(mu0 - 4.2, mu1 + 4.2))
+
+print(p)
+
+# ── Guardar (opcional) ────────────────────────────────────────
+# ggsave("slide20_dos_distribuciones.png", plot = p,
+#        width = 8, height = 4.5, dpi = 300)
+
+```
+
+
+
+### Pruebas de una sola cola (4/4)
+
+En general, aplicamos _pruebas de cola derecha_ si:
+
+$$
+H_0 : \beta_k = \beta_k^1, \quad H_1 : \beta_k > \beta_k^1
+$$
+
+y _pruebas de cola izquierda_ si:
+
+$$
+H_0 : \beta_k = \beta_k^1, \quad H_1 : \beta_k < \beta_k^1
+$$
+
+## Valores $p$
+
+
+
+### Valores $p$ (1/2)
+
+Una prueba de hipótesis también se puede realizar observando los **valores $p$**:
+
+<ol start="1">
+  <li> Calculamos el estadístico $t$.
+  
+  </li>
+
+  <li> En lugar de encontrar el valor crítico $t_{\alpha/2,(n-k)}$ (o $t_{\alpha,(n-k)}$ si la prueba es de una sola cola), calculamos:
+  
+  $$
+  p = \begin{cases} \mathbb{P}(t > |t_k|) \times 2 & \text{si dos colas} \\ \mathbb{P}(t > |t_k|) & \text{si una cola} \end{cases}
+  $$
+
+  
+  </li>
+  </ol>
+ 
+
+
+
+### Valores $p$ (2/2)
+
+Nota que, dado que la distribución $t$ es simétrica alrededor de cero:
+
+$$
+\mathbb{P}(t > |t_k|) = \mathbb{P}(t < -|t_k|)
+$$
+
+Entonces:
+
+$$
+\mathbb{P}(-|t_k| < t < |t_k|) = 1 - p
+$$
+
+<ol start="3">
+  <li> No rechazamos $H_0$ si $p > \alpha$. Rechazamos en caso contrario.
+  
+  </li>
+  </ol>
+
+
+
+### Valores $p$ (3/3)
+
+<span class="emphasis-blue">Ejercicio </span>
+
+Sea $n = 40$; $k = 2$, $b_2 = 10.21$; $\beta_2^0 = 5.5$; $\text{s.e.}(b_2) = 2.09$. Muestra que $p = 0.0152$. Interpreta tu resultado.
+
+_Pista_: Puedes utilizar algún software para hacer el cálculo. Por ejemplo, para una prueba de cola derecha, puedes utilizar en Microsoft Excel:
+`p = DISTR.T.CD(t, n-k)`.
+
+
+
+## Pruebas de hipótesis conjuntas
+
+
+
+### Pruebas conjuntas (1/3)
+
+Ahora estamos interesados en probar hipótesis de la forma:
+
+$$
+H_0 : \mathbf{R}\boldsymbol{\beta} = \mathbf{r}
+$$
+
+donde $\boldsymbol{\beta}$ es el vector de coeficientes, $\mathbf{R}$ es una matriz $(m \times k)$ y $m$ es a la vez el número de restricciones que deseamos someter a prueba y el rango de $\mathbf{R}$.
+
+
+
+### Pruebas conjuntas (2/3)
+
+Por ejemplo, si tenemos el modelo:
+
+$$
+y_i = \beta_1 + \beta_2 x_{2i} + \beta_3 x_{3i} + \beta_4 x_{4i} + \beta_5 x_{5i} + u_i
+$$
+
+y deseamos probar:
+
+$$
+H_0 : \beta_2 = 0, \quad \beta_3 = 1
+$$
+
+tenemos $m = 2$ y:
+
+$$
+\boldsymbol{\beta} = \begin{pmatrix} \beta_1 \\ \beta_2 \\ \beta_3 \\ \beta_4 \\ \beta_5 \end{pmatrix}, \quad \mathbf{R} = \begin{pmatrix} 0 & 1 & 0 & 0 & 0 \\ 0 & 0 & 1 & 0 & 0 \end{pmatrix}, \quad \mathbf{r} = \begin{pmatrix} 0 \\ 1 \end{pmatrix}
+$$
+
+
+
+### Pruebas conjuntas (3/3)
+
+<span class="emphasis-blue">Ejercicio </span>
+
+
+Considera el modelo:
+
+$$
+y_i = \beta_1 + \beta_2 x_{2i} + \beta_3 x_{3i} + \beta_4 x_{4i} + \beta_5 x_{5i} + u_i
+$$
+
+Escribe la forma de las matrices $\mathbf{R}$ y $\mathbf{r}$ para cada uno de los siguientes casos:
+
+1. $H_0 : \beta_2 + \beta_3 = 0, \quad \beta_4 = \beta_5$
+
+2. $H_0 : \beta_2 = \beta_3, \quad \beta_4 = 0, \quad \beta_2 + \beta_3 = \beta_4$
+
+
+
+### Estadístico de la prueba (1/3)
+
+Para construir el estadístico para realizar la prueba de hipótesis conjuntas, primero recordemos que:
+
+$$
+\mathbf{b} \sim \mathcal{N}\!\left(\boldsymbol{\beta},\, \sigma^2 (\mathbf{x}'\mathbf{x})^{-1}\right)
+$$
+
+Esto implica que:
+
+$$
+(\mathbf{Rb} - \mathbf{r}) \sim \mathcal{N}\!\left(\mathbf{0},\, \sigma^2 \mathbf{R}(\mathbf{x}'\mathbf{x})^{-1}\mathbf{R}'\right)
+$$
+
+
+
+### Estadístico de la prueba (2/3)
+
+Construimos ahora el *estadístico F*:
+
+$$
+F = \frac{(\mathbf{Rb} - \mathbf{r})'\!\left(\mathbf{R}(\mathbf{x}'\mathbf{x})^{-1}\mathbf{R}'\right)^{-1}\!(\mathbf{Rb} - \mathbf{r})\,/\,\text{Rango}(\mathbf{R})}{s^2}
+$$
+
+
+
+### Estadístico de la prueba (3/3)
+
+<span class="emphasis-blue">Ejercicio </span>
+
+Muestra que el estadístico $F$:
+
+$$F \sim F_{m,\, n-k}$$
+
+_Pista_: Escribe el estadístico $F$ como:
+
+$$
+F = \frac{w/\text{Rango}(\mathbf{R})}{q/(n-k)}
+$$
+
+y utiliza las reglas 4–6 para conocer la distribución de los estadísticos.
+
+
+
+### ¿Cómo realizar la prueba de hipótesis? (1/2)
+
+Para probar la hipótesis nula planteada, seguimos los siguientes pasos:
+
+<ol start="1">
+  <li> Calculamos el estadístico $F$. Si el cálculo anterior resulta muy complicado, podemos calcular el estadístico de la siguiente manera:
+
+$$
+F = \frac{(RSS_R - RSS_U)/m}{RSS_U/(n-k)}
+$$
+
+donde $RSS_R$ es el $RSS$ del modelo restringido y $RSS_U$ es el $RSS$ del modelo no restringido.
+  </li>
+</ol>
+
+
+### ¿Cómo realizar la prueba de hipótesis? (2/2)
+
+<ol start="2">
+  <li> Observamos las tablas para la distribución $F$. Buscamos la entrada para $m$ grados de libertad en el numerador y $n-k$ grados de libertad en el denominador. El objetivo es encontrar el valor crítico $F_{\alpha,(m,n-k)}$ de tal forma que la probabilidad de encontrarse a la derecha de este número sea $\alpha$.
+  
+  </li> 
+  <li> No rechazamos $H_0$ si $F < F_{\alpha,(m,n-k)}$. Rechazamos en caso contrario.
+  </li>
+</ol>
+
+
+
+### Prueba $F$ para la significancia global
+
+<span class="emphasis-blue">Ejercicio </span>
+
+Una de las aplicaciones más importantes del estadístico $F$ es la de la *significancia global*. En este caso deseamos probar:
+
+$$
+H_0 : \beta_2 = \beta_3 = \cdots = \beta_k = 0
+$$
+
+Muestra que, en este caso particular, el estadístico $F$ puede calcularse en términos de la $R^2$ del modelo no restringido:
+
+$$
+F_{k-1,\,n-k} = \frac{R^2/(k-1)}{(1-R^2)/(n-k)}
+$$
+
+
+
+### Valor $p$ para la prueba $F$
+
+Al igual que con la prueba $t$, la prueba $F$ también puede realizarse mediante el cálculo del valor $p$:
+
+1. Calculamos el estadístico $F$.
+
+2. Calculamos:
+
+$$
+p = \mathbb{P}(F \geq F_{\alpha,(m,n-k)})
+$$
+
+3. No rechazamos $H_0$ si $p > \alpha$. Rechazamos en caso contrario.
+
+
+
+## Prueba $t$ vs. prueba $F$
+
+
+
+### Estadístico $t$ vs. estadístico $F$ (1/2)
+
+Consideremos la siguiente hipótesis nula:
+
+$$
+H_0 : \beta_k = \beta_k^0
+$$
+
+Nota que este es un caso especial para la prueba $F$. En particular:
+
+$$
+\mathbf{R} = \begin{pmatrix} 0 & \cdots & 0 & 1 & 0 & \cdots & 0 \end{pmatrix}, \quad \mathbf{r} = \beta_k^0
+$$
+
+donde el $1$ se encuentra en la $k$-ésima posición del vector $\mathbf{R}$.
+
+
+
+### Estadístico $t$ vs. estadístico $F$ (2/2)
+
+<span class="emphasis-blue">Ejercicio </span>
+
+Demuestra que una variable aleatoria distribuida como una $F(1, n-k)$ es el cuadrado de una variable aleatoria distribuida como una $t(n-k)$. Comenta.
+
+
+_Pista_: Calcula el estadístico $F$ para la prueba $H_0 : \beta_k = \beta_k^0$.
+
+
+
+### Estadístico $t$ vs. estadístico $F$: una restricción lineal (1/2)
+
+Consideremos la siguiente hipótesis nula:
+
+$$
+H_0 : \sum_{j=1}^{k} \lambda_j \beta_j = \theta
+$$
+
+En este caso, podemos aplicar una prueba $F$ definiendo:
+
+$$
+\mathbf{R} = \begin{pmatrix} \lambda_1 & \lambda_2 & \cdots & \lambda_k \end{pmatrix}, \quad \mathbf{r} = \theta
+$$
+
+
+
+### Estadístico $t$ vs. estadístico $F$: una restricción lineal (2/2)
+
+Nota que, en este caso:
+
+$$
+F \sim F_{1,\, n-k}
+$$
+
+Pero recuerda que:
+
+$$
+F_{1,\,n-k} = t_{n-k}^2
+$$
+
+Esto implica que, cuando deseamos probar una restricción lineal de parámetros, estamos indiferentes entre aplicar la prueba $t$ o la prueba $F$. Por supuesto, la aplicación de la prueba $t$ también nos permite calcular intervalos de confianza de la forma habitual.
+
+
+
+### Estadístico $t$ vs. estadístico $F$: Pruebas conjuntas (1/5)
+
+¿Qué pasa si tenemos más de una restricción? Sea, por ejemplo, $k = 2$ y:
+
+$$
+H_0 : \beta_1 = 1, \quad \beta_2 = 0
+$$
+
+¿Qué prueba preferimos en este caso, una $t$ o una $F$?
+
+
+
+### Estadístico $t$ vs. estadístico $F$: Pruebas conjuntas (2/5)
+
+Una posibilidad pudiera ser no rechazar $H_0$ si ambas restricciones pasan, cada una, la prueba $t$. Esto ocurre si de manera simultánea:
+
+$$
+b_1 - \text{s.e.}(b_1)\,t_{\alpha/2,(n-k)} < \beta_1 < b_1 + \text{s.e.}(b_1)\,t_{\alpha/2,(n-k)}
+$$
+y:
+
+$$
+b_2 - \text{s.e.}(b_2)\,t_{\alpha/2,(n-k)} < \beta_2 < b_2 + \text{s.e.}(b_2)\,t_{\alpha/2,(n-k)}
+$$
+
+Esto corresponde a encontrarse en algún punto dentro de una región rectangular en el plano $(\beta_1, \beta_2)$.
+
+
+
+### Estadístico $t$ vs. estadístico $F$: Pruebas conjuntas (3/5)
+
+En cambio, la región de confianza para la prueba $F$ es:
+
+$$
+\begin{pmatrix} b_1 - \beta_1 & b_2 - \beta_2 \end{pmatrix} \left(\widehat{\text{var}(\mathbf{b})}\right)^{-1} \begin{pmatrix} b_1 - \beta_1 \\ b_2 - \beta_2 \end{pmatrix} < 2 F_{\alpha,(m,n-k)}
+$$
+
+Esta corresponde a un elipse en el plano $(\beta_1, \beta_2)$.
+
+
+### Estadístico $t$ vs. estadístico $F$: Pruebas conjuntas (4/5)
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="50%"}
+
+# ============================================================
+#  Diapositiva 46 — Estadístico t vs. F: Pruebas conjuntas
+#  Región rectangular (dos pruebas t) vs. elipse (prueba F)
+# ============================================================
+
+library(ggplot2)
+
+# ── Parámetros ───────────────────────────────────────────────
+# Estimaciones (centro de ambas regiones)
+b1 <- 0
+b2 <- 0
+
+# Errores estándar (controlan el tamaño de la región)
+se1 <- 1.4    # s.e.(b1)
+se2 <- 1.0    # s.e.(b2)
+
+# Correlación entre b1 y b2 (inclinar la elipse)
+rho <- 0.55
+
+# Nivel de significancia
+alpha <- 0.05
+n_k   <- 100   # grados de libertad residuales (n - k)
+m     <- 2     # número de restricciones
+
+# Valores críticos
+t_crit <- qt(1 - alpha / 2, df = n_k)          # para el rectángulo
+F_crit <- qf(1 - alpha, df1 = m, df2 = n_k)    # para la elipse
+
+# ── Rectángulo de confianza (dos t individuales) ──────────────
+rect <- data.frame(
+  xmin = b1 - t_crit * se1,
+  xmax = b1 + t_crit * se1,
+  ymin = b2 - t_crit * se2,
+  ymax = b2 + t_crit * se2
+)
+
+# ── Elipse de confianza (prueba F conjunta) ───────────────────
+# La elipse de confianza se deriva de la forma cuadrática:
+#   (b - beta)' Var(b)^{-1} (b - beta) / m <= F_crit
+# Var(b) = s^2 * (X'X)^{-1}; aproximamos con la matriz de covarianza
+# estimada directamente desde se1, se2, rho.
+
+# Matriz de covarianza estimada de (b1, b2)
+Sigma <- matrix(c(se1^2,          rho * se1 * se2,
+                  rho * se1 * se2, se2^2),
+                nrow = 2)
+
+# Descomposición espectral para dibujar la elipse
+eig   <- eigen(Sigma)
+evals <- eig$values      # eigenvalores
+evecs <- eig$vectors     # eigenvectores (columnas)
+
+# Radio de la elipse: escalar por m * F_crit
+scale <- sqrt(m * F_crit)
+
+# Parametrizar la elipse (ángulo theta)
+theta <- seq(0, 2 * pi, length.out = 500)
+circ  <- rbind(cos(theta), sin(theta))   # circulo unitario
+
+# Transformar al espacio de la elipse
+ell_pts <- t(evecs %*% diag(sqrt(evals)) %*% circ * scale)
+ell_df  <- data.frame(
+  x = ell_pts[, 1] + b1,
+  y = ell_pts[, 2] + b2
+)
+
+# ── Colores ───────────────────────────────────────────────────
+col_rect  <- "#2980B9"   # azul — región rectangular (t)
+col_ell   <- "#C0392B"   # rojo — región elíptica (F)
+col_punto <- "#27AE60"   # verde — estimador (b1, b2)
+col_lin   <- "#AAAAAA"   # gris — líneas de referencia
+
+# ── Gráfica ──────────────────────────────────────────────────
+p <- ggplot() +
+
+  # ── Región rectangular (prueba t) ────────────────────────
+  geom_rect(
+    data = rect,
+    aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+    fill  = scales::alpha(col_rect, 0.10),
+    color = col_rect,
+    linewidth = 0.7,
+    linetype  = "solid"
+  ) +
+
+  # ── Elipse de confianza (prueba F) ────────────────────────
+  geom_polygon(
+    data = ell_df,
+    aes(x = x, y = y),
+    fill  = scales::alpha(col_ell, 0.08),
+    color = col_ell,
+    linewidth = 0.7
+  ) +
+
+  # ── Líneas de referencia desde el estimador ───────────────
+  # Vertical en b1
+  geom_segment(
+    aes(x = b1, xend = b1,
+        y = b2 - t_crit * se2, yend = b2 + t_crit * se2),
+    linetype = "dashed", color = col_lin, linewidth = 0.4
+  ) +
+  # Horizontal en b2
+  geom_segment(
+    aes(x = b1 - t_crit * se1, xend = b1 + t_crit * se1,
+        y = b2, yend = b2),
+    linetype = "dashed", color = col_lin, linewidth = 0.4
+  ) +
+
+  # ── Estimador (b1, b2) ────────────────────────────────────
+  geom_point(
+    aes(x = b1, y = b2),
+    color = col_punto, size = 3.5
+  ) +
+  annotate(
+  "text",
+  x = b1 + 0.12,
+  y = b2 + 0.12,
+  label = "group('(', b[1] * ',' ~ b[2], ')')",
+  parse = TRUE
+) +
+
+  # ── Etiqueta de la elipse ─────────────────────────────────
+  annotate(
+    "text",
+    x     = max(ell_df$x) + 0.25,
+    y     = b2 + se2 * 0.85,
+    label = "paste('Región de confianza ', 1-alpha)",
+    parse = TRUE,
+    size  = 3.3, color = col_ell, hjust = 0, lineheight = 1.1
+  ) +
+  # flecha hacia la elipse
+  annotate(
+    "segment",
+    x    = max(ell_df$x) + 0.2,
+    xend = max(ell_df$x) + 0.02,
+    y    = b2 + se2 * 0.6,
+    yend = b2 + se2 * 0.25,
+    arrow = arrow(length = grid::unit(0.18, "cm"), type = "closed"),
+    color = col_ell, linewidth = 0.5
+  ) +
+  # "al nivel (1-α)" con símbolo
+  annotate(
+  "text",
+  x     = max(ell_df$x) + 0.25,
+  y     = b2 + se2 * 0.55,
+  label = "paste('al nivel ', (1-alpha))",
+  parse = TRUE,
+  size  = 3.3,
+  color = col_ell,
+  hjust = 0
+) +
+
+  # ── Etiqueta del rectángulo ───────────────────────────────
+  annotate(
+    "text",
+    x = rect$xmin + (rect$xmax - rect$xmin) / 2,
+    y = rect$ymax + 0.12,
+    label = "Región rectangular\n(dos pruebas t)",
+    size = 3.3, color = col_rect, hjust = 0.5, lineheight = 1.1
+  ) +
+
+  # ── Etiquetas de los ejes ─────────────────────────────────
+  # Eje x: b2 en el estimador
+  annotate("text", x = b1, y = rect$ymin - 0.22,
+           label = "b[1]", parse = TRUE,
+           size = 3.4, color = "#444444") +
+  # Límites del rectángulo en x
+  annotate(
+  "text", x = rect$xmin, y = rect$ymin - 0.22,
+  label = "b[1] - t[alpha/2] * SE(b[1])",
+  parse = TRUE,
+  size = 2.7, color = col_rect, hjust = 0.5
+) +
+annotate(
+  "text", x = rect$xmax, y = rect$ymin - 0.22,
+  label = "b[1] + t[alpha/2] * SE(b[1])",
+  parse = TRUE,
+  size = 2.7, color = col_rect, hjust = 0.5
+) +
+
+  # Eje y: b2 en el estimador
+  annotate("text", x = rect$xmin - 0.22, y = b2,
+           label = "b[2]", parse = TRUE,
+           size = 3.4, color = "#444444", hjust = 1) +
+
+  # ── Títulos y ejes ────────────────────────────────────────
+  labs(
+    title = expression("Región de confianza: prueba " * t * " (rectángulo) vs prueba " * F * " (elipse)"),
+    x     = expression(beta[1]),
+    y     = expression(beta[2])
+  ) +
+
+  # ── Tema ──────────────────────────────────────────────────
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title   = element_text(face = "bold", size = 12, hjust = 0.5),
+    axis.title   = element_text(size = 13, face = "italic"),
+    axis.text    = element_blank(),
+    axis.ticks   = element_blank(),
+    panel.grid   = element_blank(),
+    plot.margin  = margin(15, 80, 15, 15)
+  ) +
+
+  coord_fixed(clip = "off") +
+  scale_x_continuous(expand = expansion(mult = 0.1)) +
+  scale_y_continuous(expand = expansion(mult = 0.15))
+
+print(p)
+
+# ── Guardar (opcional) ────────────────────────────────────────
+# ggsave("slide46_regiones_confianza.png", plot = p,
+#        width = 8, height = 6, dpi = 300)
+
+```
+
+
+### Estadístico $t$ vs. estadístico $F$: Pruebas conjuntas (5/5)
+
+En nuestro ejemplo, preferimos el estadístico $F$ por dos razones:
+
+1. Si el nivel de significancia para cada uno de los $t$ es $\alpha$, la probabilidad de que $(1, 0)$ esté fuera del área rectangular no es $\alpha$.
+
+2. La prueba $F$ es una prueba de máxima verosimilitud.

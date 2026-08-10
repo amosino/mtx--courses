@@ -1,0 +1,392 @@
+---
+title: "Estimación por el método de máxima verosimilitud"
+author: 
+  - "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v. 2024.12.18"
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    transition: 0
+    slide_level: 3
+    css: ../src/custom.css
+---
+
+
+## Ejemplo con una distribución Bernoulli
+
+
+### Ejemplo con una distribución Bernoulli (1/5)
+
+Supongamos que existen dos ruletas como sigue:
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='50%', out.height='50%'}
+
+
+library(ggplot2)
+library(gridExtra)
+
+
+data_A <- data.frame(
+  Categoria = c("P(Perder)", "P(Ganar)"),
+  Probabilidad = c(75, 25))
+
+
+data_B <- data.frame(
+  Categoria = c("P(Perder)", "P(Ganar)"),
+  Probabilidad = c(25, 75))
+
+
+data_A$pos <- cumsum(data_A$Probabilidad) - data_A$Probabilidad / 2
+data_B$pos <- cumsum(data_B$Probabilidad) - data_B$Probabilidad / 2
+
+
+plot_A <- ggplot(data_A, aes(x = "", y = Probabilidad, fill = Categoria)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y") +
+  scale_fill_manual(values = c("P(Perder)" = "lightblue", "P(Ganar)" = "darkblue")) +
+  geom_text(aes(label = paste0(Probabilidad, "%"), y = pos), color = "white", size = 5) +
+  labs(title = "A") +
+  theme_void()
+
+
+plot_B <- ggplot(data_B, aes(x = "", y = Probabilidad, fill = Categoria)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y") +
+  scale_fill_manual(values = c("P(Perder)" = "lightblue", "P(Ganar)" = "darkblue")) +
+  geom_text(aes(label = paste0(Probabilidad, "%"), y = pos), color = "white", size = 5) +
+  labs(title = "B") +
+  theme_void()
+
+grid.arrange(plot_A, plot_B, ncol = 2)
+
+```
+
+
+Despues de girar una ruleta tres veces obtienes la secuencia: Gana-Gana-Pierde. ¿Puedes adivinar que ruleta giraste?
+
+
+### Ejemplo con una distribución Bernoulli (2/5)
+
+Sea \(p\) la probabilidad de ganar. Para el ejemplo anterior tenemos:
+
+
+$$
+p=\begin{cases}
+0.25 \;\text{si ruleta A}\\[5pt]
+0.75\; \text{si ruleta B}
+\end{cases}
+$$
+
+&nbsp;
+
+
+
+Entonces, la probabilidad de obtener la combinación Gana-Gana-Pierde es:
+
+
+$$
+p_{Gana-Gana-Pierde}=\begin{cases}
+0.0469 \; \text{si ruleta A}\\[5pt]
+0.1406 \; \text{si ruleta B}
+\end{cases}
+$$
+
+
+### Ejemplo con una distribución Bernoulli (3/5)
+
+
+
+Concluimos que es más probable que hayas girado la ruleta B y que el mejor estimador de \(p\) para la combinación Gana-Gana-Pierde es:
+
+
+&nbsp;
+
+
+$$
+\hat{p}=0.75
+$$
+
+&nbsp;
+
+
+Este es el **estimador de máxima verosimilitud** para este ejemplo.
+
+
+
+### Ejemplo con una distribución Bernoulli (4/5)
+
+
+Ahora supongamos que \(p\) puede tomar cualquier valor (entre cero y uno). Si observaste la secuencia Gana-Gana-Pierde, ¿Cuál es el valor de \(p\) más probable? Nota que la probabilidad de obtener esta secuencia se calcula como:
+
+
+&nbsp;
+
+$$
+L(p)=p\times p \times(1-p)=p^2-p^3
+$$
+&nbsp;
+
+
+
+La función \(L(p)\) es la función de verosimilitud para este ejemplo. Esta depende del valor desconocido, \(p\).
+
+
+### Ejemplo con una distribución Bernoulli (4/4)
+
+Deducimos que el valor de \(p\) más probable es aquel que maximiza la función de verosimilitud:
+
+&nbsp;
+
+
+$$
+p=\text{arg} \max_p\;L(p)
+$$
+
+&nbsp;
+
+Entonces es fácil encontrar que:
+
+
+$$
+\hat{p}=\frac{2}{3}
+$$
+
+## Ejemplo con una distribución normal
+
+
+
+
+### Distribución normal, 2 observaciónes (1/5)
+
+
+Ahora supongamos que dos observaciones independientes, \(x_1=4\) y \(x_2=6\), provienen de una distribución normal con media \(\mu\) y varianza \(\sigma^2\). Recordemos que la función de densidad de una normal es:
+
+
+&nbsp;
+
+
+$$
+f(x)=\frac{1}{\sigma\sqrt{2\pi}}e^{-\frac{1}{2}\left(\frac{x-\mu}{\sigma}\right)^2}
+$$
+
+
+&nbsp;
+
+
+Como en el ejemplo anterior, primero supongamos que \(\mu=3.5\) y \(\sigma^2=1\). ¿Cuál es la probabilidad de observar los valores \(x_1=4\) y \(x_2=6\)?
+
+
+### Distribución normal, 2 observaciones (2/5)
+
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+Muestra que si \(\mu=3.5\) y \(\sigma^2=1\) la probabilidad de obtener \(x_1=4\) y \(x_2=6\) es:
+
+
+
+$$
+f_{x_2,x_2}(x_1=4, x_2=6)=0.0062
+$$
+
+Muestra, además, que si \(\mu=4\) y \(\sigma^2=1\):
+
+
+
+$$
+f_{x_2,x_2}(x_1=4, x_2=6)=0.0215
+$$
+
+
+Claramente, si tuviéramos que elegir un estimador de \(\mu\) entre ambas distribuciones, elegiriamos:
+
+
+$$
+\hat{\mu}=0.4
+$$
+
+
+### Distribución normal, 2 observaciones (3/5)
+
+
+Supongamos ahora que \(\sigma^2=1\), pero que \(\mu\) puede tomar cualquier valor. En este caso, la función de verosimilitud sería:
+
+
+&nbsp;
+
+
+$$
+L(\mu)=f(x_1)f(x_2)=\left[\frac{1}{\sigma\sqrt{2\pi}}e^{-\frac{1}{2}(4-\mu)^2}\right]\left[\frac{1}{\sigma\sqrt{2\pi}}e^{-\frac{1}{2}(6-\mu)^2}\right]
+$$
+
+&nbsp;
+
+El procedimiento es el mismo de antes, aunque la función es un poco más complicada de derivar.
+
+
+### Distribución normal, 2 observaciones (4/5)
+
+*Nota*. En la práctica se simplifican los cálculos considerando, en lugar de la función de verosimilitud, a su logaritmo (¿Por qué?):
+
+
+&nbsp;
+
+
+$$
+\hat{\mu}=\text{arg} \min_\mu\{\log L(\mu)\}
+$$
+
+&nbsp;
+
+Esta se conoce como **función de log-verosimilitud**.
+
+
+
+### Distribución normal, 2 observaciones (5/5)
+
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+<br>
+
+
+Muestra que el estimador de máxima verosimilitud en nuestro ejemplo es:
+
+
+
+&nbsp;
+
+
+
+$$
+\hat{\mu}=5
+$$
+
+
+### Distribución normal, \(n\) observaciones (1/3)
+
+¿Que pasa si tenemos \(n\) observaciones (y \(\sigma^2=1\))? En este caso, la función de verosimilitud es:
+
+
+&nbsp;
+&nbsp;
+
+$$
+L(\mu)=\prod_{i=1}^{n}f(x_i)=\prod_{i=1}^{n}\frac{1}{\sqrt{2\pi}}e^{-\frac{1}{2}(x_i-\mu)^2}
+$$
+
+
+
+### Distribución normal, \(n\) observaciones (2/3)
+
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+<br>
+
+
+Calcula la función de log-verosimilitud cuando \(n\) datos independientes provienen de una distribución normal con \(\sigma^2=1\). Calcula luego el estimador de máxima verosimilitud de \(\mu\).
+
+Comenta.
+
+
+
+### Distribución normal, \(n\) observaciones (3/3)
+
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+<br>
+
+
+Calcula la función de verosimilitud y log-verosimilitud para \(n\) datos independientes que provienen de una distribución normal con parametros \(\mu\) y \(\sigma^2\) desconocidos. Calcula los estimadores de máxima verosimilitud.
+
+
+
+## Aplicación: el modelo de regresión simple
+
+
+### Estimación del modelo de regresión simple por MV (1/3)
+
+
+Considera el siguiente modelo de regresión simple:
+
+
+
+$$
+\begin{align}
+y_i&=\beta_1+\beta_2x_i+u_i\\[5pt]
+u_i&\:\sim\: \mathcal{N}(0, \sigma^2)
+\end{align}
+$$
+
+
+con \(i=1,\ldots,n\). Nota que la función de densidad del término de error, \(u\), es:
+
+
+$$
+\begin{align}
+f(u)=&\frac{1}{\sigma\sqrt{2\pi}}e^{-\frac{1}{2}\left(\frac{u}{\sigma}\right)^2}\\[5pt]
+=& \frac{1}{\sigma\sqrt{2\pi}}e ^{-\frac{1}{2}\left(\frac{y-\beta_1-\beta_2x}{\sigma}\right)^2}
+\end{align}
+$$
+
+### Estimación del modelo de regresión simple por MV (2/3)
+
+
+Dado que tenemos \(n\) observaciones, la función de verosimilitud para \(\beta_1,\: \beta_2\) y \(\sigma\) desconocidos es:
+
+
+&nbsp;
+
+
+$$
+\begin{align}
+L(\beta_1,\beta_2,\sigma)&=\prod_{i=1}^{n}f(u_i)\\[8pt]
+&=\prod_{i=1}^{n}\frac{1}{\sigma\sqrt{2\pi}}e^{-\frac{1}{2}\left(\frac{y_i-\beta_1-\beta_2x_i}{\sigma}\right)^2}
+\end{align}
+$$
+
+
+### Estimación del modelo de regresión simple por MV (3/3)
+
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+<br>
+
+
+
+Calcula la función de log-verosimilitud para el modelo de regresión simple. Calcula luego los estimadores de máxima verosimilitud de \(\beta_1,\:\beta_2\) y \(\sigma\). Comenta.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

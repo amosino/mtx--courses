@@ -1,0 +1,560 @@
+---
+title: "Métodos Cuantitativos II"
+subtitle: "Modelos ARDL y VAR"
+author: 
+  - "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v. 2026.05.08"
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    transition: 0
+    slide_level: 3
+    css: ../src/custom.css
+---
+
+<a class="qmii-footer" href="QMII--06--VAR.pdf" target="_blank">
+  PDF
+</a>
+
+## Modelos autorregresivos con rezagos distribuidos (ARDL)
+
+### El modelo de regresión lineal 
+
+El modelo de regresión lineal en un contexto de series de tiempo es:
+
+
+
+$$
+\begin{align}
+y_t &= \beta_1 + \beta_2 x_t + \varepsilon_t;\\
+\varepsilon_t &\sim WN(0,\sigma^2)
+\end{align}
+$$
+
+
+¿Cómo usamos este modelo para hacer predicciones?
+
+### Pronóstico condicional (1/2)
+
+Podemos utilizar el modelo de regresión lineal para hacer un pronóstico de $y_t$ _condicional_ a los supuestos sobre la variable $x_t$. Por ejemplo:
+
+$$
+\mathbb{E}\left(y_{T+h}|x_{T+h}\right)^\ast = \beta_1 + \beta_2 x_{T+h}^\ast
+$$
+
+donde hemos supuesto que el valor de $x_t$ en el periodo $T+h$ es $x_{T+h}^*$. Este tipo de análisis se conoce en la práctica como **análisis de escenarios** o **análisis de contingencia**.
+
+### Pronóstico condicional (2/2)
+
+Por supuesto, si suponemos que $\varepsilon_t$ es un ruido blanco gaussiano, entonces la distribución condicional del pronóstico es:
+
+$$
+y_{T+h}|x_{T+h}^\ast \sim \mathcal{N}(y_{T+h}|x_{T+h}^\ast,\sigma^2)
+$$
+
+Esto nos permite calcular intervalos de confianza para la predicción.
+
+
+
+### Incertidumbre en los parámetros (1/2)
+
+Naturalmente, el pronóstico que acabamos de realizar no está exento de incertidumbre. Para ver esto, estimamos el modelo por MCO y lo evaluamos en $x_{T+h}^*$. En este caso, el pronóstico para el periodo \(T+h\) es:
+
+$$
+\hat{y}_{T+h,T}|x_{T+h}^\ast = b_1 + b_2 x_{T+h}^\ast, \\
+$$
+y el residual:
+
+$$
+\begin{align}
+e_{T+h,T} &= y_{T+h} - \hat{y}_{T+h,T}|x_{T+h}^\ast\\
+& = (\beta_1 - b_1) + (\beta_2 - b_2) x_{T+h}^\ast + \varepsilon_{T+h}
+\end{align}
+$$
+
+
+### Incertidumbre en los parámetros (2/2)
+
+Si calculamos la varianza del residual:
+
+$$
+\mathbb{V}ar(e_{T+h,T}) = \mathbb{V}ar(b_1) + x_{T+h}^{\ast 2}\mathbb{V}ar(b_2) + 2x_{T+h}\mathbb{C}ov(b_1,b_2) + \sigma^2
+$$
+donde los primeros dos términos reflejan la incertidumbre en los parámetros del modelo. Entonces, para construir un intervalo de confianza para el pronóstico que refleje esta incertidumbre:
+
+$$\hat{y}_{T+h}|x_{T+h}^\ast \sim \mathcal{N}(\hat{y}_{T+h}|x_{T+h}^\ast,\mathbb{V}ar(b_1) + x_{T+h}^{\ast 2}\mathbb{V}ar(b_2) + 2x_{T+h}\mathbb{C}ov(b_1,b_2) + \sigma^2)$$
+
+
+
+### Pronóstico no condicional (1/2)
+
+En ocasiones deseamos encontrar el mejor pronóstico posible para $y_t$. Esto es, un **pronóstico no condicional**. Para hacer esto, es necesario insertar un pronóstico óptimo para $x_t$, $x_{T+h,T}$, en la ecuación.
+
+$$y_{T+h,T} = \beta_1 + \beta_2 x_{T+h,T}$$
+
+Naturalmente, no siempre contamos con este valor futuro de $x_t$ (tenemos un modelo para $y_t$, no para $x_t$).
+
+
+
+### Pronóstico no condicional (2/2)
+
+Una solución consiste en estimar $y_t$ usando como regresores los valores pasados de $x_t$: $x_{t-h}, x_{t-h-1}, x_{t-h-2},\dots$. Por ejemplo, si deseamos pronosticar un periodo hacia adelante, podemos usar el modelo:
+
+$$y_t = \beta_1 + \beta_2 x_{t-1} + \varepsilon_t$$
+
+Por supuesto, es posible incluir más retardos de $x_t$. También, es importante resaltar que si el objetivo es pronosticar $y_t$ $h$ periodos hacia adelante, las variables $x_t$ deben retardarse al menos $h$ periodos.
+
+
+
+### Rezagos distribuidos (1/2)
+
+El modelo anterior puede generalizarse como (nota el cambio de notación):
+
+$$
+y_t = \phi_0 + \sum_{i=1}^{N_x}\gamma_i x_{t-i} + \varepsilon_t
+$$
+
+En este caso decimos que $y_t$ depende de los **rezagos distribuidos** de $x_t$. Pero, ¿cuánto vale \(N_x\)?
+
+_Nota_. ¿Por qué este modelo tendrá este nombre?
+
+
+
+### Rezagos distribuidos (2/2)
+
+Para elegir el valor de \(N_x\) tenemos varias opciones:
+
+- Usar pruebas de significancia estadística.
+- Usar los criterios de información (AIC y BIC).
+- Revisar el comportamiento de los residuales.
+
+Los modelos con rezagos distribuidos (si las series son estacionarias) pueden estimarse por MCO o por MCG.
+
+### Modelo autorregresivo con rezagos distribuidos
+
+Los modelos con rezagos distribuidos pueden generalizarse aun más:
+
+
+$$
+y_t = \phi_0 + \sum_{i=1}^{N_y}\phi_i y_{t-i} + \sum_{j=1}^{N_x}\gamma_j x_{t-j} + \varepsilon_t
+$$
+
+
+En este modelo hemos agregado retardos de la variable dependiente. Este es un **modelo AR con rezagos distribuidos (ARDL) de orden \(N_y, N_x\)**. Este puede estimarse (si las series son estacionarias)) por Máxima Verosimilitud, MCO o MCG.
+
+
+### Ejemplo (1/4)
+
+Consideremos el siguiente modelo:
+
+$$
+u_t = \phi_0 + \phi_1 u_{t-1} + \phi_2 u_{t-2} + \gamma_1 g_{t-1} + \varepsilon_t
+$$
+
+Donde:
+
+- \(u_t\) es la tasa de desempleo en tiempo t,
+- \(g_t\) es la tasa de crecimiento del PIB en tiempo t.
+
+
+
+### Ejemplo (2/4)
+
+Usando datos de los Estados Unidos tenemos que:
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE}
+
+library(tidyverse)
+library(dynlm)
+library(knitr)
+library(broom)
+library(forecast)
+library(here)
+
+us_data <- read.csv(here("data/E318--USmacro.csv"))
+usmacro <- ts(us_data[,-1], start =c(1948,1), frequency = 4)
+
+ardl_model <- lm(u~lag(u,1)+lag(u,2)+lag(g,1), data=usmacro)
+
+kable(tidy(ardl_model),
+      format = "html",
+      caption = "Modelo ARDL(2,1)",
+      table.attr = 'class="clean-table"')
+```
+
+### Ejemplo (3/4)
+
+Podemos hacer pronósticos usando modelos autorregresivos con rezagos distribuidos usando las mismas técnicas aprendidas antes (ver modelos ARMA). 
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+u <- ts(us_data$u, start=c(1948,1), freq=4)
+g <- ts(us_data$g, start=c(1948,1), freq=4)
+g_1 <- stats::lag(g, k = -1)
+TR  <- ts.intersect(y = u, xL1 = g_1)
+train   <- window(TR, end = c(2013,4))
+test_x  <- window(TR[,"xL1"], start = c(2014,1))
+y_tr    <- train[,"y"]
+x_tr    <- train[,"xL1"]
+ 
+fit_armax <- Arima(y_tr, order = c(2,0,0), xreg = x_tr, include.mean = TRUE)
+h   <- length(test_x)
+fc  <- forecast(fit_armax, xreg = as.matrix(test_x), h = h)
+
+y_te <- window(TR[,"y"], start = start(test_x), end = end(test_x))
+
+autoplot(fc) +
+  autolayer(y_te, series = "Observado (test)") +
+  labs(title = "ARDL(2,1), Desempleo vs Crecimiento del PIB",
+       subtitle = "Train: 1948Q1–2013Q4 | Test: 2014Q1–2016Q1",
+       x = NULL, y = "Tasa de desempleo") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+```
+
+
+### Ejemplo (4/4)
+
+La representación ARMA del modelo ARDL nos permite calcular su _función de impulso-respuesta_. En el ejemplo tenemos:
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+coefs <- coef(fit_armax)
+
+# Extrae phi1, phi2 de forma robusta
+phi1 <- unname(coefs[grep("^ar1$", names(coefs))])
+phi2 <- unname(coefs[grep("^ar2$", names(coefs))])
+
+# Coeficiente de x_{t-1} (Arima suele llamar "xreg", "xreg1", etc.)
+gx_idx <- grep("^xreg", names(coefs))
+stopifnot(length(gx_idx) >= 1)
+gamma1 <- unname(coefs[gx_idx[length(gx_idx)]])
+
+H <- 20  # horizonte (edítame)
+
+# --- IRF a choque en el error: IRF_ε(h) ---
+# Recursión AR(2): θ_0 = 1, θ_{-1} = 0, θ_h = φ1 θ_{h-1} + φ2 θ_{h-2} (h>=1)
+theta <- numeric(H + 1)
+theta[1] <- 1  # h=0
+if (H >= 1) theta[2] <- phi1
+for (h in 3:(H + 1)) {
+  theta[h] <- phi1 * theta[h - 1] + phi2 * theta[h - 2]
+}
+irf_eps <- data.frame(h = 0:H, IRF = theta, type = "Choque en ε (AR)")
+
+# --- Multiplicadores dinámicos a impulso en x: IRF_x(h) ---
+# ARDL(2,1): ψ_0 = 0 (por el rezago), ψ_1 = γ1, y ψ_h = φ1 ψ_{h-1} + φ2 ψ_{h-2} (h>=2)
+psi <- numeric(H + 1)
+psi[1] <- 0                 # h=0 (sin efecto por el lag)
+if (H >= 1) psi[2] <- gamma1  # h=1
+for (h in 3:(H + 1)) {
+  psi[h] <- phi1 * psi[h - 1] + phi2 * psi[h - 2]
+}
+irf_x <- data.frame(h = 0:H, IRF = psi, type = "Impulso en x (multiplicador)")
+
+irf_df <- rbind(irf_eps, irf_x)
+
+# --- IRFs para ARDL(2,1) ≈ AR(2)+x_{t-1} exógeno (subgráficos) ------------
+
+library(ggplot2)
+
+coefs <- coef(fit_armax)
+
+# φ1, φ2 del AR(2)
+phi1 <- unname(coefs[grep("^ar1$", names(coefs))])
+phi2 <- unname(coefs[grep("^ar2$", names(coefs))])
+
+# γ1 del x_{t-1} (nombre suele empezar con "xreg")
+gx_idx <- grep("^xreg", names(coefs))
+stopifnot(length(gx_idx) >= 1)
+gamma1 <- unname(coefs[gx_idx[length(gx_idx)]])
+
+H <- 20  # horizonte para la IRF
+
+## IRF a choque en el error ε_t
+theta <- numeric(H + 1)
+theta[1] <- 1
+if (H >= 1) theta[2] <- phi1
+for (h in 3:(H + 1)) theta[h] <- phi1*theta[h-1] + phi2*theta[h-2]
+irf_eps <- data.frame(h = 0:H, IRF = theta, panel = "Choque unitario")
+
+## Multiplicadores dinámicos a impulso en x_t
+psi <- numeric(H + 1)
+psi[1] <- 0                 # h=0 (no efecto por el lag en x)
+if (H >= 1) psi[2] <- gamma1
+for (h in 3:(H + 1)) psi[h] <- phi1*psi[h-1] + phi2*psi[h-2]
+irf_x <- data.frame(h = 0:H, IRF = psi, panel = "Impulso en la tasa de crecimiento")
+
+irf_df <- rbind(irf_eps, irf_x)
+
+# --- Subgráficos con facet_wrap (dos columnas) ---
+ggplot(irf_df, aes(h, IRF)) +
+  geom_hline(yintercept = 0) +
+  geom_line(linewidth = 0.9) +
+  facet_wrap(~ panel, ncol = 2, scales = "free_y") +
+  labs(
+    title = "Funciones Impulso–Respuesta (ARDL(2,1))",
+    x = "h (horizonte)", y = "Respuesta"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    strip.text = element_text(face = "bold"),
+    panel.spacing = unit(1, "lines")
+  )
+
+```
+
+
+
+
+## Vectores Autorregresivos (VAR)
+
+### ¿Qué son los vectores autorregresivos?
+
+Los **modelos con vectores autorregresivos (VAR)** son una generalización de los _modelos autorregresivos uniecuacionales (AR) y de rezagos distribuidos (DL)_. Estos sirven para capturar la evolución y las interdependencias entre múltiples series de tiempo.
+
+
+_Nota_. A diferencia de los modelos ARDL, en un VAR todas las variables del sistema son tratadas como endógenas.
+
+### Vectores autorregresivos: ejemplo
+
+Como ejemplo, consideramos la relación entre el inicio y el fin de construcción de nuevas viviendas en los Estados Unidos:
+
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+library(tidyverse)
+library(astsa)
+
+culer = c('cyan4', 4, 2, 6)
+
+housing <- read.csv(here("data/E319--Housing.csv"))
+housing <- ts(housing[,2:3], start =c(1968,1), frequency = 12)
+tsplot(cbind(housing), type='o', pch=19, col=culer, spaghetti=TRUE, main="Mercado de Vivienda en los Estados Unidos", xlab="Tiempo", addLegend=TRUE)
+
+dev.off()
+
+```
+
+
+### Estructura de los VAR
+
+Un VAR involucra \(k\) variables. En un vector autorregresivo de orden \(p\) con \(k\) variables, VAR(\(p\)), tenemos que estimar \(k\) diferentes ecuaciones. En cada ecuación tenemos como regresores \(p\) rezagos de la variable dependiente y \(p\) rezagos de todas las demás variables del sistema. 
+
+Por ejemplo, para un VAR(\(1\)) con dos variables, \(y_{1,t}\) y \(y_{2,t}\), tenemos:
+
+$$
+\begin{align}
+y_{1,t} &= \phi^1_{1,1}y_{1,t-1} + \phi^1_{2,1}y_{2,t-1} + \varepsilon_{1,t} \\
+y_{2,t} &= \phi_{1,1}^2y_{1,t-1} + \phi_{2,1}^2y_{2,t-1} + \varepsilon_{2,t} \\
+\varepsilon_{1,t} & \sim WN(0,\sigma^2_1) \\
+\varepsilon_{2,t} & \sim WN(0,\sigma^2_2) \\
+\end{align}
+$$
+y:
+
+$$
+\begin{align}
+\mathbb{C}ov(\varepsilon_{1,t},\varepsilon_{2,\tau}) & = 
+\begin{cases} \sigma_{12}; & \ t=\tau \\
+0; & \ t \neq \tau \\
+\end{cases}
+\end{align}
+$$
+
+### Estimación de un VAR(\(p\))
+
+Es muy fácil estimar un vector autorregresivo. Simplemente, estimamos \(N\) ecuaciones lineales utilizando el método de los MCO. Para elegir el orden del VAR, \(p\), utilizamos los criterios de Akaike y Schwartz.
+
+_Nota._ Los modelos VAR se construyen, en principio, para variables estacionarias.
+
+* Si las variables son estacionarias, el VAR puede estimarse directamente.
+* Si las variables presentan raíz unitaria, usualmente se transforman mediante diferencias.
+* Si las variables son no estacionarias _pero cointegradas_, el modelo apropiado es un VECM.
+
+### Causalidad de Granger (1/3)
+
+La **causalidad de Granger** evalúa si los valores pasados de una variable \(y_{2t}\) ayudan a predecir a otra variable \(y_{1t}\), más allá de la información contenida en los rezagos de \(y_{1t}\) misma.
+
+Formalmente, decimos que _\(y_{2t}\) no causa a \(y_{1t}\) en el sentido de Granger
+si_:
+
+$$
+\mathbb E(y_{1t} \mid \Omega_{t-1}) = \mathbb E(y_{1t} \mid \Omega_{t-1}\setminus {y_{2,t-1}, y_{2,t-2}, \dots}),
+$$
+
+donde \(\Omega_{t-1}\) es el conjunto de toda la información disponible hasta \(t-1\).
+
+
+### Causalidad de Granger (2/3)
+
+Para un VAR(\(p\)) bivariado tenemos:
+
+$$
+y_{1t} = c_1 + \sum_{i=1}^{p} \phi_{11,i} y_{1,t-i} + \sum_{i=1}^{p} \phi_{12,i} y_{2,t-i} + \varepsilon_{1t},\\
+y_{2t} = c_2 + \sum_{i=1}^{p} \phi_{21,i} y_{1,t-i} + \sum_{i=1}^{p} \phi_{22,i} y_{2,t-i} + \varepsilon_{2t}.
+$$
+
+Entonces:
+
+- \(y_{2t}\) no causa a \(y_{1t}\) en el sentido de Granger _si y solo si_ \(\phi_{12,1}=\cdots=\phi_{12,p}=0\).
+-	\(y_{1t}\) no causa a \(y_{2t}\) en el sentido de Granger _si y solo si_ \(\phi_{21,1}=\cdots=\phi_{21,p}=0\).
+
+### Causalidad de Granger (3/3)
+
+Podemos verificar la causalidad de Granger empíricamente. Para esto, planteamos:
+
+$$
+H_0:
+\phi_{ij,1} = \phi_{ij,2} = \cdots = \phi_{ij,p} = 0,
+\qquad i \ne j.
+$$
+Usamos la prueba F:
+
+$$
+F = \frac{(SSR_R - SSR_{UR}) / q}{SSR_{UR}/(T - k)},
+$$
+donde:
+
+- \(SSR_R\): suma de residuos al cuadrado del modelo restringido (sin rezagos de \(y_2\))
+- \(SSR_{UR}\): suma de residuos del modelo no restringido
+- \(q=p\): número de restricciones.
+
+
+### Vectores autorregresivos: Ejemplo
+
+Estimamos un VAR(\(4\)) para el inicio y el fin de construcción de nuevas viviendas en los Estados Unidos.
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+library(vars)
+
+lag_sel <- VARselect(housing, lag.max = 6, type = "const")$selection
+p <- lag_sel[1]
+var_fit <- VAR(housing,p=p)
+var_fit$varresult$starts
+var_fit$varresult$comps
+```
+
+
+### Vectores autorregresivos: predicción (1/2)
+
+Para predecir el futuro usando un modelo VAR(\(p\)), usamos exactamente las mismas técnicas que para los modelos ARMA(\(p\),\(q\)). Usamos la muestra 1968:01-1991:12 para estimar el modelo y pronosticamos el periodo 1992:01-1996:06. Para el inicio de construcción de nuevas viviendas tenemos:
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+housing_for <- predict(VAR(housing,p=4), n.ahead = 12, ci = 0.95)
+fanchart(housing_for, names = "starts",
+     main = "Inicio construcción de nuevas viviendas en los Estados Unidos",
+     ylab = "Viviendas", xlab = "Tiempo")
+
+```
+
+
+### Vectores autorregresivos: predicción (2/2)
+
+Para el fin de construcción de nuevas viviendas tenemos:
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+housing_for <- predict(VAR(housing,p=4), n.ahead = 12, ci = 0.95)
+fanchart(housing_for, names = "comps",
+     main = "Fin construcción de nuevas viviendas en los Estados Unidos",
+     ylab = "Viviendas", xlab = "Tiempo")
+
+```
+
+### Vectores autorregresivos: causalidad de Granger (1/2)
+
+La siguiente tabla muestra el resultado del test de Granger para el inicio de construcción de viviendas:
+
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+causality(var_fit, cause = "comps")
+```
+
+
+### Vectores autorregresivos: causalidad de Granger (2/2)
+
+El test de Granger para el fin de construcción de viviendas:
+
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+causality(var_fit, cause = "starts")
+```
+
+### Funciones de impulso-Respuesta
+
+Las funciones de impulso-respuesta para nuetro ejemplo son:
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+irf_all <- irf(
+  var_fit,
+  impulse  = c("starts","comps"),
+  response = c("starts","comps"),
+  n.ahead  = 12,
+  ortho    = TRUE,
+  boot     = TRUE,
+  ci       = 0.95
+)
+
+# Pasar a formato "largo" para facetear (sin depender de broom)
+to_df <- function(irf_obj){
+  out <- list()
+  for (imp in names(irf_obj$irf)) {
+    IRF   <- irf_obj$irf[[imp]]
+    LOWER <- irf_obj$Lower[[imp]]
+    UPPER <- irf_obj$Upper[[imp]]
+    for (resp in colnames(IRF)) {
+      out[[length(out)+1]] <- data.frame(
+        h       = 0:(nrow(IRF)-1),
+        irf     = IRF[, resp],
+        lower   = LOWER[, resp],
+        upper   = UPPER[, resp],
+        impulse = imp,
+        response= resp
+      )
+    }
+  }
+  do.call(rbind, out)
+}
+
+df_irf <- to_df(irf_all)
+
+ggplot(df_irf, aes(h, irf)) +
+  geom_hline(yintercept = 0, linewidth = 0.4) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.20) +
+  geom_line(linewidth = 0.9) +
+  facet_grid(response ~ impulse, labeller = label_both) +
+  labs(
+    title = "Funciones Impulso–Respuesta (ortogonalizadas)",
+    #subtitle = "Panel 2×2: todas las combinaciones impulso → respuesta",
+    x = "Horizonte (h)", y = "Respuesta"
+  ) +
+  theme_minimal() +
+  theme(panel.spacing = unit(1, "lines"))
+
+```
+
+
+### Descomposición de la varianza
+
+Otra forma de caracterizar la dinámica de un VAR ---muy relacionada a las funciones impulso-respuesta, es la **descomposición de la varianza**. Esta nos permite analizar el error de predicción en cada variable a un determinado horizonte de tiempo. Este error se atribuye a la incertidumbre acerca de la evolución futura en cada una de las variables.
+
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+plot(fevd(VAR(housing,p=4)))
+
+```
+

@@ -1,0 +1,1041 @@
+---
+title: "Regresores estocásticos y errores de medición"
+author: 
+  - "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v. 2026.03.22"
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    transition: 0
+    slide_level: 3
+    css: ../src/custom.css
+---
+
+## Regresores estocásticos
+
+### Regresores estocásticos (1/6)
+
+Consideremos el modelo:
+
+
+$$
+\mathbf{y}=\mathbf{x}\boldsymbol{\beta}+\mathbf{u}
+$$
+
+
+Y supongamos que el vector \(\mathbf{x}\) es estocástico. En este caso:
+
+
+$$
+\begin{align}
+\mathbb{E}(\mathbf{b}) = & \boldsymbol{\beta}+ \mathbb{E}[\mathbf{(x'x)}^{-1}(\mathbf{x'u})]\\[6pt]
+\neq & \boldsymbol{\beta}+ (\mathbf{x'x})^{-1}\mathbf{x'}\mathbb{E}(\mathbf{u})
+\end{align}
+$$
+
+
+
+### Regresores estocásticos (2/6)
+
+Se puede demostrar que todas las propiedades de los estimadores de MCO se siguen satisfaciendo si suponemos que el vector \(\mathbf{x}\) y el vector \(\mathbf{u}\) son independientes. Es decir:
+
+
+$$
+\begin{align}
+\mathbb{E}(\mathbf{u}|\mathbf{x})&=\mathbb{E}(\mathbf{u})\\
+&=\mathbf{0}
+\end{align}
+$$
+
+Lo anterior nos permite calcular:
+
+
+
+$$
+\begin{align}
+\mathbb{E}(\mathbf{y}|\mathbf{x})= & \mathbf{x} \beta\\
+\mathbb{E}(\mathbf{u'u}|\mathbf{x})= & \sigma^2 \mathbf{I}_n
+\end{align}
+$$
+
+
+### Regresores estocásticos (3/6)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Muestra que:
+
+$$
+\begin{align}
+\mathbb{E}(\mathbf{b|x}) & =\mathbb{E}(\mathbf{b}) \\
+&=\beta\\
+\text{var}(\mathbf{b|x})&=\sigma^2(\mathbf{x'x})^{-1}\\
+\text{var}(\mathbf{b})& = \sigma^2 \mathbb{E}[(\mathbf{x'x})^{-1}]\\
+\mathbb{E}(s^2|\mathbf{x})&=\mathbb{E}(s^2)\\
+&=\sigma^2\\
+\end{align}
+$$
+
+
+Lo anterior implica que el _teorema de Gauss-Markov_ sigue siendo válido cuando las \(\mathbf{x}\) son estocásticas. ¿Por qué? (\(\textbf{Pista}\): Usa la **ley de las expectativas iteradas**.)
+
+
+### Regresores estocásticos (4/6)
+
+
+Cuando las \(\mathbf{x}\) son estocásticas, tambien resulta importante suponer que:
+
+
+$$
+\begin{align}
+& p\lim \left(\frac{1}{n}\mathbf{u'u}\right)=\mathbf{\Omega}\\[8pt]
+& p\lim \left(\frac{1}{n}\mathbf{x'x}\right)=\mathbf{Q}\\[8pt]
+& p\lim \left(\frac{1}{n}\mathbf{x'u}\right)=\mathbf{0}
+\end{align}
+$$
+
+### Regresores estocásticos (5/6)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+Muestra que el estimador de MCO para \(\beta\) sigue siendo consistente cuando las \(\mathbf{x}\) son estocásticas.
+
+
+
+### Regresores estocásticos (6/6)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Definamos la matriz de varianzas y covarianzas asintótica de \(\mathbf{b}\) como:
+
+
+$$
+\text{asy var}(\mathbf{b})=\frac{1}{n} \lim_{n\rightarrow\infty}\mathbb{E}[\sqrt{n}(\mathbf{b}-\beta)][\sqrt{n}(\mathbf{b}-\beta)]'
+$$
+
+Muestra que esta es igual a:
+
+$$
+\text{asy var}(\mathbf{b})= \frac{1}{n}\sigma^2 \mathbf{Q}^{-1}
+$$
+
+<span class="emphasis-blue">Nota</span>. Calcula el siguiente límite y comenta.
+
+
+$$
+\lim_{n\rightarrow\infty}\mathbb{E}[(\mathbf{b}-\beta)][(\mathbf{b}-\beta)]'
+$$
+
+
+## Errores de medición en los regresores
+
+
+### Erorres de medición, x's (1/5)
+
+
+Supongamos que el modelo verdadero es:
+
+
+$$
+y_i=\beta_1+\beta_2z_i + v_i
+$$
+
+
+
+Sin embargo no observamos \(z_i\). En su lugar observamos:
+
+
+$$
+x_i=z_i+w_i
+$$
+
+
+### Erorres de medición, x's (2/5)
+
+
+Suponemos que:
+
+
+$$
+V_i\sim iid\mathcal{N}(0,\sigma^2_V)\;; \quad V=v, w, z
+$$
+
+Además:
+
+$$
+v\perp w; \quad v\perp z; \quad w \perp z
+$$
+
+y:
+
+
+$$
+p \lim \frac{1}{n}\sum_{i=1}^{n}(V_i-\overline{V})^2=\sigma_V^2
+$$
+
+
+### Erorres de medición, x's (3/5)
+
+
+La información disponible nos permite reescribir el modelo en una forma más conocida:
+
+
+
+$$
+\begin{align}
+y_i= & \beta_1+\beta_2x_i+u_i;\\[5pt]
+u_i= & v_i - \beta_2 w_i
+\end{align}
+$$
+
+
+Nota sin embargo que al estimar por MCO:
+
+
+$$
+\begin{align}
+\mathbb{E}(b_2)&=\beta_2+\mathbb{E}\left(\frac{\text{cov}(x,u)}{\text{var(x)}}\right) \\
+&\neq \beta_2
+\end{align}
+$$
+
+Esto se debe a que \(x\) y  \(u\) _no son independientes_. En otras palabras, nos enfrentamos a un problema de **endogeneidad**.
+
+### Erorres de medición, x's (4/5)
+
+Dado que no podemos calcular la distribución exacta de \(b_2\), nos concentraremos en ver qué pasa cuando el número de observaciones tiende a infinito. Se puede demostrar que:
+
+
+$$
+p\lim(b_2)=\beta_2-\beta_2\frac{\sigma_w^2}{\sigma_z^2+\sigma_w^2}
+$$
+
+
+Por lo tanto el sesgo de \(b_2\) (para muestras grandes) es:
+
+$$
+\text{Sesgo}=-\beta_2\frac{\sigma_w^2}{\sigma_z^2+\sigma_w^2}
+$$
+
+el cual depende del signo de \(\beta_2\).
+
+
+### Erorres de medición, x's (5/5)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+Muestra que:
+
+
+$$
+p\lim(b_2)=\beta_2-\beta_2\frac{\sigma_w^2}{\sigma_z^2+\sigma_w^2}
+$$
+
+
+<span class="emphasis-blue">Nota</span>. ¿Qué pasa si introducimos en el modelo una _variable proxy imperfecta_?
+
+
+### Simulación (1/2)
+
+Una simulación nos muestra los efectos de los errores de medición en los regresores. Sea el modelo verdadero:
+
+
+$$
+y_i=2+0.8z_i+\nu_i \\
+x_i=z_i+\omega_i\\
+z_i\sim\mathcal{N}(10,4)\\
+\nu_i\sim\mathcal{N}(0,4)\\
+\omega_i\sim \mathcal{N}(0,1)
+$$
+
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Muestra que si usamos \(x_i\) en lugar de \(z_i\) en la regresión, obtendremos que: \(p \lim(b_2)=0.64\).
+
+### Simulación (2/2)
+
+La siguiente gráfica nos muestra la distribución de \(b_2\) para \(n=1000\).
+
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='50%', out.height='50%'}
+
+library(ggplot2)
+set.seed(123) # Para reproducibilidad
+
+# Número de observaciones y parámetros verdaderos
+n <- 1000
+beta_1 <- 2
+beta_2 <- 0.8
+
+# Número de simulaciones
+num_sim <- 1000
+
+# Almacenar coeficientes estimados y varianza residual
+results <- data.frame(b1 = numeric(num_sim),
+                      b2 = numeric(num_sim),
+                      sig2 = numeric(num_sim))
+
+for (i in 1:num_sim) {
+  # Generación de datos
+  z <- rnorm(n, mean = 10, sd = 2)
+  omega <- rnorm(n, mean = 0, sd = 1)
+  nu <- rnorm(n, mean = 0, sd = 2)
+  x <- z + omega
+  u <- nu - beta_2 * omega
+  y <- beta_1 + beta_2 * x + u
+  
+  # Regresión lineal
+  model <- lm(y ~ x)
+  
+  # Almacenar coeficientes y varianza residual
+  results$b1[i] <- coef(model)[1]
+  results$b2[i] <- coef(model)[2]
+  results$sig2[i] <- sum(residuals(model)^2) / (n - 2)
+}
+
+# Histograma de b2 con ajuste normal
+ggplot(results, aes(x = b2)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 0.02, fill = "lightblue", color = "black") +
+  stat_function(fun = dnorm, args = list(mean = mean(results$b2), sd = sd(results$b2)), 
+                color = "red", linewidth = 1) +
+  labs(x = "Estimaciones de b2", y = "Densidad") +
+  theme_minimal()
+
+
+```
+
+Nota que la media de la distribución es cercana a 0.64 aun para una muestra pequeña.
+
+
+## Errores de medición en la variable dependiente
+
+
+### Errores de medición, y (1/5)
+
+
+Supongamos que el modelo verdadero es:
+
+
+$$
+Q_i=\beta_1+\beta_2x_i+\varepsilon_i
+$$
+
+
+Sin embargo no observamos \(Q_i\). En su lugar observamos:
+
+
+
+$$
+y_i=Q_i+\psi_i
+$$
+
+### Errores de medición, y (2/5)
+
+Suponemos que:
+
+$$
+W_i\sim iid\mathcal{N}(0,\sigma_W^2); \quad W=\varepsilon,  x,  \psi
+$$
+
+Además:
+
+$$
+\varepsilon\perp x; \quad \varepsilon \perp \psi; \quad x \perp \psi
+$$
+
+y:
+
+
+$$
+p \lim \frac{1}{n}\sum_{i=1}^{n}\left(W_i-\overline{W}\right)^2=\sigma_W^2
+$$
+
+### Errores de medición, y (3/5)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+
+Muestra que, cuando la variable dependiente está medida con error, los estimadores de MCO siguen siendo insesgados. Es decir:
+
+
+$$
+\mathbb{E}(b_2)=\beta_2
+$$
+
+### Errores de medición, y (4/5)
+
+
+Aunque los estimadores de MCO siendo insesgados, se puede demostrar que son ineficientes (para muestras grandes). En particular, se puede demostrar que:
+
+
+
+$$
+\sigma_{b_2}^2=\frac{\sigma_{\varepsilon}^2+\sigma_{\psi}^2}{n\sigma_s^2}\geq\frac{\sigma_{\varepsilon}^2}{n\sigma_x^2}
+$$
+
+### Errores de medición, y (5/5)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Muestra que, para muestras grandes:
+
+
+$$
+\sigma_{b_2}^2=\frac{\sigma_{\varepsilon}^2+\sigma_{\psi}^2}{n\sigma_x^2}
+$$
+
+
+<span class="emphasis-blue">Nota</span>. ¿Qué pasa si tanto \(x_i\) como \(y_i\) están sujetas a errores de medición?
+
+
+## Variables Instrumentales (IV)
+
+### Variables instrumentales (1/2)
+
+Imaginemos que:
+
+
+
+$$
+p\lim\left(\frac{1}{n}\mathbf{x'u}\right)\neq \mathbf{0}
+$$
+
+
+En este caso, el estimador de MCO _deja de ser consistente_:
+
+
+$$
+\begin{align}
+p\lim(\mathbf{b})&=\boldsymbol{\beta}+p\lim\left(\frac{1}{n}\mathbf{x'x}\right)^{-1}\cdot p\lim\left(\frac{1}{n}\mathbf{x'u}\right)\\
+&\neq \boldsymbol{\beta}
+\end{align}
+$$
+
+### Variables instrumentales (2/2)
+
+Sin embargo, supongamos que existe u vector de variables \(\mathbf{z}\) _de la misma dimensión_ que \(\mathbf{x}\), tal que:
+
+
+$$
+\begin{align}
+& p\lim\left(\frac{1}{n}\mathbf{z'u}\right)=\mathbf{0}\\
+& p\lim\left(\frac{1}{n}\mathbf{z'x}\right)=\boldsymbol{\Sigma}\\
+& p\lim\left(\frac{1}{n}\mathbf{z'z}\right)=\boldsymbol{\Sigma}^*
+\end{align}
+$$
+
+
+donde las matrices \(\boldsymbol{\Sigma}\) y \(\boldsymbol{\Sigma}^*\) deben existir y ser no singulares. Las variables en \(\mathbf{z}\) pueden utilizarse como **instrumentos** de \(\mathbf{x}\).
+
+
+### El estimador de VI (1/3)
+
+¿Cómo utilizamos el vector de instrumentos \(\mathbf{z}\)? Supongamos que el modelo es el de siempre:
+
+
+$$
+\mathbf{y}=\mathbf{x}\boldsymbol{\beta}+\mathbf{u}
+$$
+
+
+Pre multiplicamos ambos lados de la ecuación por \(\mathbf{z'}\):
+
+$$
+\begin{align}
+\mathbf{y}^*&=\mathbf{x}^*\boldsymbol{\beta}+\mathbf{u}^*,\\
+\mathbf{y}^*&=\mathbf{z'y}\\
+\mathbf{x}^*&=\mathbf{z'x}\\
+\mathbf{u}^*&=\mathbf{z'u}
+\end{align}
+$$
+
+
+### El estimador de VI (2/3)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Muestra que si estimamos el modelo resultante por MCO obtenemos:
+
+
+
+$$
+\hat{\boldsymbol{\beta}}_{IV}=(\mathbf{z'x})^{-1}(\mathbf{z'y})
+$$
+
+
+
+que es conocido como el **estimador de variables instrumentales** de \(\boldsymbol{\beta}\).
+
+
+
+### El estimador de VI (3/3)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+Muestra que el estimador de variables instrumentales de \(\boldsymbol{\beta}\) es consistente y que su varianza asintótica es:
+
+$$
+\text{asy var}(\hat{\boldsymbol{\beta}}_{IV})=\frac{1}{n}\sigma^2 \boldsymbol{\Sigma^{-1}\Sigma^*\Sigma'^{-1}}
+$$
+
+<span class="emphasis-blue">Nota</span>. En la práctica, la varianza asintótica puede estimarse como:
+
+$$
+\begin{align}
+\text{est asy var}(\hat{\boldsymbol{\beta}}_{IV})=\frac{1}{n}s^2\boldsymbol{\Sigma^{-1}\Sigma^*\Sigma'^{-1}}\\[9pt]
+s^2=\frac{1}{n-k}(\mathbf{y-x}\hat{\boldsymbol{\beta}}_{IV})'(\mathbf{y-x}\hat{\boldsymbol{\beta}}_{IV})
+\end{align}
+$$
+
+### Simulación (1/3)
+
+Una simulación nos permite comparar los estimadores de MCO y de IV. Sea el modelo verdadero:
+
+
+
+$$
+\begin{align}
+&y_i=10+5x_i+u_i\\[5pt]
+&x_i=2z_i+0.5v_i+u_i\\[5pt]
+&z_i \sim \mathcal{N}(0,1)\\[5pt]
+&v_i \sim \mathcal{N}(0,1)\\[5pt]
+&u_i \sim \mathcal{N}(0,1)
+\end{align}
+$$
+
+
+
+Nota que \(x_i\) no es independiente de \(u_i\) en la regresión, por lo que los estimadores de MCO estarán sesgados. ¿Podemos utilizar \(z_i\) o \(v_i\) como instrumentos de \(x_i\) en la regresión?
+
+
+### Simulación (2/3)
+
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Utilizando los datos del ejemplo, muestra que si usamos a \(z_i\) como instrumento:
+
+
+$$
+\begin{align}
+p \lim b_2^{MCO}&=5.19\\
+p \lim b_2^{VI}&=5
+\end{align}
+$$
+
+
+### Ejemplo (3/3)
+
+Las siguientes gráficas comparan la distribución de \(\beta_2\) estimado por MCO y VI con n=3200.
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='50%', out.height='50%'}
+
+library(ivreg)
+library(ggplot2)
+
+set.seed(123) # Para reproducibilidad
+
+# Parámetros del modelo
+n <- 3200
+beta_1 <- 10
+beta_2 <- 5
+lambda_1 <- 2
+lambda_2 <- 0.5
+
+# Número de simulaciones
+num_sim <- 1000
+
+# Almacenar coeficientes estimados
+results <- data.frame(b2_ols = numeric(num_sim),
+                      b2_iv = numeric(num_sim))
+
+for (i in 1:num_sim) {
+  # Generación de datos
+  z <- rnorm(n, mean = 0, sd = 1)
+  v <- rnorm(n, mean = 0, sd = 1)
+  u <- rnorm(n, mean = 0, sd = 1)
+  x <- lambda_1 * z + lambda_2 * v + u
+  y <- beta_1 + beta_2 * x + u
+  
+  # Estimación por MCO
+  model_ols <- lm(y ~ x)
+  
+  # Estimación por MC2E
+  model_iv <- ivreg(y ~ x | z)
+  
+  # Almacenar coeficientes
+  results$b2_ols[i] <- coef(model_ols)[2]
+  results$b2_iv[i] <- coef(model_iv)[2]
+}
+
+# Resumen de los resultados
+summary(results)
+
+# Ajustar los histogramas para mayor granularidad
+bins <- 30
+
+# Gráfica con dos subgráficas
+ggplot(results, aes(x = b2_ols)) +
+  geom_histogram(aes(y = after_stat(density)), bins = bins, fill = "lightblue", color = "black") +
+  stat_function(fun = dnorm, args = list(mean = mean(results$b2_ols), sd = sd(results$b2_ols)), 
+                color = "red", linewidth = 1) +
+  labs(x = "Estimaciones de beta_2 por MCO", y = "Densidad") +
+  theme_minimal() -> plot_ols
+
+ggplot(results, aes(x = b2_iv)) +
+  geom_histogram(aes(y = after_stat(density)), bins = bins, fill = "lightgreen", color = "black") +
+  stat_function(fun = dnorm, args = list(mean = mean(results$b2_iv), sd = sd(results$b2_iv)), 
+                color = "red", linewidth = 1) +
+  labs(x = "Estimaciones de beta_2 por MC2E", y = "Densidad") +
+  theme_minimal() -> plot_iv
+
+# Combinar subgráficas
+library(patchwork)
+(plot_ols / plot_iv)
+
+
+```
+
+
+¿Qué estimador te parece mejor? ¿Por qué?
+
+
+### Variables instrumentales: Ejemplo (1/2)
+
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+Utiliza los datos: _E206--mroz_. Estima el modelo utilizando el método de los MCO. ¿Crees que exista un problema de endogeneidad? ¿Por qué? _Pista:_ La variable endógena es la variable educación.
+
+$$
+l\text{_}wage_i=\beta_1 + \beta_2 educ_i + \beta_3 exper_i + \beta_4 exper_i^2 + u_i
+$$
+
+### Variables instrumentales: Ejemplo (2/2)
+
+En el ejemplo anterior, estimamos los coeficientes utilizando la variable *mothereduc*, que representa la educación de la mamá de la \(i\)-ésima observación. (¿Por qué?)
+
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE}
+
+library(tidyverse)
+library(here)
+
+data <- read_delim(here("data/E206--mroz.csv"))
+
+iv_mod1 <- ivreg(log(wage) ~ educ + exper + I(exper^2) |
+                  mothereduc + exper + I(exper^2), 
+                data=data,
+                subset = (wage>0))
+
+iv_mod1
+```
+
+
+## Mínimos cuadrados en dos etapas (2SLS)
+
+
+### Mínimos cuadrados en dos etapas (1/4)
+
+¿Qué pasa si contamos con más instrumentos que variables explicativas?
+
+Sea:
+
+$$
+\mathbf{z}=\{\mathbf{z}_1 \quad \mathbf{z}_2 \ldots \mathbf{z}_l\}
+$$
+
+
+donde \(l\geq k\). En este caso, podemos usar el método de los **mínimos cuadrados en dos etapas**.
+
+
+### Mínimos cuadrados en dos etapas (2/4)
+
+1. Estimamos una regresión por cada variable explicativa usando el método de los mínimos cuadrados ordinarios:
+
+
+$$
+\mathbf{x}_j=\mathbf{z}\boldsymbol{\delta}_j+\mathbf{e}_j
+$$
+donde:
+
+
+$$
+\boldsymbol{\delta}_j= \begin{pmatrix}
+\delta_{j1} \\
+\delta_{j2}\\
+\vdots \\
+\delta_{jl}
+\end{pmatrix}, \quad j= 1,2,\ldots, k
+$$
+
+
+### Mínimos cuadrados en dos etapas (3/4)
+
+<ol start="2">
+  <li>Recuperamos los valores ajustados:
+$$
+\hat{\mathbf{x}}_j=\mathbf{z}\hat{\boldsymbol{\delta}}_j
+$$
+</li>
+
+donde:
+
+$$
+\hat{\boldsymbol{\delta}}_j=(\mathbf{z'z})^{-1}(\mathbf{z'x}_j)
+$$
+
+Y, naturalmente:
+
+
+$$
+\begin{align}
+\mathbf{x}_j=& \mathbf{z}\hat{\boldsymbol{\delta}}_j+\hat{\mathbf{e}}_j\\
+=& \hat{\mathbf{x}}_j +\hat{\mathbf{e}}_j
+\end{align}
+$$
+
+
+### Mínimos cuadrados en dos etapas (4/4)
+
+<ol start="3">
+  <li>Formamos el vector:
+$$
+\hat{\mathbf{x}}=\{\hat{\mathbf{x}}_1 \quad \hat{\mathbf{x}}_2 \ldots \hat{\mathbf{x}}_k\}
+$$
+</li>
+
+y usamos MCO para estimar el modelo:
+
+$$
+\mathbf{y}=\hat{\mathbf{x}}\boldsymbol{\beta}+\mathbf{u}
+$$
+
+De aquí obtenemos el **estimador de mínimos cuadrados en dos etapas** para \(\boldsymbol{\beta}\):
+
+$$
+\hat{\boldsymbol{\beta}}_{2SLS}=(\hat{\mathbf{x}}'\hat{\mathbf{x}})^{-1}\hat{\mathbf{x}}'\mathbf{y}
+$$
+
+### Mínimos cuadrados en dos etapas: Ejemplo
+
+En el ejemplo de antes, estimamos los coeficientes utilizando las variables _mothereduc_ y _fathereduc_, donde esta útima representa la educación del papá de la \(i\)-ésima observación.
+
+
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE}
+
+
+iv_mod2 <- ivreg(log(wage) ~ educ + exper + I(exper^2) |
+                  mothereduc + fathereduc + exper + I(exper^2), 
+                data=data,
+                subset = (wage>0))
+
+iv_mod2
+```
+
+
+
+### 2SLS vs. IV (1/2)
+
+
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Muestra que:
+
+$$
+\begin{align}
+1.&\quad \mathbf{z}'\hat{\mathbf{e}}_j=0\quad j=1,2,\ldots,k\\
+2.&\quad\hat{\mathbf{x}}'_j\hat{\mathbf{e}}_j=0\quad j=1,2,\ldots,k\\
+3.&\quad\hat{\mathbf{x}}'_m\hat{\mathbf{e}}_j=0 \quad\forall \quad m\neq j, \quad j,m=1,2,\ldots,k
+\end{align}
+$$
+
+
+Usando lo anterior, muestra además que:
+
+
+$$
+\begin{align}
+\hat{\boldsymbol{\beta}}_{2SLS}&=(\hat{\mathbf{x}}'\hat{\mathbf{x}})^{-1}\hat{\mathbf{x}}'\mathbf{y}\\[5pt]
+&= (\hat{\mathbf{x}}'\mathbf{x})^{-1}\hat{\mathbf{x}}'\mathbf{y}
+\end{align}
+$$
+
+
+### 2SLS vs. IV (2/2)
+
+
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Demuestra que las estimaciones por mínimos cuadrados en dos etapas y por variables instrumentales son equivalentes cuando tenemos igual número de instrumentos que de variables endógenas. Es decir:
+
+
+$$
+\hat{\boldsymbol{\beta}}_{2SLS}=\hat{\boldsymbol{\beta}}_{IV}
+$$
+
+
+<span class="emphasis-blue">Nota</span>. ¿Puedes decir cuál es la ventaja de utilizar el método de los mínimos cuadrados en dos etapas?
+
+
+
+## Selección de instrumentos
+
+
+### Instrumentos fuertes (1/3)
+
+Para seleccionar los instrumentos, primero tenemos que asegurarnos que la correlación entre estos y las variables que van a instrumentar sea alta. 
+
+Para ver lo anterior, considera el estimador de variables instrumentales:
+
+
+$$
+\begin{align}
+\hat{\boldsymbol{\beta}}_{IV}&= (\hat{\mathbf{z}}'\hat{\mathbf{x}})^{-1}(\hat{\mathbf{z}}'\mathbf{y}) \\
+&=\boldsymbol{\beta}+(\hat{\mathbf{z}}'\hat{\mathbf{x}})^{-1}(\hat{\mathbf{z}}'\mathbf{u})
+\end{align}
+$$
+
+O, en un modelo de regresión simple:
+
+$$
+\hat{\beta}_{2,IV}=\beta_2+\frac{\text{cov}(z,u)}{\text{cov}(z,x)}
+$$
+
+Cuando la cov(\(z,x\)) se acerca a cero, el sesgo del estimador de \(\boldsymbol{\beta}\) se acerca a infinito. En este caso decimos que \(z\) es un instrumento débil de \(x\). Es fuerte en caso contrario.
+
+
+### Instrumentos fuertes (2/3)
+
+
+
+Para hacer una prueba seria para **instrumentos fuertes**, supongamos que \(x_k\) es endógena y que contamos con un instrumento \(z_1\). Entonces:
+
+- Corremos la regresión (que corresponde a la primera etapa del método de 2SLS):
+
+
+$$
+x_k=\gamma_1+\gamma_2x_2+\ldots+\gamma_{k-1}x_{k-1}+\theta_1z_1+\nu_k
+$$
+
+- Para que el instrumento \(z_1\) sea fuerte, es necesario que el coeficiente \(\theta_1\) sea (muy) significativo. Como regla de uso común, esto será el caso _si el estadístico \(F\) de la prueba de significancia \(H_0: \theta_1=0\) es mayor a 10_. 
+
+### Instrumentos débiles (3/3)
+
+- Naturalmente, en caso de tener *L* instrumentos, corremos la siguiente regresión:
+
+$$
+x_k=\gamma_1+\gamma_2x_2+\ldots+\gamma_{k-1}x_{k-1}+\theta_1z_1+\dots+\theta_lz_l+\nu_k
+$$
+
+- En este caso, el estadístico \(F\) de la prueba \(\theta_1=\theta_2=\ldots=\theta_L=0\) tiene que ser mayor a 10.
+
+
+
+En el ejemplo anterior tenemos:
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE}
+
+summary(iv_mod2)$diagnostics[1, ,drop = FALSE]
+
+```
+
+### Los instrumentos deben ser exógenos 
+
+
+La relación anterior también deja en claro que el sesgo del estimador de \(\boldsymbol{\beta}\) tiende a cero conforme la \(cov(z,u)\) se acerca a cero. Cuando esto ocurre decimos que tenemos **instrumentos exógenos**.
+
+
+Una forma de saber si tenemos instrumentos exógenos es realizando la **prueba de Sargan**. 
+
+
+### Prueba de Sargan (1/3)
+
+Para realizar la prueba de Sargan:
+
+
+- Calculamos los estimadores de variables instrumentales:
+
+$$
+\hat{\boldsymbol{\beta}}_{IV}=(\mathbf{z}'\mathbf{x}')^{-1}(\mathbf{z}'\mathbf{y})
+$$
+
+- Recuperamos los residuales:
+
+$$
+\mathbf{e}_{IV}=\mathbf{y}-\mathbf{x}\hat{\boldsymbol{\beta}}_{IV}
+$$
+
+### Prueba de Sargan (2/3)
+
+- Corremos la siguiente regresión:
+
+$$
+\mathbf{e}_{IV}= \mathbf{z}\gamma+v
+$$
+
+- Calculamos el estadístico \(nR^2\), donde \(n\) es el tamaño de la muestra y \(R^2\) es el coeficiente de determinación de la regresión precedente. Tenemos que:
+
+
+$$
+nR^2\sim \chi^2_{(l-k \; g.l)}
+$$
+donde \(l\) es el número de instrumentos y \(k\) es el número de variables endógenas.
+
+- El punto anterior implica que, para que la prueba de Sargan pueda realizarse, es necesario tener más instrumentos que variables endógenas \(l>k\). Por esta razón, a la prueba de Sargan también se le conoce como **prueba de sobre identificación**.
+
+
+### Prueba de Sargan (3/3)
+
+- Realizamos la siguiente prueba:
+
+$$
+\begin{align}
+H_0\; :& \quad \text{cov}(\mathbf{z},\mathbf{e}_{IV})=0\\
+H_1\; :& \quad \text{cov}(\mathbf{z},\mathbf{e}_{IV})\neq 0
+\end{align}
+$$
+Naturalmente, _si rechazamos \(H_0\)_ los instrumentos no son exógenos. En nuestro ejemplo de antes tenemos:
+
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE}
+
+summary(iv_mod2)$diagnostics[3, ,drop = FALSE]
+
+```
+
+
+### Prueba de Hausman (1/5)
+
+
+Finalmente, también necesitamos una prueba para saber si nuestra regresión debe estimarse por el método de las variables instrumentales, o si el método de los MCO es suficiente.
+
+
+
+La prueba que debemos realizar en este caso se conoce como la **prueba de Hausman**.
+ 
+ 
+### Prueba de Hausman (2/5)
+
+
+Para mostrar como funciona la prueba de Hausman, supongamos que el modelo es:
+
+$$
+y_i=\beta_1+\beta_2x_i+u_i
+$$
+
+
+y sospechamos que podría haber una relación entre \(x_i\) y \(u_i\). Suponemos que tenemos dos buenos instrumentos para \(x_i\): \(z_1\) y \(z_2\).
+
+
+### Prueba de Hausman (3/5)
+
+- Estimamos por MCO la siguiente ecuación:
+
+
+$$
+x_i=\gamma_1+\theta_1z_{1i}+\theta_2z_{2i}+v_i
+$$
+y recuperamos los residuales:
+
+$$
+\hat{v_i}= x_i - \hat{\gamma_1}-\hat{\theta}_1z_{1i}-\hat{\theta}_2z_{2i}
+$$
+
+
+###  Prueba de Hausman (4/5)
+
+
+- Ahora estimamos por MCO:
+
+
+$$
+y_i=\beta_1 + \beta_2x_i + \delta\hat{v}_i+\nu_i
+$$
+Una _prueba \(t\)_ nos permitirá probar la siguiente hipótesis:
+
+
+$$
+\begin{align}
+H_0 \; &: \quad \delta=0\\[6pt]
+H_1\; &: \quad \delta\neq 0
+\end{align}
+$$
+
+Si rechazamos \(H_0\) el método de las variables instrumentales es apropiado. De otra forma usamos MCO.
+
+
+¿Por qué?
+
+
+### Prueba de Hausman (5/5)
+
+En el ejemplo de antes tenemos:
+
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE}
+
+Haus <- summary(iv_mod2)$diagnostics[2, ,drop = FALSE]
+Haus
+
+```
+
+
+
+<span class="emphasis-blue">Nota</span>. 
+
+En caso de tener más de una variable explicativa relacionada con el error, \(u\), hacemos tantas regresiones como sea necesario en el paso 1 e incluimos los residuales de estas en la regresión del paso 2. La prueba de hipótesis en este caso implicaría el uso de una _\(F\)_ en lugar de una _\(t\)_.
+
+
+## Práctica
+
+
+### Práctica
+
+Utilia los datos: _E207--fertility_ para explicar ¿cómo afecta la fertilidad a la oferta de trabajo? Es decir, ¿cuánto disminuye la oferta de trabajo de una mujer cuando tiene un hijo más?
+
+
+$$
+\begin{align}
+&\text{morekids = 1 if mom had more than 2 children}\\
+&\text{boy1st = 1 if 1st child was a boy}\\
+&\text{boy2nd = 1 if 2nd child was a boy}\\
+&\text{samesex = 1 if 1st two children same sex}\\
+&\text{agem1 = age of mom at census}\\
+&\text{black = 1 if mom is black}\\
+&\text{hispan = 1 if mom is Hispanic}\\
+&\text{othrace = 1 if mom is not black, Hispanic or white}\\
+&\text{weeksm1 = mom's weeks worked in 1979}
+\end{align}
+$$
+
+
+Realiza un análisis completo del modelo:
+
+$$
+morekids_i=\beta_1+\beta_2weeksworked_i+u_i
+$$
+
+
+
+
+
+
+
+
+
+

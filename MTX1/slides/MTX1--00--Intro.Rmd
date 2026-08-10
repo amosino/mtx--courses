@@ -1,0 +1,510 @@
+---
+title: "Introducción"
+author: "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v.2026.08.04"
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    transition: 0
+    slide_level: 3
+    css: ../src/custom.css
+---
+<a class="qmii-footer" href="MTX1--00--Intro.pdf" target="_blank">
+  PDF
+</a>
+
+## ¿Qué es la econometría?
+
+### Ingreso per cápita y esperanza de vida (1/2)
+
+Observa la siguiente gráfica de dispersión entre el ingreso per cápita y la esperanza de vida:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='asis', out.width="60%"}
+
+library(tidyverse)
+library(knitr)
+library(here)
+
+lexpectancy <- read_csv(here("data/lexpectancy.csv"))
+
+# Gráfica
+p1 <- ggplot(lexpectancy, aes(x = rgdp, y = life_exp)) +
+  geom_point(size = 3, color= "#F8766D", alpha = 0.7) +
+  scale_x_continuous(labels = scales::dollar_format()) +
+  labs(x = "Ingreso per cápita (USD)",
+       y = "Esperanza de vida (años)",
+       title = "Diagrama de dispersión")+
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+
+p1
+```
+_Fuente: CIA World Factbook_.
+
+### Ingreso per cápita y esperanza de vida (2/2)
+
+
+Responde: 
+
+<div style="display:flex; align-items:flex-start; gap:24px;">
+
+<div style="flex:1;">
+
+- ¿Qué patrón observas?
+- ¿Existe alguna relación entre el ingreso per cápita y la esperanza de vida?
+
+> ¿Podemos concluir que aumentar el ingreso hará que las personas vivan más?
+
+
+</div>
+
+<div style="flex:1;">
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='asis', out.width="100%"}
+
+p1
+
+```
+
+</div>
+</div>
+
+
+### ¿Qué es la econometría?
+
+La **econometría** desarrolla métodos para utilizar datos con el fin de responder preguntas económicas. Para ello requiere:
+
+- Teoría económica
+- Economía matemática
+- Estadística
+- Matemática
+- Programación
+
+El objetivo es _generar evidencia_ para evaluar hipótesis y apoyar la toma de decisiones, _reconociendo que toda conclusión está acompañada de incertidumbre_.
+
+## ¿Cómo piensa un econometrista?
+
+### ¿Cómo piensa un econometrista?
+
+Entonces: 
+
+
+<div style="display:flex; align-items:flex-start; gap:24px;">
+
+<div style="flex:1;">
+
+> ¿Podemos concluir que aumentar el ingreso hará que las personas vivan más?
+
+Todavía no...
+
+La gráfica que hemos visto solo muestra cuál es la _asociación_ entre el ingreso per cápita y la esperanza de vida. Aun nos hace falta un procedimiento sistemático que nos permita _transformar datos en evidencia_. 
+
+</div>
+
+<div style="flex:1;">
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='asis', out.width="100%"}
+
+p1
+
+```
+
+</div>
+</div>
+
+### El proceso de investigación econométrica
+
+El proceso de investigación en econometría se puede ilustrarse de la siguiente forma:
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+library(DiagrammeR)
+
+grViz(r"(
+digraph proceso_econometrico {
+
+  graph [
+    layout = dot,
+    rankdir = TB,
+    bgcolor = transparent,
+    pad = 0.25,
+    nodesep = 0.55,
+    ranksep = 0.7,
+    splines = spline
+  ]
+
+  node [
+    shape = box,
+    style = "rounded,filled",
+    fontname = Helvetica,
+    fontcolor = white,
+    fontsize = 15,
+    penwidth = 0,
+    margin = "0.22,0.18",
+    width = 3,
+    height = 1.6,
+    fixedsize = true
+  ]
+
+  edge [
+    penwidth = 3,
+    arrowsize = 1.1,
+    arrowhead = vee,
+    color = "#5D6D7E"
+  ]
+
+  { rank = same; pregunta; teoria; datos; modelo }
+  { rank = same; evidencia; interpretacion; decisiones }
+
+  pregunta [
+    fillcolor = "#1B2A4A",
+    label = <<B>Pregunta econ&#243;mica</B><BR/><BR/>
+      <FONT POINT-SIZE="12">&#191;Qu&#233; queremos<BR/>explicar?</FONT>>
+  ]
+
+  teoria [
+    fillcolor = "#1F4E79",
+    label = <<B>Teor&#237;a econ&#243;mica / intuici&#243;n</B><BR/><BR/>
+      <FONT POINT-SIZE="12">&#191;Qu&#233; explicaci&#243;n<BR/>proponemos?</FONT>>
+  ]
+
+  datos [
+    fillcolor = "#2E75B6",
+    label = <<B>Datos</B><BR/><BR/>
+      <FONT POINT-SIZE="12">&#191;Qu&#233; informaci&#243;n<BR/>necesitamos?</FONT>>
+  ]
+
+  modelo [
+    fillcolor = "#2A9D8F",
+    fontsize = 14,
+    label = <<B>Modelo econom&#233;trico</B><BR/><BR/>
+      <FONT POINT-SIZE="12">&#191;C&#243;mo traducimos<BR/>la teor&#237;a?</FONT>>
+  ]
+
+  evidencia [
+    fillcolor = "#21867A",
+    label = <<B>Evidencia</B><BR/><BR/>
+      <FONT POINT-SIZE="12">&#191;Qu&#233; muestran<BR/>los datos?</FONT>>
+  ]
+
+  interpretacion [
+    fillcolor = "#3C8D40",
+    label = <<B>Interpretaci&#243;n</B><BR/><BR/>
+      <FONT POINT-SIZE="12">&#191;Qu&#233; podemos<BR/>concluir?</FONT>>
+  ]
+
+  decisiones [
+    fillcolor = "#2E7D32",
+    label = <<B>Decisiones</B><BR/><BR/>
+      <FONT POINT-SIZE="12">&#191;Qu&#233; decisiones puede<BR/>respaldar la evidencia?</FONT>>
+  ]
+
+  decisiones -> interpretacion -> evidencia [
+    style = invis,
+    weight = 10
+  ]
+
+  pregunta -> teoria -> datos -> modelo
+  modelo -> evidencia
+  evidencia -> interpretacion -> decisiones [
+    constraint = false
+  ]
+}
+)",
+  width = "100%",
+  height = "280px"
+)
+
+```
+> En cada etapa del proceso el econometrista debe tomar decisiones que influyen en la calidad de la evidencia obtenida.
+
+
+### Pregunta económica
+
+Pero vamos por partes.
+
+<ol start="1">
+  <li>Todo análisis comienza con una "simple" _curiosidad_. Por ejemplo:
+  
+  > ¿Un aumento en el ingreso hace que las personas vivan más?
+  
+  ¿Qué dice tu intución?
+
+
+</li>
+</ol>
+
+
+### Teoría económica
+
+<ol start="2">
+  <li> Una vez que planteamos la pregunta, buscamos si la teoría nos ofrece alguna respuesta. En nuestro caso, podemos encontrar que:
+  
+  > Los países con mayor ingreso real per cápita tienden a presentar una mayor esperanza de vida. Sin embargo, la relación no es proporcional: las ganancias asociadas con el ingreso son mayores en los niveles bajos y disminuyen conforme los países se vuelven más ricos. Además, esta relación puede desplazarse con el tiempo: países con ingresos semejantes alcanzan posteriormente mayores niveles de esperanza de vida (Preston, 1975).
+
+
+Sin embargo, observar esta relación (conocida como _curva de Preston_) no basta para concluir que el ingreso causa, por sí solo, una mayor esperanza de vida.
+
+</li>
+</ol>
+
+### Datos
+
+<ol start="3">
+  <li> Dado que nuestra investigación parece tener sentido, ahora sí, conseguimos los datos: buscamos datos del ingreso per cápita y la esperanza de vida en los países del mundo (y otros datos que podrían, luego, ser relevantes):
+  
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='asis', out.width="50%"}
+
+p2 <- p1 + geom_smooth(method = "lm", se = FALSE, color = "black", linetype = "dashed")
+p2
+
+```
+
+La gráfica hace evidente la asociación _positiva_ entre el ingreso per cápita y la esperanza de vida. En esta hemos incluido, además, una línea que nos permite representar/resumir esta asociación. _¡Uno de los objetivos de la econometría es saber cómo trazarla!_
+</li>
+</ol>
+
+### Modelo
+
+<ol start="4">
+  <li> Como hemos dicho, el objetivo parece ser trazar _una línea_ que resuma la asociación entre el ingreso per cápita y la esperanza de vida. Entonces, el modelo matemático podría ser:
+  
+$$
+\text{Esperanza de vida}_i = \beta_1 + \beta_2 \text{Ingreso per cápita}_i
+$$
+
+Y el modelo estadístico/econométrico:
+
+$$
+\text{Esperanza de vida}_i = \beta_1 + \beta_2 \text{Ingreso per cápita}_i + u_i
+$$
+
+¿Notas la diferencia? 
+
+Por cierto... Presta atención al término \(u_i\). Este será nuestro principal dolor de cabeza.
+
+</li>
+</ol>
+
+### Evidencia (1/2)
+
+<ol start="5">
+  <li> Nota que el modelo tiene algunos _parámetros desconocidos_, \(\beta_1\) y \(\beta_2\). Para _estimarlos_, podemos usar el método de los _Mínimos Cuadrados Ordinarios (MCO)_. La aplicación de este método resulta en:
+  
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(broom)
+
+
+# Estimar modelo OLS
+modelo <- lm(life_exp ~ rgdp, data = lexpectancy)
+
+# Resumen limpio del modelo
+resultados <- tidy(modelo)
+
+# Mostrar tabla
+tabla <- tidy(modelo) %>%
+  mutate(
+    term = if_else(term == "(Intercept)", "Constante", "Ingreso per cápita"),
+    # Redondeos
+    estimate = round(estimate, 6),
+    std.error = round(std.error, 6),
+    statistic = round(statistic, 3),
+    p.value = format.pval(p.value, digits = 3, eps = 0.001),
+    estimate = sprintf("<span style='color:#e63946; font-weight:bold;'>%s</span>",
+                   format(estimate, nsmall = 6))
+  ) %>%
+  select(
+    Término = term,
+    `Coeficiente` = estimate,
+    `Desv. Típica` = std.error,
+    `Estadístico t` = statistic,
+    `Valor p` = p.value
+  )
+
+# Mostrar tabla
+kable(tabla, format = "html", escape = FALSE,
+      caption = "Asociación entre ingreso per cápita y esperanza de vida",
+      table.attr = 'class="clean-table"')
+```
+
+
+
+$$
+\widehat{\text{Esperanza de vida}}_i = 67.35 + 0.00024\text{Ingreso per cápita}_i
+$$
+
+El _signo positivo_ del valor estimado de \(\beta_2\) confirma que el modelo está alineado con la teoría económica (y la intuición).
+</li>
+</ol>
+
+### Evidencia (2/2)
+
+<ol start="6">
+  <li> Pero la evidencia aun no está completa. 
+  
+  También es importante verificar si el valor estimado de \(\beta_2\) ( \(0.00024 \)) está lo suficientemente lejos de cero para ser considerado _estadísticamente significativo_ (válido):
+  
+  $$
+  \begin{align}
+  H_0:& \beta_2 = 0\\
+  H_1:& \beta_2 > 0
+  \end{align}
+  $$
+  
+  En esta sección introductoria, nos limitaremos a decir que sí: el valor estimado de \(\beta_2\) es estadísticamente válido (y positivo).
+  
+</li>
+</ol>
+  
+### Interpretación
+
+<ol start="7">
+  <li> Ahora que tenemos evidencia de que la asociación entre el ingreso per cápita y la esperanza de vida existe, podemos interpretar el modelo estimado:
+  
+$$
+\widehat{\text{Esperanza de vida}}_i = 67.35 + 0.00024\text{Ingreso per cápita}_i
+$$
+
+- Si el ingreso per cápita aumenta en una unidad (un dólar), el _valor estimado de la esperanza de vida_ se incrementa en \(0.00024\) unidades (años). 
+
+- El _valor estimado de la esperanza de vida_ es igual a \(67.35\) cuando el ingreso per cápita es igual a cero.
+
+Por cierto, ¿crees que podamos interpretar esta asociación como una _relación de causalidad_?
+
+</li>
+</ol>
+
+### Decisiones
+
+<ol start="8">
+  <li> Una vez que tenemos un modelo adecuado y estadísticamente válido, podemos ponerlo a "trabajar". Por ejemplo, podemos preguntarnos:
+  
+- ¿Cuál es la esperanza de vida para un país con ingreso per cápita de \($18,000\)?
+
+- ¿Cuál debería ser el ingreso per cápita de un país que desea tener una esperanza de vida de 80 años?
+  
+</li>
+</ol>
+
+
+## ¿Por qué estudiar econometría?
+
+### ¿Qué aprendimos?
+
+Entonces, ¿podemos concluir que aumentar el ingreso hará que las personas vivan más?
+
+<div style="display:flex; align-items:flex-start; gap:24px;">
+
+<div style="flex:1;">
+
+_No, todavía no_. Pero ahora contamos con mucha más evidencia que al principio:
+
+- Existe una asociación positiva entre ingreso y esperanza de vida.
+- La teoría económica propone los mecanismos para explicar esa asociación.
+- El modelo estimado es consistente con esa teoría.
+- Pero todavía debemos ser cautelosos antes de interpretarla como una relación causal.
+
+
+</div>
+
+<div style="flex:1;">
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='asis', out.width="100%", fig.height= 3}
+
+p2
+
+```
+
+> La econometría no proporciona respuestas definitivas; proporciona la mejor evidencia disponible para responder preguntas económicas.
+
+
+</div>
+</div>
+
+### ¿Por qué estudiar econometría?
+
+
+**Las herramientas ejecutan modelos; los econometristas construyen evidencia.**
+
+
+Hoy contamos con herramientas capaces de estimar modelos econométricos en cuestión de segundos. El verdadero valor del econometrista radica en _formular buenas preguntas, evaluar críticamente la evidencia e interpretar los resultados para respaldar la toma de decisiones._
+
+
+> Aprender econometría no es aprender a correr regresiones; implica dominar las técnicas y comprender cuándo, cómo y por qué utilizarlas para construir evidencia.
+
+## Contenido del curso
+
+### Contenido del curso
+
+**Parte I: Escenciales del modelo de regresión clásico**
+
+<ol>
+  <li>Introducción</li>
+  <li>El modelo de regresión simple</li>
+  <li>El modelo de regresión múltiple</li>
+  <li>Inferencia: Pruebas de hipótesis e intervalos de confianza</li>
+</ol>
+
+**Parte II: Especificación del modelo**
+
+<ol start="5">
+  <li>Multicolinealidad</li>
+  <li>Modelos no lineales y variables interactivas</li>
+  <li>Variables binarias</li>
+  <li>Problemas de especificación</li>
+</ol>
+
+
+### Software
+
+- **Microsoft Excel**: Manejo de bases de datos.
+- **R/R Studio**: Modelación y estimación.
+- **R, Stata, Matlab, Gretl** (a elección): Simulación.
+
+
+### Referencias
+
+- **Greene**, W. (2012). _Econometric Analysis_ (7th Edition). Prentice Hall.
+- **Gujarati**, D., y Porter, D. (2010). _Econometría_ (5ª edición). McGraw-Hill Latinoamérica.
+- **Gujarati**, D. (2014). _Econometrics by Example_ (2nd Edition). Palgrave Macmillan.
+- **Uriel Jiménez**, E. _Introducción a la Econometría_. Disponible en: [http://www.uv.es/=uriel/libroes.htm](http://www.uv.es/=uriel/libroes.htm)
+- **Wooldridge**, J. (2015). _Introducción a la Econometría, un enfoque moderno_ (5ª edición). Cengage Learning.
+
+
+### Evaluación (1/2)
+
+Se consideran:
+
+- Ejercicios: _10%_
+- Cuestionarios: _10%_
+- Lecturas: _10%_
+- Examen parcial: _20%_
+- Examen final: _50%_
+- Evaluación docente: _0%_ (**¡Obligatoria!**)
+
+### Evaluación (2/2)
+
+- _Todos_ los exámenes se presentarán en forma presencial, a menos que exista un comunicado oficial de virtualidad por parte de la Universidad de Guanajuato.
+
+- _La calificación final no se redondea hacia arriba_, a menos que el puntaje en el **examen final** sea superior a 5.0.
+
+- _Bajo ninguna circunstancia_ se asignará una calificación de NC a alumnos inscritos al finalizar el semestre.
+
+
+### Seguimiento
+
+**Moodle – Campus Digital UG**: 
+
+- Material del curso (diapositivas, datos, etc.)
+- Distribución de tareas y actividades.
+
+**Microsoft Teams**: 
+
+- Toda comunicación con el profesor (atención de dudas, avisos, etc.).

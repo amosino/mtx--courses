@@ -1,0 +1,261 @@
+---
+title: "Métodos Cuantitativos II"
+subtitle: "Series de tiempo: modelado empírico y pronóstico"
+author: 
+  - "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v. 2026.01.15"
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    transition: 0
+    slide_level: 3
+    css: ../src/custom.css
+---
+
+
+<a class="qmii-footer" href="QMII--00--Intro.pdf" target="_blank">
+  PDF
+</a>
+
+
+## ¿Qué son las series de tiempo?
+
+### ¿Qué son las series de tiempo? (1/5)
+
+Por **serie de tiempo** nos referimos a _datos estadísticos_ que se recopilan, observan o registran en _intervalos de tiempo regulares_.
+
+
+### ¿Qué son las series de tiempo? (2/5)
+
+**Calentamiento global**
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='50%', out.height='60%'}
+
+library(astsa)
+culer=c(rgb(.85, .30, .12, .6), rgb(.12, .65, .85, .6))
+tsplot(gtemp_land, col=culer[1], lwd=2, type="o", pch=20,
+       ylab="Cambios en temperatura",
+       main="Calentamiento Global")
+lines(gtemp_ocean, col=culer[2], lwd=2, type="o", pch=20)
+legend("topleft", col=culer, lty=1, lwd=2, pch=2,
+       legend=c("Superficie de la tierra", "Superficie del mar"),
+       bg="white")
+
+```
+
+Desviaciones con respecto al promedio del periodo 1950-1980
+
+### ¿Qué son las series de tiempo? (3/5)
+
+**Johnson & Johnson**
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='50%', out.height='60%'}
+
+par(mfrow=2:1)
+tsplot(jj, ylab = "QEPS", type="o", col=4,
+       main="Ganancias Trimestrales Johnson & Johnson")
+tsplot(log(jj), ylab = "log(QEPS)", type="o", col=4)
+dev.off()
+
+```
+
+Ganancias trimestrales en niveles y en logaritmos.
+
+
+### ¿Qué son las series de tiempo? (4/5)
+
+**Dow Jones**
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='50%', out.height='60%'}
+
+library(xts)
+djia_return =diff(log(djia$Close))[-1]
+par(mfrow=2:1)
+plot(djia$Close, col=4)
+plot(djia_return, col=4)
+dev.off()
+
+```
+Índice y rendimientos.
+
+
+### ¿Qué son las series de tiempo? (4/5)
+
+**Crecimiento del PIB de Estados Unidos**
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='50%', out.height='60%'}
+
+tsplot(diff(log(gdp)), type="o", col=4, 
+       ylab="Crecimiento del PIB")
+points(diff(gdp)/lag(gdp,-1), pch=3, col=2)
+
+```
+PIB cuatrimestral. Datos ajustados por el componente estacional.
+
+## Modelos de series de tiempo
+
+### ¿En qué consiste un análisis de series temporales?
+
+Un análisis de series temporales consiste en desarrollar modelos matemáticos que nos permitan describir los datos, tomando en cuenta las características específicas de estos:
+
+1. **Tendencia**
+2. **Componente estacional**
+3. **Componente cíclico**
+4. **Componente irregular**
+
+### Ejemplos (1/4)
+
+Un ejemplo de modelo de series temporales es el Ruido Blanco (Gaussiano).
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='50%', out.height='50%'}
+
+set.seed(12345)
+w=rnorm(500)
+tsplot(w, col=4, main="Ruido Blanco")
+
+```
+
+
+$$
+\varepsilon_t \sim iid \mathcal{N}(0,1)
+$$
+
+### Ejemplos (2/4)
+
+Un modelo de medias móviles.
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='50%', out.height='50%'}
+
+par(mfrow=2:1)
+v=filter(w,sides=2, filter=rep(1/3,3))
+tsplot(w, col=4, main="Ruido Blanco")
+tsplot(v, ylim=c(-3,3),col=4, main="Medias Móviles")
+dev.off()
+
+```
+
+
+$$
+\begin{align}
+&y_t = \frac{1}{3}(\varepsilon_{t-1}+\varepsilon_{t}+\varepsilon_{t+1}) \\
+&\varepsilon_t \sim iid \mathcal{N}(0,1)
+\end{align}
+$$
+
+### Ejemplos (3/4)
+
+Modelos autorregresivos
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='50%', out.height='50%'}
+
+set.seed(90210)
+w= rnorm(250+50)
+x=filter(w, filter=c(1.5,-.75), method="recursive")[-(1:50)]
+tsplot(x, main="Modelo Autorregresivo", col=4)
+
+```
+
+$$
+\begin{align}
+&y_t = 1.5 y_{t-1}-0.75y_{t-2}+\varepsilon_{t} \\
+&\varepsilon_t \sim iid \mathcal{N}(0,1)
+\end{align}
+$$
+
+### Ejemplos (4/4)
+
+Caminata aleatoria con deriva
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='50%', out.height='50%'}
+
+set.seed(314159265)
+w= rnorm(200)
+x=cumsum(w)
+wd=w+.3
+xd=cumsum(wd)
+tsplot(xd, ylim=c(-2,80), main="Caminata aleatoria",
+       ylab="", col=4)
+abline(a=0, b=0.3, lty=2, col=4)
+lines(x, col="darkred")
+abline(h=0, col="darkred", lty=2)
+
+```
+
+$$
+\begin{align}
+&y_t = 0.3 +  y_{t-1}+\varepsilon_{t} \\
+&\varepsilon_t \sim iid \mathcal{N}(0,1)
+\end{align}
+$$
+
+
+
+## Objetivos del curso y contenido
+
+### Objetivos del curso
+
+Este curso sigue un enfoque de trabajo aplicado a problemas reales en finanzas, ingeniería y ciencias sociales:
+
+1. _Explorar y transformar la serie_ (niveles, log, tasas de crecimiento)
+2. _Diagnosticar patrones_ (tendencia, estacionalidad, volatilidad)
+3. _Proponer y estimar modelos_ (ARMA/ARIMA/SARIMA/VAR/GARCH)
+4. _Validar supuestos_ (residuales ~ ruido blanco)
+5. _Evaluar pronósticos fuera de muestra_ (MAE/RMSE/MAPE + intervalos)
+
+### Contenido
+
+1. Introducción
+2. Medidas de dependencia serial y estacionariedad
+3. Modelos Autorregresivos con Medias Móviles (ARMA)
+4. Procesos no estacionarios por tendencia (ARIMA)
+4. Modelos estacionales (SARIMA)
+5. Modelos de heteroscedasticidad condicional (ARCH/GARCH)
+6. Vectores autorregresivos (VAR)
+7. Cointegración y corrección de errores (ECM/VECM)
+
+
+### Software
+
+Utilizaremos principalmente **Gretl**, pero el estudiante puede optar por:
+
+- R / RStudio
+- Stata
+- Eviews
+- Python
+- Julia
+
+### Referencias
+
+- **Brockwell**, P., y Davis, R. (2002). *Introduction to Time Series and Forecasting* (Second Edition). Springer. 
+
+- **Enders**, W. (2014). *Applied Econometric Time Series* (4th Edition). Wiley.
+
+- **Greene**, W. (2012). *Econometric Analysis* (7th Edition). Prentice Hall
+
+- **Hamilton**, J. (1994). *Time Series Analysis*. Princeton University Press.
+
+- **Shumway**, R., Stoffer, D. (2016). *Time Series Analysis and Applications* (EZ Green Edition).
+
+
+### Evaluación
+
+- Tareas: 30%
+- Lecturas: 10%
+- Proyecto Final: 30%
+- Examen Final (Teoría): 30%
+
+### Seguimiento
+
+_Moodle_: Campus Digital UG
+
+- Material del curso (diapositivas, datos)
+- Distribución de tareas y actividades
+
+_Microsoft Teams_:
+
+- Toda comunicación con el profesor fuera de clase (atencion de dudas, avisos, etc.)

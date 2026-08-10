@@ -1,0 +1,224 @@
+﻿pais,rgdp,life_exp
+Afghanistan,2000,51.3
+Albania,11900,78.3
+Algeria,15000,76.8
+American Samoa,13000,75.4
+Andorra,37200,82.8
+Angola,6800,56
+Anguilla,12200,81.4
+Antigua and Barbuda,24100,76.5
+Argentina,20200,77.1
+Armenia,8900,74.6
+Aruba,25300,76.8
+Australia,48800,82.2
+Austria,47900,81.5
+Azerbaijan,17700,72.5
+"Bahamas, The",24600,72.4
+Bahrain,50300,78.9
+Bangladesh,3900,73.2
+Barbados,17200,75.3
+Belarus,17500,72.7
+Belgium,44900,81
+Belize,8200,68.7
+Benin,2200,61.9
+Bermuda,85700,81.3
+Bhutan,8100,70.1
+Bolivia,7200,69.2
+Bosnia and Herzegovina,11000,76.7
+Botswana,16900,54.5
+Brazil,15200,73.8
+British Virgin Islands,42300,78.6
+Brunei,79700,77.2
+Bulgaria,20100,74.5
+Burkina Faso,1800,55.5
+Burma,6000,66.6
+Burundi,800,60.5
+Cabo Verde,6700,72.1
+Cambodia,3700,64.5
+Cameroon,3300,58.5
+Canada,46200,81.9
+Cayman Islands,43800,81.2
+Central African Republic,700,52.3
+Chad,2600,50.2
+Chile,24000,78.8
+China,15400,75.5
+Colombia,14200,75.7
+Comoros,1500,64.2
+"Congo, Democratic Republic of the",800,57.3
+"Congo, Republic of the",6800,59.3
+Cook Islands,12300,75.8
+Costa Rica,16100,78.6
+Cote d'Ivoire,3600,58.7
+Croatia,22400,75.9
+Cuba,11600,78.7
+Curacao,15000,78.3
+Cyprus,34400,78.7
+Czechia,33200,78.6
+Denmark,46600,79.4
+Djibouti,3400,63.2
+Dominica,11400,77
+Dominican Republic,15900,78.1
+Ecuador,11000,76.8
+Egypt,12100,72.7
+El Salvador,8900,74.7
+Equatorial Guinea,38700,64.2
+Eritrea,1300,64.9
+Estonia,29500,76.7
+Ethiopia,1900,62.2
+European Union,37800,80.2
+Faroe Islands,36600,80.4
+Fiji,9400,72.7
+Finland,41800,80.9
+France,42400,81.8
+French Polynesia,26100,77.2
+Gabon,19300,52.1
+"Gambia, The",1700,64.9
+Georgia,10100,76.2
+Germany,48200,80.7
+Ghana,4400,66.6
+Gibraltar,43000,79.4
+Greece,26800,80.5
+Greenland,37900,72.4
+Grenada,14100,74.3
+Guam,30500,79.1
+Guatemala,7900,72.3
+Guernsey,52300,82.5
+Guinea,1300,60.6
+Guinea-Bissau,1600,50.6
+Guyana,7900,68.4
+Haiti,1800,63.8
+Honduras,5300,71.1
+Hong Kong,58100,82.9
+Hungary,27200,75.9
+Iceland,48100,83
+India,6700,68.5
+Indonesia,11700,72.7
+Iran,18100,71.4
+Iraq,16500,74.9
+Ireland,69400,80.8
+Isle of Man,83100,81.2
+Israel,34800,82.4
+Italy,36300,82.2
+Jamaica,9000,73.6
+Japan,38900,85
+Jersey,57000,81.9
+Jordan,11100,74.6
+Kazakhstan,25700,70.8
+Kenya,3400,64
+Kiribati,1800,66.2
+"Korea, North",1800,70.4
+"Korea, South",37900,82.4
+Kuwait,71300,78
+Kyrgyzstan,3500,70.7
+Laos,5700,64.3
+Latvia,25700,74.5
+Lebanon,18500,77.6
+Lesotho,3100,53
+Liberia,900,59
+Libya,14200,76.5
+Liechtenstein,89400,81.9
+Lithuania,29900,74.9
+Luxembourg,102000,82.3
+Macau,96100,84.5
+Macedonia,14500,76.2
+Madagascar,1500,65.9
+Malawi,1100,61.2
+Malaysia,27200,75
+Maldives,15300,75.6
+Mali,2300,55.8
+Malta,37900,80.4
+Marshall Islands,3300,73.1
+Mauritania,4400,63
+Mauritius,20500,75.6
+Mexico,18900,75.9
+"Micronesia, Federated States of",3000,72.9
+Moldova,5200,70.7
+Monaco,78700,89.5
+Mongolia,12200,69.6
+Montserrat,8500,74.4
+Morocco,8400,76.9
+Mozambique,1200,53.3
+Namibia,11800,63.6
+Nauru,14800,67.1
+Nepal,2500,70.7
+Netherlands,50800,81.3
+New Caledonia,38800,77.7
+New Zealand,37100,81.2
+Nicaragua,5300,73.2
+Niger,1100,55.5
+Nigeria,5900,53.4
+Northern Mariana Islands,13300,78
+Norway,69300,81.8
+Oman,43700,75.5
+Pakistan,5100,67.7
+Palau,15300,73.1
+Panama,22800,78.6
+Papua New Guinea,3500,67.2
+Paraguay,9400,77.2
+Peru,13000,73.7
+Philippines,7700,69.2
+Poland,27700,77.6
+Portugal,28500,79.3
+Puerto Rico,37700,79.4
+Qatar,129700,78.7
+Romania,22300,75.1
+Russia,26100,70.8
+Rwanda,1900,60.1
+"Saint Helena, Ascension, and Tristan da Cunha",7800,79.5
+Saint Kitts and Nevis,25500,75.7
+Saint Lucia,12000,77.8
+Saint Pierre and Miquelon,34900,80.5
+Saint Vincent and the Grenadines,11300,75.3
+Samoa,5400,73.7
+San Marino,65300,83.3
+Sao Tome and Principe,3300,64.9
+Saudi Arabia,54100,75.3
+Senegal,2600,61.7
+Serbia,14200,75.5
+Seychelles,28000,74.7
+Sierra Leone,1700,58.2
+Singapore,87100,85
+Sint Maarten,66800,78.1
+Slovakia,31200,77.1
+Slovenia,32000,78.2
+Solomon Islands,2000,75.3
+Somalia,400,52.4
+South Africa,13200,63.1
+Spain,36500,81.7
+Sri Lanka,11200,76.8
+Sudan,4500,64.1
+Suriname,15200,72.2
+Swaziland,9800,51.6
+Sweden,49700,82.1
+Switzerland,59400,82.6
+Syria,2900,74.9
+Taiwan,47800,80.1
+Tajikistan,3000,67.7
+Tanzania,3100,62.2
+Thailand,16800,74.7
+Timor-Leste,4200,68.1
+Togo,1500,65
+Tonga,5300,76.2
+Trinidad and Tobago,31900,72.9
+Tunisia,11700,76.1
+Turkey,21100,74.8
+Turkmenistan,17300,70.1
+Turks and Caicos Islands,29100,79.8
+Tuvalu,3500,66.5
+Uganda,2100,55.4
+Ukraine,8200,71.8
+United Arab Emirates,67700,77.5
+United Kingdom,42500,80.7
+United States,57300,79.8
+Uruguay,21600,77.2
+Uzbekistan,6500,73.8
+Vanuatu,2600,73.4
+Venezuela,15100,75.8
+Vietnam,6400,73.4
+Virgin Islands,36100,80
+Wallis and Futuna,3800,79.7
+West Bank,4300,75
+Western Sahara,2500,63
+Yemen,2500,65.5
+Zambia,3900,52.5
+Zimbabwe,2000,58

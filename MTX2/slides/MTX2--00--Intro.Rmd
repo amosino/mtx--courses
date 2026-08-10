@@ -1,0 +1,113 @@
+---
+title: "Introducción"
+author: 
+  - "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v. 2026.01.18"
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output: 
+  ioslides_presentation:
+    widescreen: true
+    transition: 0
+    slide_level: 3
+    css: ../src/custom.css
+---
+
+### ¿Qué es la Microeconometría?
+
+La **Microeconometría** es la rama de la Econometría que estudia datos microeconómicos:
+
+- Encuesta de ingresos y gastos de los hogares del INEGI.
+- Encuesta Nacional de Salud y Nutrición del INSP.
+
+
+Algunos ejemplos de **modelos microeconométricos** son:
+
+- Modelos de ecuaciones simultáneas.
+- Modelos de datos de panel.
+- Modelos de elección cualitativa.
+
+
+### Temario
+
+**PARTE I: VIOLACIÓN DE LOS SUPUESTOS DEL MODELO DE REGRESIÓN LINEAL I**
+
+<ol>
+  <li>Problemas de heteroscedasticidad y autocorrelación.</li>
+  <li>Consecuencias sobre la estimación por mínimos cuadrados ordinarios.</li>
+  <li>Métodos alternativos: Mínimos Cuadrados Generalizados.</li>
+</ol>
+
+**PARTE II: VIOLACIÓN DE LOS SUPUESTOS DEL MODELO DE REGRESIÓN LINEAL II**
+
+<ol start="4">
+  <li>Problema de la endogeneidad, orígenes y consecuencias.</li>
+  <li>Métodos de Variables Instrumentales y Mínimos Cuadrados en Dos Etapas.</li>
+</ol>
+
+**PARTE III: TEMAS DE MICROECONOMETRÍA**
+
+<ol start="6">
+  <li>Modelos con datos de panel.</li>
+  <li>Modelos con variable dependiente categórica binaria.</li>
+</ol>
+
+
+
+### Software
+
+- **Microsoft Excel**: Manejo de bases de datos.
+
+- **R/R Studio**: Modelación y estimación.
+
+- **R, Stata, Matlab, Gretl** (a elección): Simulación.
+
+
+### Referencias
+
+- **Baltagi**, B. (2011). *Econometrics*. Springer, 5th Edition.
+
+- **Greene**, W. (2012). _Econometric Analysis_ (7th Edition). Prentice Hall.
+
+- **Gujarati**, D., y Porter, D. (2010). _Econometría_ (5ª edición). McGraw-Hill Latinoamérica.
+
+- **Gujarati**, D. (2014). _Econometrics by Example_ (2nd Edition). Palgrave Macmillan.
+
+- **Uriel Jiménez**, E. _Introducción a la Econometría_. Disponible en: [http://www.uv.es/=uriel/libroes.htm](http://www.uv.es/=uriel/libroes.htm)
+
+- **Wooldridge**, J. (2015). _Introducción a la Econometría, un enfoque moderno_ (5ª edición). Cengage Learning.
+
+
+
+### Evaluación (1/2)
+
+- **Cuestionarios**: 10%
+- **Ejercicios**: 10%
+- **Ensayos**: 10%
+- **Examen parcial**: 20%
+- **Examen Final**: 50%
+- **Evaluación docente**: 0% (_¡Obligatoria!_)
+
+
+### Evaluación (2/2)
+
+
+- _Todos_ los exámenes se presentarán en forma presencial, a menos que exista un comunicado oficial de virtualidad por parte de la Universidad de Guanajuato.
+
+- _La calificación final no se redondea hacia arriba_, a menos que el puntaje en el examen final sea superior a 5.0.
+
+- _Bajo ninguna circunstancia_ se asignará una calificación de NC a alumnos inscritos al finalizar el semestre.
+
+
+### Seguimiento
+
+*Moodle - Campus Digital UG*:
+
+- Material del curso (diapositivas, datos)
+- Distribución de tareas y actividades
+
+*Microsoft Teams*:
+
+- Toda comunicación con el profesor (atencion de dudas, avisos, etc.)

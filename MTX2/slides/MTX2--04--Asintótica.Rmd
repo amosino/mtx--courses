@@ -1,0 +1,298 @@
+---
+title: "Consistencia y la ley de los grandes números"
+author: 
+  - "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v. 2026.03.03"
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    transition: 0
+    slide_level: 3
+    css: ../src/custom.css
+---
+
+## Motivación
+
+### Motivación (1/3)
+
+Antes, hemos estudiado con detalle el modelo de regresión lineal:
+
+$$
+y_i = \beta_1 + \beta_2 x_{2i} + \beta_3 x_{3i} + \dots + \beta_k x_{ki} + u_i
+$$
+
+En particular, analizamos las propiedades de los estimadores de MCO. _Bajo el supuesto de que los regresores son deterministas_ demostramos que los estimadores son:
+
+- **Insesgados**
+
+- **Eficientes**
+
+
+### Motivación (2/3)
+
+Sin embargo, en la práctica los regresores no son necesariamente deterministas. Piensa por ejemplo en:
+
+- Ingreso
+- Educación
+- Precios
+- PIB
+- Etc. 
+
+¿Cómo se comportan los estimadores de MCO cuando los regresores son estocásticos? ¿Siguen siendo insesgados? ¿Siguen siendo eficientes? ¿Cómo se comportan conforme crece el tamaño de la muestra?
+
+
+###  Motivación (3/3)
+
+En este capítulo, estudiamos uno de los conceptos más importantes en teoría asintótica:
+
+> **Consistencia**
+>
+> Entre más y más datos, eventualmente encontramos la verdad.
+
+
+### Ejemplo (1/3)
+
+Sean \(X_1,X_2,\dots,X_n\) variables aleatorias independientes e idénticamente distribuidas (_iid_) con:
+
+$$
+\begin{align}
+\mathbb{E}(X_i)=\mu
+\end{align}
+$$
+y:
+
+$$
+\begin{align}
+Var(X_i)=\sigma^2
+\end{align}
+$$
+
+
+Supongamos, además, que no conocemos la función de densidad (_pdf_) de \(X_i\), \(i=1,2,\dots,n\), pero el valor de \(\sigma\) es conocido.
+
+
+### Ejemplo (2/3)
+
+Un estimador natural para \(\mu\) es:
+
+$$
+\begin{align}
+\hat{\mu}&=\frac{1}{n}\sum_{i=1}^{n}X_i\\
+&=\overline{X}
+\end{align}
+$$
+
+Nota que:
+
+$$
+\mathbb{E}(\hat{\mu})=\mu; \ Var(\hat{\mu})=\frac{\sigma^2}{n}
+$$
+
+Por lo tanto, cuando \(n\rightarrow\infty\), \(Var(\hat{\mu})\rightarrow 0\).
+
+
+### Ejemplo (3/3)
+
+Lo anterior sugiere que, cuando el tamaño de la muestra crece:
+
+$$
+\hat{\mu}\rightarrow\mu. 
+$$
+
+En palabras: _cuando la muestra crece, la media muestral se acerca a su valor verdadero._
+
+Esto sugiere que la media muestral es un buen estimador de \(\mu\) cuando la muestra es grande.
+
+
+## Ley de los grandes números
+
+### Convergencia en probabilidad (1/2)
+
+**Definición**
+
+La secuencia \(Y_1,Y_2,\dots,Y_n\) converge en probabilidad hacia una constante o variable aleatoria \(c\):
+
+
+$$
+p\lim_{n\rightarrow\infty} Y_n = c
+$$
+
+si, para todo \(\varepsilon>0\):
+
+$$
+\lim_{n\rightarrow\infty}P(|Y_n-c|>\varepsilon)=0
+$$
+
+### Convergencia en probabilidad (2/2)
+
+**Definición (cont´d)**
+
+El vector \(\mathbf{Y}_n=(Y_{n1},Y_{n2},\ldots,Y_{nk})'\), converge en probabilidad hacia un vector de constantes o vector de  variables aleatorias \(\mathbf{c}\):
+
+$$
+p\lim_{n\rightarrow\infty} \mathbf{Y}_n=\mathbf{c}
+$$
+
+si:
+
+$$
+p \lim_{n\rightarrow\infty} Y_{ni}=c_i
+$$
+
+### Consistencia
+
+Sea \(\hat{\theta}\) un estimador del escalar \(\theta\). Se dice que \(\hat{\theta}\) es consistente si:
+
+$$
+p\lim_{n\rightarrow\infty}\hat{\theta}=\theta
+$$
+
+Sea \(\boldsymbol{\hat{\theta}}\) un estimador del vector \(\boldsymbol{\theta}\). Se dice que \(\boldsymbol{\hat{\theta}}\) es consistente si:
+
+
+$$
+p\lim_{n\rightarrow\infty}\hat{\theta}_i=\theta_i
+$$
+
+Para demostrar que un estimador es consistente, necesitamos analizar el comportamiento de los promedios muestrales cuando el tamaño de la muestra crece.
+
+### LLN: Chebychev
+
+**Teorema**
+
+Sea \(X_1,X_2,\ldots,X_n\) una secuencia de variables aleatorias \(iid\) con \(\mathbb{E}(X_i)=\mu  < \infty\) y \(Var(X_i)=\sigma^2 < \infty\). Entonces:
+
+$$
+\begin{align}
+p\lim_{n\rightarrow\infty} \overline{X}=  &  p\lim_{n\rightarrow\infty}\;\frac{1}{n}\sum_{i=1}^{n}X_i\\[10pt]
+=  &  \mathbb{E}(X_i)\\[10pt]
+=  &  \mu
+\end{align}
+$$
+
+### LLN: Kolmogorov
+
+**Teorema**
+
+Sea \(X_1,X_2, \ldots, X_n\) una secuencia de variables aleatorias \(iid\) con \(\mathbb{E}(|X_i|)< \infty\) y \(\mathbb{E}(X_i)=\mu\). Entonces:
+
+$$
+\begin{align}
+p\lim_{n\rightarrow\infty} \overline{X}= & p\lim_{n\rightarrow\infty}\frac{1}{n}\sum_{i=1}^{n}X_i\\[10pt]
+= & \mathbb{E}(X_i)\\[10pt]
+= & \mu
+\end{align}
+$$
+
+Nota que, a diferencia de la LLN de Chebychev, la versión de Kolmogorov _no requiere_ que la \(Var(X_i)\) exista. Esta LLN cubre el caso de variables aleatorias con colas anchas.
+
+### LLN: Markov
+
+**Teorema**
+
+Sea \(X_1,X_2, \ldots, X_n\) una secuencia de variables aleatorias _no correlacionadas_ con \(\mathbb{E}(X_i)=\mu<\infty\) y \(Var(X_i)=\sigma^2\leq M < \infty\) para \(i=1,2,\ldots,n\). Entonces:
+
+$$
+\begin{align}
+p\lim_{n\rightarrow\infty}(\overline{X}-\mu)
+&= p\lim_{n\rightarrow\infty}\left(\frac{1}{n}\sum_{i=1}^{n}X_i-\frac{1}{n}\sum_{i=1}^{n}\mu\right)\\
+&= p\lim_{n\rightarrow\infty}\left(\frac{1}{n}\sum_{i=1}^{n}(X_i-\mu)\right)\\
+&= 0
+\end{align}
+$$
+
+Esto es, aun cuando no tenemos supuesto de variables \(iid\), aun podemos tener convergencia en la media muestral.
+
+
+### ¿Para qué sirve la LLN?
+
+En términos generales, la LLN establece que:
+
+
+$$
+ p\lim_{n\rightarrow\infty}\frac{1}{n}\sum_{i=1}^{n}X_i=\mathbb{E}(X_i)
+$$
+
+Sin embargo, muchos estimadores no son simplemente promedios. Más bien, se trata de funciones de promedios. Por ejemplo:
+
+- Varianza muestral
+
+- Estimadores de MCO
+
+
+Para saber qué pasa con estos estimadores cuando el tamaño de la muestra crece, usamos el **teorema de Slutsky**.
+
+### Teorema de Slutsky
+
+**Teorema**
+
+Sean \(\{Y_n\}\) y \(\{Z_n\}\) secuencias de variables aleatorias, y sean \(a,b,c,\) y \(d\) constantes. Entonces:
+
+- Si \(Y_n=a\), entonces \(p\lim Y_n=a\).
+
+- Si \(p\lim Y_n=c\) y \(p\lim Z_n=d\), entonces \(p\lim(Y_n+Z_n)=c+d\).
+
+- Si \(p\lim Y_n=c\) y \(p\lim Z_n=d\), entonces \(p\lim(Y_n Z_n)=cd\).
+
+- Si \(p\lim Y_n=c\) y \(p\lim Z_n=d\), entonces \(p\lim(Y_n/Z_n)=c/d\), en tanto \(d > 0\).
+
+- Si \(p\lim Y_n=c\) y \(h(\cdot)\) es una función continua en \(c\), entonces \(p\lim h(Y_n)=h(c)\).
+
+
+### Ejemplo
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Sea \(X_1,X_2, \dots, X_n\) una secuencia de variables aleatorias \(iid\) con \(\mathbb{E}(X_i)=\mu\) y \(Var(X_i)=\sigma^2<\infty\). Demuestra que:
+
+$$
+\begin{align}
+p\lim_{n\rightarrow\infty}\hat{\sigma}^2= & p\lim_{n\rightarrow\infty}\frac{1}{n}\sum_{i=1}^{n}(X_i-\overline{X})^2\\
+= \sigma^2
+\end{align}
+$$
+
+
+### Aplicación: MCO (1/2)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Considera el modelo de regresión lineal simple:
+
+$$
+y_i=\beta_1 + \beta_2 x_i+ u_i
+$$
+
+donde \(x_i, i=1,2,\dots,n\) es una secuencia de variables aleatorias \(iid\) con \(\mathbb{E}(x_i)=\mu_x\) y \(Var(x_i)=\sigma_x^2<\infty\), y \(u_i\) una secuencia de variables aleatorias \(iid\) con \(\mathbb{E}(u_i)=0\) y \(Var(u_i)=\sigma^2<\infty\). 
+Demuestra que:
+
+$$
+p\lim_{n\rightarrow\infty} b_2 =\beta_2,
+$$
+
+donde \(b_2\) es el estimador de _MCO_ para \(\beta_2\).
+
+
+### Aplicación: MCO (2/2)
+
+<span class="emphasis-blue">Ejercicio: pistas</span>
+
+Para realizar el ejercicio anterior:
+
+1. Expresa la fórmula del estimador de MCO en función del término de error.
+
+2. Para utilizar la LLN es necesario que todos los elementos estén expresados en términos de promedios.
+
+3. Dado que las variables involucradas tienen varianza finita, utiliza la LLN de Chebyshev.
+
+4. Utiliza las propiedades del límite en probabilidad (teorema de Slutsky) para concluir que:
+
+$$
+p\lim b_2 = \beta_2
+$$
+

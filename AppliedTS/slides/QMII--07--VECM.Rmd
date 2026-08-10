@@ -1,0 +1,467 @@
+---
+title: "Métodos Cuantitativos II"
+subtitle: "Cointegración y el método de corrección de errores"
+author: 
+  - "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v. 2026.05.18"
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    transition: 0
+    slide_level: 3
+    css: ../src/custom.css
+---
+
+<a class="qmii-footer" href="QMII--07--VECM.pdf" target="_blank">
+  PDF
+</a>
+
+
+## Introducción
+
+### Motivación (1/2) 
+
+Consideremos el _modelo de demanda de dinero_:
+
+$$
+m_t  \;=\; \beta_0 \;+\; \underset{=1}{\beta_1} \; p_t + \underset{>0}{\beta_2}  \; y_t \;+\; \underset{<0}{\beta_3}  \;r_t \;+\; e_t
+$$
+
+donde:
+
+$$
+\begin{align}
+m_t &: \text{Demanda de dinero} \\
+p_t &: \text{Nivel de precios} \\
+y_t &: \text{Ingreso real} \\
+r_t &: \text{Tasa de interés real} \\
+e_t &: \text{Término de error} \\
+\end{align}
+$$
+
+La teoría económica sugiere que la demanda de dinero real, $m_t$, no debería desviarse permanentemente de su trayectoria. ¡Esto implica que el término de error $e_t$ debe ser _estacionario_!
+
+### Motivación (2/2)
+
+En el ejemplo anterior, si aplicamos pruebas de raíz unitaria (es decir, un análisis de estacionariedad) a $m_t$, $p_t$, $y_t$ y $r_t$, lo más probable es que todas sean $I(1)$. Entonces:
+
+$$
+e_t \;=\; m_t - \beta_0 - \beta_1 p_t - \beta_2 y_t + \beta_3 r_t
+$$
+
+Es decir, el término de error \(e_t\), que es estacionario, resulta de una combinación lineal de variables no estacionarias.
+
+## Cointegración
+
+### Equilibrio de largo plazo
+
+Del ejemplo anterior podemos deducir la definición de **cointegración**.
+
+Primero, diremos que un conjunto de variables económicas se encuentra en _equilibrio de largo plazo_ cuando existe una combinación lineal de estas tal que:
+
+$$
+\begin{align}
+\beta_1 x_1 + \beta_2 x_2 + \dots + \beta_k x_k &= \mathbf{x}\boldsymbol{\beta}\\
+\;&=\;  0 ,
+\end{align}
+$$
+
+### Error de equilibrio
+
+Aunque idealmente \(\mathbf{x}\boldsymbol{\beta} =   0\), en la práctica puede ocurrir que:
+
+$$
+\mathbf{x}\boldsymbol{\beta} = e_t
+$$
+
+El término \(e_t\) es el **error de equilibrio**. Este puede reflejar _desviaciones transitorias_ del punto de equilibrio. Si este es el caso y \(e_t\sim I(0)\), decimos que las variables del vector \(\mathbf x\) tienen una relación _estadística_ de largo plazo.
+
+
+### Cointegración (1/2)
+
+Las variables del vector $\mathbf x$ están _cointegradas de orden \((d,b)\)_ si:  
+
+1. Todos sus componentes están integradas de orden \(d\), \(x_i \sim I(d)\);  
+2. Existe un vector $\boldsymbol{\beta}$ tal que la combinación lineal $\mathbf{x}\boldsymbol{\beta} \sim I(d-b)$ con $b>0$.
+
+El vector $\boldsymbol{\beta}$ se denomina **vector de cointegración**.
+
+### Cointegración (2/2)
+
+<span class="emphasis-blue">Nota</span>
+
+
+* Si $\mathbf x$ tiene $k$ componentes no estacionarios, pueden existir hasta $h<k$ vectores de cointegración linealmente independientes.
+
+* El número $h$ se conoce como **rango de cointegración**.
+
+### Ejemplos (1/2)
+
+En nuestro ejemplo de demanda de dinero, un vector de cointegración es:
+
+$$
+\boldsymbol{\beta}_1 = \begin{pmatrix} 1 & -\beta_0 & -\beta_1 & -\beta_2 & -\beta_3 \end{pmatrix}
+$$
+
+Sin embargo, supongamos que existe una regla de política económica (monetaria) tal que:
+
+$$
+\begin{align}
+\uparrow m_t \; & \rightarrow \; \downarrow (p_t + y_t) \\
+\downarrow m_t \; & \rightarrow \; \uparrow (p_t + y_t) \\
+\end{align}
+$$
+
+En este caso, tenemos un segundo vector de cointegración:
+
+
+$$
+\boldsymbol{\beta}_2= \begin{pmatrix} 1 & -\gamma_0 & \gamma_1 & \gamma_2 & 0 \end{pmatrix}
+$$
+
+### Ejemplos (2/2)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+Considera el siguiente modelo:
+
+$$
+\begin{align}
+y_{1,t} &= \gamma y_{2,t} + u_{1t} \\
+y_{2,t} &= y_{2,t-1} + u_{2t} \\
+u_{it} & \sim WN(0,\sigma^2_i); \ i=1,2\\
+\mathbb{C}ov(u_{it},u_{it-h}) &= 0 \\
+\mathbb{C}ov(u_{it},u_{jt}) &= 0
+\end{align}
+$$
+
+Muestra que $y_{1,t}$ y $y_{2,t}$ están cointegradas. ¿Cuál es el vector de cointegración, \(\boldsymbol{\beta}\)?
+
+## Modelo de corrección de errores (ECM)
+
+### Modelo de corrección de errores (1/3)
+
+Considera un _modelo de la estructura temporal de las tasas de interés_:
+
+$$
+\begin{aligned}
+\Delta r_{s,t} &= \alpha_s\bigl(r_{s,t-1} - \beta\,r_{l,t-1}\bigr)
+          + \sum_{i=1}^{p}\gamma_{si}\,\Delta r_{s,t-i}
+          + \sum_{i=1}^{p}\delta_{si}\,\Delta r_{l,t-i}
+          + u_{s,t},\\[6pt]
+\Delta r_{l,t} &= \alpha_l\bigl(r_{s,t-1} - \beta\,r_{l,t-1}\bigr)
+          + \sum_{i=1}^{p}\gamma_{li}\,\Delta r_{s,t-i}
+          + \sum_{i=1}^{p}\delta_{li}\,\Delta r_{l,t-i}
+          + u_{l,t}.
+\end{aligned}
+$$
+
+Si las tasas son \(I(1)\) y los términos de error son ruidos blancos (posiblemente correlacionados), los términos entre paréntesis deben ser estacionarios. Estos términos representan el error de equilibrio.
+
+
+### Modelo de corrección de errores (2/3)
+
+El modelo anterior nos permite analizar cómo se corrigen los _desequilibrios de corto plazo_ en las tasas de interés. Este es un ejemplo de **modelo de corrección de errores (ECM)**.
+
+
+<span class="emphasis-blue">Nota</span>
+
+Para que el modelo de corrección de errores exista, es necesario que las variables \(r_{s,t}\) y \(r_{l,t}\) estén cointegradas. En el ejemplo estas están cointegradas de orden \((1,1)\) y el vector de cointegración es \( \begin{pmatrix} 1 & -\beta\end{pmatrix} \).
+
+
+### Modelo de corrección de errores (3/3)
+
+Nota que no existe corrección de errores si:
+
+- las variables no están cointegradas, o
+
+- $\alpha_s = \alpha_l = 0$.
+
+En tal caso, el modelo se reduce a un VAR para las primeras diferencias de \(r_{s,t}\) y \(r_{l,t}\). Esto es, un VAR para  $\Delta r_{s,t}$ y $\Delta r_{l,t}$.
+
+## Procedimiento de Engle–Granger
+
+### Procedimiento de Engle–Granger
+
+Consideremos dos variables, \(y_t\) y \(z_t\), posiblemente \(I(1)\). El procedimiento de Engle y Granger consta de cuatro pasos.
+
+### Paso 1
+
+Confirmar el orden de integración de \(y_t\) y \(z_t\):
+
+- Si las dos variables son efectivamente  \(I(1)\) continuamos al paso 2.
+
+- Si las dos variables están integradas de diferente orden, podemos concluir que no están cointegradas.
+
+- Si las dos variables son  \(I(0)\) (estacionarias) ajustamos a cada una de ellas un modelo del tipo ARMA.
+
+### Paso 2
+
+Estimar la relación de largo plazo entre \(y_t\) y \(z_t\):
+
+$$
+y_t = \beta_0 + \beta_1 z_t + u_t.
+$$
+
+Para que exista cointegración, es necesario que el término \(u_t\) sea estacionario. Para esto, y dado que \(u_t\) es desconocido, aplicamos una prueba de Dickey-Fuller (aumentada) al término:
+
+$$
+e_t = y_t - \hat{y}_t
+$$
+
+_Nota_. En la prueba de DF, usamos las **tablas de Engle-Granger** en lugar de las de DF.
+
+
+### Paso 3
+
+Si $y_t$ y $z_t$ están cointegradas, el ECM (como un VAR restringido):
+
+$$
+\begin{align}
+\Delta y_t &= \alpha_1 + \alpha_y\,\left(y_{t-1} - \beta_0 - \beta_1 z_{t-1}\right)
+             + \sum_{i=1}^{p}a_{1,1}(i)\,\Delta y_{t-i}
+             + \sum_{i=1}^{p}a_{1,2}(i)\,\Delta z_{t-i}
+             + \varepsilon_{y,t}\\
+\Delta z_t &= \alpha_2 + \alpha_z\,\left(y_{t-1} - \beta_0 - \beta_1 z_{t-1}\right)
+             + \sum_{i=1}^{p}a_{2,1}(i)\,\Delta y_{t-i}
+             + \sum_{i=1}^{p}a_{2,2}(i)\,\Delta z_{t-i}
+             + \varepsilon_{z,t}\\
+\end{align}
+$$
+
+
+Engle–Granger sugieren sustituir $y_{t-1} - \beta_0 - \beta_1 z_{t-1}$ por $\hat e_{t-1}$ obtenido en el paso 2.
+
+### Paso 4
+
+Revisamos si el modelo es adecuado:
+
+- Revisamos si los residuales del modelo son ruidos blancos.
+
+- Revisamos la estimación de las velocidades de ajuste. Si estos son estadísticamente iguales a cero, concluimos que no existe un ECM.
+
+- Si el ECM es válido, podemos calcular las funciones de impulso-respuesta y descomposición de la varianza para analizar el comportamiento del modelo.
+
+### Ejemplo (1/9)
+
+Consideremos al Producto Interno Bruto de Estados Unidos (USA) y de Australia (AUS).
+
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+library(tidyverse)
+library(zoo)     # para manejar trimestres (yearqtr)
+library(urca)    # pruebas de raíz unitaria y cointegración
+library(here)
+
+# Cargar datos USA–Australia
+usaus <- read_csv(here("Data/E323--USAUS.csv")) |> 
+  mutate(
+    date = as.yearqtr(obs, format = "%YQ%q")
+  )
+
+usa_ts <- ts(usaus$usa, start = c(1970, 1), frequency = 4)
+aus_ts <- ts(usaus$aus, start = c(1970, 1), frequency = 4)
+
+# Construir diferencias
+usaus_diff <- usaus |>
+  arrange(date) |>
+  mutate(
+    d_usa = c(NA, diff(usa)),
+    d_aus = c(NA, diff(aus))
+  )
+
+# Pasar a formato largo para graficar
+gdp_long <- usaus_diff |>
+  select(date, usa, aus, d_usa, d_aus) |>
+  pivot_longer(
+    cols = -date,
+    names_to = "serie",
+    values_to = "valor"
+  ) |>
+  mutate(
+    # Orden didáctico deseado en las facetas:
+    # fila 1: usa | aus
+    # fila 2: d_usa | d_aus
+    serie = factor(serie,
+                   levels = c("usa", "aus", "d_usa", "d_aus"))
+  )
+
+# Gráfica
+ggplot(gdp_long, aes(x = date, y = valor)) +
+  geom_line() +
+  facet_wrap(~ serie, ncol = 2, scales = "free_y") +
+  labs(
+    x = NULL,
+    y = NULL,
+    title = "PIB real USA y Australia: niveles y primeras diferencias"
+  ) +
+  theme_minimal()
+
+```
+
+
+### Ejemplo (2/9)
+
+El primer paso del procedimiento de Engle-Granger consiste en confirmar el orden de integración de ambas series. Una prueba de Dickey-Fuller (para un modelo con tendencia y un rezago) indica que la serie \(USA\sim I(1)\): 
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+# ADF en niveles con constante y tendencia
+adf_usa_lvl <- ur.df(usa_ts, type = "trend", lags = 2)
+adf_aus_lvl <- ur.df(aus_ts, type = "trend", lags = 2)
+
+summary(adf_usa_lvl)
+summary(adf_aus_lvl)
+
+# ADF en primeras diferencias con sólo constante (drift)
+d_usa_ts <- diff(usa_ts)
+d_aus_ts <- diff(aus_ts)
+
+adf_usa_diff <- ur.df(d_usa_ts, type = "drift", lags = 0)
+adf_aus_diff <- ur.df(d_aus_ts, type = "drift", lags = 0)
+
+sadf_usa <- summary(adf_usa_diff)
+sadf_aus <- summary(adf_aus_diff)
+
+```
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+adf_usa_diff
+sadf_usa@cval
+
+```
+
+### Ejemplo (3/9)
+
+
+De igual forma, una prueba de Dickey-Fuller (para un modelo con tendencia y un rezago). indica que la serie \(AUS\sim I(1)\): 
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+adf_aus_diff
+sadf_aus@cval
+
+```
+
+
+### Ejemplo (4/9)
+
+El segundo paso del procedimiento de Engle-Granger comienza estimando la relación de largo plazo entre las series USA y AUS. Aquí estimamos la siguiente relación:
+
+$$
+aus_t = \beta_0 + \beta_1 usa_t + u_t
+$$
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+coint_reg <- lm(aus ~ usa, data = usaus)
+summary(coint_reg)
+
+usaus <- usaus |>
+  mutate(
+    ehat = resid(coint_reg)   # residuales de la relación de largo plazo
+  )
+
+```
+
+
+### Ejemplo (5/9)
+
+En el Paso 2 del procedimiento de Engle-Granger, tenemos que recuperar el residual de la relación entre las series USA y AUS. 
+
+$$
+e_t = aus_t - b_0 - b_1 usa_t
+$$
+
+donde \(b_0 \) y \(b_1\) son los estimadores de MCO. Para que las series USA y AUS estén cointegradas, es necesario que este residual se comporte como un ruido blanco (esto es, una serie estacionaria: \(e_t\sim I(0)\)).
+
+### Ejemplo (6/9)
+
+Graficamos el término de corrección de errores, \(e_t\). ¿Parece un ruido blanco?
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+ggplot(usaus, aes(x = date, y = ehat)) +
+  geom_line() +
+  labs(
+    x = NULL,
+    y = "Error de equilibrio",
+    title = "Término de corrección de errores (AUS - β·USA)"
+  ) +
+  theme_minimal()
+
+```
+
+### Ejemplo (7/9)
+
+Una prueba de Dickey-Fuller aumentada  aplicada a \(e_t\), indica que este es, de hecho, estacionario: 
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+ehat_ts <- ts(usaus$ehat, start = c(1970, 1), frequency = 4)
+adf_ehat <- ur.df(ehat_ts, type = "none", lags = 0)
+sadf_ehat <- summary(adf_ehat)
+
+```
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+
+adf_ehat
+sadf_ehat@cval
+
+```
+
+
+### Ejemplo (8/9)
+
+Finalmente, dado que las series USA y AUS parecen estar cointegradas, estimamos el modelo de corrección de errores. Este es el Paso 3 del procecimiento de Engle-Granger. Para la serie AUS tenemos:
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+usaus_ecm <- usaus |>
+  arrange(date) |>
+  mutate(
+    d_aus   = c(NA, diff(aus)),
+    d_usa   = c(NA, diff(usa)),
+    ehat_l1 = dplyr::lag(ehat)
+  ) |>
+  drop_na(d_aus, d_usa, ehat_l1)
+
+# ECM para Australia
+ecm_aus <- lm(d_aus ~ 1 + ehat_l1, data = usaus_ecm)
+summary(ecm_aus)
+
+```
+
+### Ejemplo (9/9)
+
+El modelo de corrección de errores para USA es:
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+# ECM para USA
+ecm_usa <- lm(d_usa ~ 1 + ehat_l1, data = usaus_ecm)
+summary(ecm_usa)
+
+```
+
+###  Modelo de corrección de errores vectorial (VECM)
+
+<span class="emphasis-blue">Nota</span>
+
+El modelo de corrección de errores permite describir el ajuste de _una variable_ ante desviaciones del equilibrio de largo plazo. Sin embargo, este enfoque tiene dos limitaciones importantes:
+
+- En la práctica, el procedimiento de Engle–Granger se limita a una sola relación de cointegración.
+
+- Modela el ajuste ecuación por ecuación, no como un sistema.
+
+En contextos multivariados, especialmente cuando varias variables interactúan simultáneamente, es natural permitir que _todas_ respondan a los desequilibrios de largo plazo. El modelo que permite hacerlo es el **Modelo de Corrección de Errores Vectorial (VECM)**.
+

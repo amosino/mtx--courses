@@ -1,0 +1,50 @@
+# =========================
+# R / RStudio
+# =========================
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# =========================
+# R Markdown / knitr
+# =========================
+*_cache/
+cache/
+*.utf8.md
+*.knit.md
+
+# =========================
+# Quarto (por si lo usas después)
+# =========================
+.quarto/
+
+# =========================
+# Sistema operativo
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Logs / temporales
+# =========================
+*.log
+*.tmp
+
+# =========================
+# Evitar subir binarios pesados por accidente
+# (pero NO tocamos data/*.csv)
+# =========================
+*.zip
+*.7z
+*.tar
+*.tar.gz
+*.rar
+
+# =========================
+# Salidas comunes que NO quieres versionar
+# =========================
+figures/
+plots/
+output/
+.positai

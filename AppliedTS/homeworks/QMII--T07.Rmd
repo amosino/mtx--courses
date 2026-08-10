@@ -1,0 +1,150 @@
+---
+title: "Métodos Cuantitativos II"
+subtitle: "Tarea 7"
+author: "Alejandro Mosiño"
+date: "v. 2026-05-18"
+
+
+output:
+  html_document:
+    toc: false
+  pdf_document:
+    toc: false
+    
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, 
+  encoding = encoding, 
+  output_dir = "../docs", 
+  output_format = "all") })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(forecast)
+```
+
+---
+
+# Ejercicio 1
+
+Considera el sistema:
+
+$$
+\begin{align*}
+x_t &= x_{t-1} + u_t \\
+y_t &= \beta x_t + v_t
+\end{align*}
+$$
+
+donde \(u_t\sim WN(0,\sigma_u^2)\), \(v_t\sim WN(0,\sigma_v^2)\), y ambos procesos son independientes.
+
+Responde:
+
+1. Determina el orden de integración de \(x_t\).
+2. Determina el orden de integración de \(y_t\).
+3. Muestra que \(x_t\) y \(y_t\) están cointegradas.
+4. Encuentra el vector de cointegración.
+5. Interpreta económicamente el significado del término de equilibrio.
+
+---
+
+# Ejercicio 2
+
+Utiliza los datos `E325--TQD.csv`.
+
+La teoría cuantitativa del dinero sugiere una relación de largo plazo entre la cantidad de dinero y el nivel de precios. En su forma más simple, esta teoría implica que si la cantidad de dinero se duplica, el nivel de precios también debería duplicarse.
+
+Realiza lo siguiente:
+
+1. Grafica las series y discute visualmente si parecen estacionarias.
+2. Aplica pruebas de Dickey-Fuller aumentadas para determinar el orden de integración de cada serie.
+3. Estima la relación de largo plazo:
+
+$$
+p_t = \beta_1 + \beta_2 m_t + u_t.
+$$
+
+4. Recupera los residuales \(\hat e_t\) de la relación de largo plazo.
+5. Aplica una prueba de Dickey-Fuller aumentada a \(\hat e_t\). Recuerda que en este caso no se utilizan los valores críticos usuales de Dickey-Fuller, sino los valores críticos de Engle-Granger.
+6. Concluye si existe evidencia de cointegración entre \(p_t\) y \(m_t\).
+7. Interpreta el coeficiente \(\hat\beta_1\). ¿La evidencia es consistente con la teoría cuantitativa del dinero?
+
+---
+
+# Ejercicio 3
+
+Usando los resultados del ejercicio 2, estima un modelo de corrección de errores del tipo:
+
+$$
+\Delta p_t =
+\alpha_0 +
+\lambda \hat e_{t-1} +
+\gamma_1 \Delta p_{t-1} +
+\gamma_2 \Delta m_{t-1} +
+\varepsilon_t.
+$$
+
+Responde:
+
+1. Interpreta el término de corrección de errores \(\hat e_{t-1}\).
+2. Interpreta el coeficiente \(\lambda\). ¿Qué representa la velocidad de ajuste?
+3. ¿El signo de \(\lambda\) es consistente con un mecanismo de corrección de errores?
+4. Interpreta los efectos de corto plazo capturados por \(\Delta p_{t-1}\) y \(\Delta m_{t-1}\).
+5. Revisa si los residuales del modelo parecen comportarse como ruido blanco.
+6. Concluye si el ECM estimado es adecuado.
+
+---
+
+# Ejercicio 4
+
+Genera dos caminatas aleatorias independientes:
+
+$$
+x_t = x_{t-1}+u_t,
+\qquad
+y_t = y_{t-1}+v_t,
+$$
+
+donde \(u_t\) y \(v_t\) son ruidos blancos independientes.
+
+Realiza lo siguiente:
+
+1. Simula ambas series usando \(n=500\).
+2. Grafica \(x_t\) y \(y_t\).
+3. Estima la regresión:
+
+$$
+y_t = \beta_1 + \beta_2 x_t + e_t.
+$$
+
+4. Reporta el coeficiente estimado \(\hat\beta_1\), su estadístico \(t\), el valor \(p\) y el \(R^2\).
+5. Aplica el procedimiento de Engle-Granger a los residuales \(\hat e_t\).
+6. Explica por qué este ejercicio ilustra el problema de la regresión espuria.
+7. Repite el ejercicio con otra semilla y comenta si los resultados cambian.
+
+---
+
+# Ejercicio 5 (opcional)
+
+Selecciona dos o más series macroeconómicas o financieras que tengan una posible relación de largo plazo.
+
+Algunas posibilidades son:
+
+- PIB y consumo.
+- Tipo de cambio y precios.
+- Oferta monetaria y precios.
+- Tasas de interés de corto y largo plazo.
+- Precios spot y futuros.
+- Índices bursátiles internacionales.
+
+Realiza:
+
+1. Análisis gráfico.
+2. Pruebas de raíz unitaria.
+3. Procedimiento de Engle-Granger.
+4. Estimación de un modelo de corrección de errores, si existe evidencia de cointegración.
+5. Interpretación económica de los resultados.
+
+Enfócate en la interpretación econométrica y económica, no en producir muchas tablas.

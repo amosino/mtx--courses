@@ -1,0 +1,181 @@
+---
+title: "Métodos Cuantitativos II"
+subtitle: "Tarea 3"
+author: "Alejandro Mosiño"
+date: "v. 2026-03-25"
+
+
+output:
+  html_document:
+    toc: false
+  pdf_document:
+    toc: false
+    
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, 
+  encoding = encoding, 
+  output_dir = "../docs", 
+  output_format = "all") })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(forecast)
+```
+
+---
+
+# Ejercicio 1
+
+Considera el modelo con tendencia determinista:
+
+$$
+y_t = \beta_1 + \beta_2 t + \varepsilon_t,
+\qquad \varepsilon_t \sim WN(0,\sigma^2).
+$$
+
+1. Muestra que \(y_t\) no es estacionario.
+2. Muestra que la transformación
+   $$
+   y_t^\ast = y_t - \beta_1 - \beta_2 t
+   $$
+   es estacionaria.
+3. Muestra que
+   $$
+   \Delta y_t = y_t - y_{t-1}
+   $$
+   es estacionaria.
+4. Explica claramente la diferencia entre **detrending** y **primeras diferencias** en este contexto.
+5. ¿Cuál de las dos transformaciones es la más natural para este modelo? Explica.
+
+---
+
+# Ejercicio 2
+
+Realiza lo siguiente:
+
+1. Simula _4 realizaciones_ de una caminata aleatoria con deriva:
+   $$
+   y_t = \mu + y_{t-1} + \varepsilon_t,
+   \qquad \varepsilon_t \sim N(0,1),
+   $$
+   utilizando \(n=500\) observaciones y \(\mu = 0.01\).
+
+2. Para cada realización, estima por MCO el modelo:
+   $$
+   y_t = \alpha + \beta t + u_t.
+   $$
+
+3. En una misma gráfica, dibuja:
+   - la serie simulada,
+   - la tendencia verdadera \(\mu t\),
+   - la recta ajustada por MCO.
+
+4. Ahora simula _4 realizaciones_ del modelo:
+   $$
+   y_t = 0.01 t + \varepsilon_t,
+   \qquad \varepsilon_t \sim N(0,1),
+   $$
+   utilizando nuevamente \(n=500\).
+
+5. Repite el procedimiento anterior: estima por MCO
+   $$
+   y_t = \alpha + \beta t + u_t
+   $$
+   y grafica la serie, la tendencia verdadera y la recta ajustada.
+
+6. Compara ambos casos y comenta. En particular:
+   - ¿en cuál caso la recta ajustada describe mejor la trayectoria de la serie?
+   - ¿qué diferencias observas entre una tendencia determinista y una tendencia estocástica?
+
+---
+
+# Ejercicio 3
+
+Sea el proceso:
+
+$$
+y_t = y_{t-1} + \varepsilon_t,
+\qquad \varepsilon_t \sim WN(0,\sigma^2).
+$$
+
+1. Muestra que este proceso no es estacionario.
+2. Muestra que las primeras diferencias de \(y_t\), \(\Delta y_t\) es estacionario.
+3. Explica por qué este proceso se conoce como _caminata aleatoria_.
+4. Supón ahora que:
+   $$
+   y_t = y_{t-1} + u_t,
+   $$
+   donde \(u_t\) es un proceso estacionario con media cero y función de autocovarianzas \(\gamma_u(h)\).
+   
+   Discute si \(y_t\) es estacionario y si \(\Delta y_t\) es estacionario.
+
+---
+
+# Ejercicio 4
+
+Utiliza los datos sobre el _precio del barril del petróleo_: `E323--Oil.csv`.
+
+1. Grafica la serie en niveles.
+2. Con base en la gráfica, discute si parece presentar:
+   - tendencia determinista,
+   - tendencia estocástica,
+   - o ambas posibilidades.
+3. Aplica la prueba de Dickey-Fuller aumentada en las siguientes especificaciones:
+   - sin constante ni tendencia,
+   - con constante,
+   - con constante y tendencia.
+4. Explica claramente:
+   - la hipótesis nula y la alternativa en cada caso,
+   - por qué los valores críticos no son los usuales de la distribución \(t\),
+   - y cómo se interpreta el resultado de cada prueba.
+5. Repite el análisis para la serie en primeras diferencias.
+6. Concluye si la serie parece ser \(I(1)\).
+7. Si concluyes que la serie es \(I(1)\), ajusta un modelo ARIMApara la serie diferenciada y realiza los diagnósticos básicos correspondientes.
+8. Comenta si el comportamiento de la serie es más consistente con una _tendencia determinista_ o con una _tendencia estocástica_.
+
+---
+
+# Ejercicio 5
+
+Considera dos procesos independientes definidos como:
+
+$$
+\begin{aligned}
+x_t &= x_{t-1} + \varepsilon_t \\
+y_t &= y_{t-1} + u_t
+\end{aligned}
+$$
+
+donde \(\varepsilon_t\) y \(u_t\) son ruidos blancos independientes.
+
+1. Simula ambas series con \(n = 500\).
+
+2. Grafica \(x_t\) y \(y_t\).
+
+3. Estima por MCO el modelo:
+   $$
+   y_t = \alpha + \beta x_t + e_t.
+   $$
+
+4. Reporta:
+   - el coeficiente estimado \(\hat{\beta}\),
+   - su estadístico t,
+   - el \(R^2\).
+
+5. Repite el ejercicio al menos 3 veces (con diferentes semillas).
+
+6. Comenta los resultados. En particular:
+   - ¿encuentras relaciones estadísticamente significativas?
+   - ¿tienen sentido económico estas relaciones?
+
+7. Explica por qué este resultado se conoce como una _regresión espuria_.
+
+8. Repite el ejercicio utilizando las series en primeras diferencias:
+   $$
+   \Delta y_t = \alpha + \beta \Delta x_t + e_t.
+   $$
+
+9. Compara los resultados y explica la diferencia.

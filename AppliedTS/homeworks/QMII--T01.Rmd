@@ -1,0 +1,142 @@
+---
+title: "Métodos Cuantitativos II"
+subtitle: "Tarea 1"
+author: "Alejandro Mosiño"
+date: "v. 2026-02-02"
+
+
+output:
+  html_document:
+    toc: false
+  pdf_document:
+    toc: false
+    
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, 
+  encoding = encoding, 
+  output_dir = "../docs", 
+  output_format = "all") })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(forecast)
+```
+
+# Ejercicio 1
+
+Genera $n = 500$ observaciones de un ruido blanco gaussiano:
+
+$$
+y_t \sim iid\mathcal{N}(0,1)
+$$
+
+Realiza lo siguiente:
+
+a) Grafica la serie.  
+b) Calcula y grafica la función de autocorrelación muestral (FAC) hasta el retardo 20.  
+c) Comenta brevemente el comportamiento observado en la FAC.
+
+
+---
+
+# Ejercicio 2
+
+Genera $n = 500$ observaciones de un proceso MA(1). Este es:
+
+$$
+y_t = \varepsilon_t + 0.6 \varepsilon_{t-1}
+$$
+
+Realiza lo siguiente:
+
+a) Grafica la serie.  
+b) Calcula y grafica la FAC hasta el retardo 20.  
+c) Compara la FAC obtenida con la del ruido blanco del Ejercicio 1.
+
+
+---
+
+# Ejercicio 3
+
+Genera $n = 500$ observaciones de un proceso AR(1). Este es:
+
+$$
+y_t = 0.95 y_{t-1} + \varepsilon_t
+$$
+
+Realiza lo siguiente:
+
+a) Grafica la serie.  
+b) Calcula y grafica la FAC hasta el retardo 20.  
+c) Compara la FAC con la obtenida en los Ejercicios 1 y 2.
+
+
+---
+
+# Ejercicio 4
+
+Repite el Ejercicio 1 para:
+
+- $n= 50$
+- $n= 200$
+- $n= 1000$
+
+Calcula y grafica la FAC hasta el retardo 20 en cada caso y comenta.
+
+---
+
+# Ejercicio 5
+
+Considera los siguientes procesos:
+
+**Proceso A**
+
+$$
+y_t = \varepsilon_t, \quad \varepsilon_t \sim iid\mathcal{N}(0,1)
+$$
+
+**Proceso B**
+
+$$
+y_t = 0.7 y_{t-1} +  \varepsilon_t, \quad \varepsilon_t \sim iid\mathcal{N}(0,1)
+$$
+
+**Proceso C**
+
+$$
+y_t = y_{t-1} + \varepsilon_t, \quad \varepsilon_t \sim iid\mathcal{N}(0,1)
+$$
+
+
+Responde:
+
+a) ¿Cuál de estos procesos esperas que sea estacionario? Explica.  
+b) ¿Cuál esperas que no sea estacionario? Explica.  
+c) Describe cómo esperarías que se vea la FAC en cada caso.
+
+
+---
+
+# Ejercicio 6
+
+Utiliza los datos de ganancias trimestrales de Johnson & Johnson en logaritmos (E302--JohnsonJohnson.csv):
+
+Realiza lo siguiente:
+
+a) Grafica la serie.  
+b) Calcula y grafica la FAC hasta el retardo 20.  
+c) Calcula y grafica la FAC hasta el retardo 50.  
+d) Comenta si existe evidencia de dependencia serial.
+
+
+---
+
+# Ejercicio 7
+
+Responde brevemente:
+
+a) ¿Por qué es importante detectar dependencia serial antes de modelar una serie de tiempo?  
+b) Menciona dos tipos de procesos que pueden generar dependencia serial.

@@ -1,0 +1,1096 @@
+---
+title: "Modelos no estacionarios"
+author: 
+  - "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v. 2026.03.23"
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    transition: 0
+    slide_level: 3
+    css: ../src/custom.css
+---
+
+## Introducción
+
+### Estacionariedad (1/4)
+
+Recordemos que para que una serie de tiempo, \( y_t \), sea estacionaria (en covarianza), es necesario que:
+
+- Su media y varianza sean constantes. Esto es, para todo \(t\in\mathbb{Z}\):
+
+$$
+\begin{align}
+\mathbb{E}(y_t) &= \mu;\\
+\mathbb{V}ar(y_t)&= \gamma_0<\infty
+\end{align}
+$$
+
+- Su función de autocovarianza dependa solo del desfase \( h \) y no del tiempo \( t \):
+
+$$
+\gamma(t,\tau) = \gamma(h); \ h=|t-\tau| \ \in \mathbb{Z}
+$$
+
+
+### Estacionariedad (2/4)
+
+Las siguientes series de tiempo podrían ser estacionarias:
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+library(tidyverse)
+library(here)
+library(astsa)
+
+culer = c('cyan4', 4, 2, 6)
+
+
+Quarterly <- read.csv(here("data/E306--Quarterly.csv"))
+Unemp <- ts(Quarterly$Unemp, start =c(1960,1), frequency = 4)
+Tbill <- ts(Quarterly$Tbill , start =c(1960,1), frequency = 4)
+CPI <- ts(Quarterly$CPI, start =c(1960,1), frequency = 4)
+IndProd <- ts(Quarterly$IndProd, start =c(1960,1), frequency = 4)
+
+par(mfrow = c(2,1), cex.main=1)
+tsplot(Unemp, type='o', pch=19, col=culer, main="Tasa de desempleo", xlab="Tiempo", ylab="Desempleo")
+tsplot(Tbill, type='o', pch=19, col=culer, main= "Bonos del tesoro", xlab="Tiempo", ylab="Rendimiento")
+dev.off()
+
+```
+
+
+### Estacionariedad (3/4)
+
+¿Qué pasa si las series de tiempo presentan una tendencia? Por ejemplo:
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+
+par(mfrow = c(2,1), cex.main=1)
+tsplot(CPI, type='o', pch=19, col=culer, main="Precios al consumidor", xlab="Tiempo", ylab="CPI")
+tsplot(IndProd, type='o', pch=19, col=culer, main="Producción industrial", xlab="Tiempo", ylab="IPI")
+dev.off()
+
+```
+
+### Estacionariedad (4/4)
+
+_Los modelos con tendencia violan directamente la condición de estacionariedad_, esto es debido a que:
+
+
+$$
+\mathbb{E}(y_t) = \mu_t.
+$$
+
+Esto es, la media es una función del tiempo.
+
+
+### Incorporación de la tendencia en el modelo (1/3)
+
+Existen dos formas diferentes para incorporar la tendencia en el modelo:
+
+
+- **Tendencia determinista**. Incorporamos _explícitamente_ en el modelo una tendencia determinada por una función del tiempo.
+
+
+- **Tendencia estocástica**. La tendencia proviene de una _raíz unitaria_.
+
+
+### Incorporación de la tendencia en el modelo (2/3)
+
+Tendencia determinista vs. Tendencia estocástica
+
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+library(latex2exp)
+
+set.seed(18)
+n <- 150
+ts_cycle   <- arima.sim(model = list(ar = 0.7), n = n, sd = 2)
+ts_process <- 10 + 0.25 * (1:n) + ts_cycle
+ds_process <- cumsum(0.25 + rnorm(n, 0, 2)) + 10
+
+tsplot(cbind(Determinista=ts_process, Estocástica=ds_process), spaghetti=TRUE, type='o', pch=19, col=culer, main="Tendencia Determinista vs. Estocástica", xlab="Tiempo", ylab=TeX("$y_t$"))
+
+legend("topleft", 
+       legend = c("Determinista", "Estocástica"), 
+       col = culer,
+       lty = 1,
+       pch = 19,
+       bty = "n") # bty="n" quita la caja alrededor de la leyenda
+
+dev.off()
+
+```
+
+
+### Incorporación de la tendencia en el modelo (3/3)
+
+Aunque los dos tipos de tendencia son visualmente parecidos, las implicaciones teóricas y prácticas son diferentes:
+
+- En un modelo con tendencia determinista, los shocks tienen _efectos transitorios_. En un modelo con tendencia estocástica, los shocks tienen _efectos permanentes_.
+
+- El procedimiento para _remover_ la tendencia y hacer la serie estacionaria es distinto para cada caso.
+
+
+## Tendencia determinista
+
+
+### Tendencia determinista (1/2)
+
+La **tendencia determinista** caracteriza el patrón gradual y de largo plazo de las variaciones de una serie de tiempo. Esta tendencia puede ser lineal o no lineal. 
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+lfpr_data <- read.csv(here("data/E307--Labor.csv"))
+lfp <- ts(lfpr_data$lfp, start =c(1948,1), frequency = 12)
+
+tsplot(lfp, type='o', pch=19, col=culer, main="Tasa de participación en el mercado laboral de Estados Unidos", xlab="Tiempo", ylab="Tasa de Participación")
+dev.off()
+
+```
+
+### Tendencia determinista (2/2)
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+nyse_data <- read.csv(here("data/E308--Volume NYSE.csv"))
+nyse <- ts(nyse_data$vol_nyse, start =c(1944,1), frequency = 12)
+
+tsplot(nyse, type='o', pch=19, col=culer, main="Volumen de intercambios en el New York Stock Exchange", xlab="Tiempo", ylab="NYSE")
+dev.off()
+
+```
+
+### Tendencia lineal (1/2)
+
+Si la tendencia es lineal, podemos modelarla como:
+  
+$$
+  Trend_t = \beta_1 + \beta_2 t
+$$
+  
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+x <- seq(1:100)
+l1 <- 10 - 0.25*x
+l2 <- -50 + 0.8*x
+
+l1 <- ts(l1, start =c(1), frequency = 1)
+l2 <- ts(l2, start =c(1), frequency = 1)
+
+tsplot(cbind(l1, l2), spaghetti = TRUE, type='o', pch=19, col=culer, xlab="Tiempo", ylab="Tendencia")
+dev.off()
+
+```
+
+### Tendencia lineal (2/2)
+
+Por ejemplo:
+  
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+
+trend(lfp, order=1, ci=FALSE, type='o', pch=19, col=culer, main="Tasa de participación en el mercado laboral de Estados Unidos", xlab="Tiempo", ylab="Tasa de Participación")
+
+dev.off()
+
+```
+
+
+### Tendencia no lineal (1/5)
+
+Si la tendencia es no lineal, podemos intentar modelarla como una función cuadrática:
+  
+$$
+  Trend_t = \beta_1 + \beta_2 t +\beta_3 t^2 
+$$
+  
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+
+l3 <- 10 + 0.3*x + 0.3*x^2
+l4 <- 10 + 30*x - 0.3*x^2
+l5 <- 10 - 0.4*x - 0.4*x^2
+l6 <- 10 - 25*x + 0.3*x^2
+
+l3 <- ts(l3, start =c(1), frequency = 1)
+l4 <- ts(l4, start =c(1), frequency = 1)
+l5 <- ts(l5, start =c(1), frequency = 1)
+l6 <- ts(l6, start =c(1), frequency = 1)
+
+tsplot(cbind(l3, l4, l5, l6), spaghetti = FALSE, ncol=2, type='o', pch=19, col=culer, xlab="Tiempo", ylab="Tendencia")
+dev.off()
+
+```
+
+
+
+### Tendencia no lineal (2/5)
+
+Por ejemplo, para el volumen de transacciones en la bolsa de Nueva York:
+  
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+
+trend(nyse, order=2, ci=FALSE, type='o', pch=19, col=culer, main="Volumen de intercambios en el New York Stock Exchange", xlab="Tiempo", ylab="NYSE")
+dev.off()
+
+```
+
+### Tendencia no lineal (3/5)
+
+También podemos modelar la tendencia de una serie de tiempo suponiendo que esta sigue un comportamiento exponencial o logarítmico. Por ejemplo, la siguiente figura muestra el volumen de transacciones en la bolsa de Nueva York en logaritmos:
+  
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+
+tsplot(log(nyse), type='o', pch=19, col=culer, main="Volumen de intercambios en el New York Stock Exchange", xlab="Tiempo", ylab="log(NYSE)")
+dev.off()
+
+```
+
+
+### Tendencia no lineal (4/5)
+
+Nota que el logaritmo del volumen de transacciones de la bolsa de Nueva York parece exhibir un comportamiento lineal. Esto es común para muchas series económicas. Si tenemos un **comportamiento exponencial**, entonces:
+  
+$$
+  Trend_t = \beta_1 \exp^{\beta_2 t}
+$$
+  
+  Pero si aplicamos logaritmos:
+  
+$$
+  \ln Trend_t = \ln \beta_1 + \beta_2 t
+$$
+  
+  Naturalmente el logaritmo de \(Trend_t\) es una función lineal del tiempo.
+
+### Tendencia no lineal (5/5)
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+
+trend(log(nyse), order=1, ci=FALSE, type='o', pch=19, col=culer, main="Volumen de intercambios en el New York Stock Exchange", xlab="Tiempo", ylab="NYSE")
+dev.off()
+
+```
+
+
+### Estimación de la tendencia
+
+_En ausencia de un componente cíclico_, los coeficientes de los modelos de tendencia lineal y cuadrática (o de polinomios de mayor orden) _pueden estimarse por MCO_. Los otros tipos de ecuaciones no lineales también pueden estimarse por MCO siempre y cuando estos admitan una transformación que nos resulte en una ecuación lineal.
+
+<span class="emphasis-blue">Nota</span>
+  
+Para tendencias no lineales, también podemos estimar los coeficientes mediante el método de los Mínimos Cuadrados No Lineales (MCNL).
+
+
+### Selección del modelo
+
+Obviamente, podríamos ajustar más de un tipo de tendencia a una serie de datos. Para elegir cuál modelo es el más adecuado, podemos utilizar los criterios de Akaike (AIC) y Schwartz (BIC o SIC).
+  
+Como sabemos, tenemos que elegir el modelo con el _AIC y el BIC más bajos posibles_.
+
+### Removiendo la tendencia determinista (1/5)
+
+<span class="emphasis-blue">Ejercicio</span>
+  
+Considera el modelo:
+  
+$$
+  y_t = \beta_1 + \beta_2 t + \varepsilon_t
+$$
+  
+Muestra que \(y_t\) no es estacionario.
+
+### Removiendo la tendencia determinista (2/5)
+
+<span class="emphasis-blue">Nota: "detrending"</span>
+  
+Considera el modelo:
+  
+$$
+  y_t = \beta_1 + \beta_2 t + \varepsilon_t
+$$
+  
+Claramente, la transformación:
+  
+  
+$$
+\begin{align}
+y_t^\ast &= y_t - \beta_1 - \beta_2 t  \\
+& = \varepsilon_t
+\end{align}
+$$
+es estacionaria. Esta transformación puede hacerse operacional reemplazando \(\beta_1\) y \(\beta_2\) por sus estimadores de MCO.
+
+
+### Removiendo la tendencia determinista (3/5)
+
+<span class="emphasis-blue">Nota</span>
+
+Naturalmente, una vez retirada la tendencia, el error del modelo tiene que comportarse como un ruido blanco:
+
+$$
+\begin{align}
+y_t^\ast &= y_t - \beta_1 - \beta_2 t  \\
+& = \varepsilon_t \sim iid(0,\sigma^2)
+\end{align}
+$$
+
+¿Qué pasa si no?
+
+
+### Removiendo la tendencia determinista (4/5)
+
+<span class="emphasis-blue">Ejercicio: Primeras diferencias</span>
+  
+Considera el modelo:
+  
+$$
+  y_t = \beta_1 + \beta_2 t + \varepsilon_t
+$$
+  
+Muestra que la transformación \(\Delta y_t= y_t - y_{t-1}\) es estacionaria.
+
+
+### Removiendo la tendencia determinista (5/5)
+
+<span class="emphasis-blue">Nota</span>
+
+Una serie con **tendencia estacionaria** es aquella que se vuelve estacionaria una vez eliminada su **tendencia determinista**. En otras palabras, el componente estocástico de la serie es estacionario, y la no estacionariedad proviene únicamente de una tendencia predecible.
+
+
+### Ejemplo
+
+<span class="emphasis-blue">Ejemplo</span>
+  
+Las técnicas habituales para analizar y pronosticar series de tiempo, aplican también para los modelos de tendencia (ver modelos ARMA). Por ejemplo, para la tasa de participación en el mercado laboral de Estados Unidos tenemos:
+  
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+
+lfp_s <- window(lfp, start =c(1948,1), end = c(2018,12))
+
+Trend <- lm(lfp_s~time(lfp_s), data=lfp_s)
+
+sarima.for(lfp_s, n.ahead=24, p=0, d=0, q=0, plot.all=TRUE, xreg=time(lfp_s), newxreg= time(lfp)[time(lfp)>max(time(lfp_s))], main="Tasa de participación en el mercado laboral de Estados Unidos", xlab="Tiempo", ylab="Tasa de Participación")
+lines(lfp)
+lines(ts(fitted(Trend), start=c(1948,1), frequency = 12), col='red')
+dev.off()
+
+```
+
+
+
+## Tendencia estocástica: Raíz unitaria
+
+
+### Raíz unitaria (1/5)
+
+Como hemos visto, un proceso AR(\( p \)):
+  
+$$
+\begin{align}
+y_t &= \phi_1 y_{t-1} + \phi_2 y_{t-2} + \dots + \phi_p y_{t-p} + \varepsilon_t\\
+\varepsilon_t &\sim WN(0,\sigma^2),
+\end{align}
+$$
+  
+es estacionario si las raíces del polinomio \(\Phi(L)=1-\phi_1 L - \phi_2 L^2 - \dots - \phi_p L^p=0\) se encuentran _fuera del círculo unitario_.
+
+
+### Raíz unitaria (2/5)
+
+_Una realización_ de un AR(1) estacionario con \( \phi_1 = 0.5 \) es:
+  
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+library(astsa)
+set.seed(12345)
+
+x=rnorm(500)
+y=stats::filter(x, filter=c(0.5), method="recursive")[-(1:50)]
+culer = c(rgb(.66,.12,.85))
+tsplot(cbind(AR=y), type='o', pch=19, col=culer, xlab="", ylab="", main="AR(1)")
+dev.off()
+
+```
+
+
+### Raíz unitaria (3/5)
+
+
+Si _al menos_ una de las raíces del polinomio \(\Phi(L)=0\) es **unitaria** (es decir, igual a \(1\)), tendremos que la serie de tiempo es **no estacionaria**.
+
+Cuando esto ocurre tenemos que:
+
+$$
+\sum_{i=1}^p \phi_i = 1
+$$
+
+### Raíz unitaria (4/5)
+
+<span class="emphasis-blue">Ejercicio</span>
+  
+Calcula la función de autocovarianzas para mostrar que un proceso AR(\(1\)):
+  
+$$
+  \begin{align}
+y_t &= \phi_1y_{t-1} + \varepsilon_t;\\
+\varepsilon_t &\sim WN(0,\sigma^2)
+\end{align}
+$$
+  
+_no es estacionario_ cuando \(\phi_1=1\). Este proceso se conoce como **caminata aleatoria**.
+
+
+### Raíz unitaria (5/5)
+
+La siguiente es una gráfica de _una realización_ de una caminata aleatoria:
+  
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+set.seed(18)
+x=rnorm(500)
+y=stats::filter(x, filter=c(1), method="recursive")[-(1:50)]
+culer = c(rgb(.66,.12,.85))
+tsplot(cbind(AR=y), type='o', pch=19, col=culer, xlab="", ylab="", main="Random Walk")
+dev.off()
+
+```
+
+Compara esta gráfica con la de un AR(1) estacionario.
+
+
+## El operador de diferencias y modelos ARIMA
+
+### Operador de diferencias (1/3)
+
+Sea \( y_t \) una serie de tiempo. El operador de diferencias \( \Delta \) se define como:
+  
+$$
+  \begin{align}
+\Delta y_t &= y_t - y_{t-1}\\
+&=y_t - Ly_t\\
+&=(1-L)y_t
+\end{align}
+$$
+  
+Este operador se puede aplicar varias veces. Por ejemplo:
+  
+$$
+  \begin{align}
+\Delta(\Delta y_t) &= \Delta^2 y_t \\
+&= (1-L)^2 y_t \\
+&=(1-2L+L^2)y_t\\
+&= y_t - 2y_{t-1} + y_{t-2}
+\end{align}
+$$
+  
+  
+  
+### Operador de diferencias (2/3)
+  
+  Nota que:
+  
+$$
+  \Delta (y_t - \mu) = \Delta y_t
+$$
+  
+Y que:
+  
+$$
+  \Delta^2 (y_t-\mu-\beta t) = \Delta^2 y_t
+$$
+  
+En general, si aplicamos el operador de diferencias \( d \) veces, eliminamos toda la información sobre _cualquier tendencia temporal de orden menor a \( d \)_.
+
+
+### Operador de diferencias (3/3)
+
+<span class="emphasis-blue">Ejemplo</span>
+  
+Si aplicamos primeras diferencias a una caminata aleatoria, obtenemos una **serie estacionaria**:
+  
+  
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+set.seed(18)
+x=rnorm(500)
+y=stats::filter(x, filter=c(1), method="recursive")[-(1:50)]
+z=diff(y)
+culer = c(rgb(.66,.12,.85), rgb(.12,.66,.85))
+tsplot(cbind(y, z), type='o', pch=19, col=culer, xlab="", ylab="", main="Random Walk vs Primeras diferencias")
+dev.off()
+
+```
+
+
+### Modelos ARIMA (1/3)
+
+Lo anterior nos permite definir un **proceso integrado**. Se dice que una serie \(y_t\) es integrada de orden \(d\), \(y_t \sim I(d)\), si necesita ser diferenciada \(d\) veces para convertirse en un proceso estacionario.
+
+Y entonces:
+
+> Una serie de tiempo no estacionaria \( y_t \sim I(d) \) sigue **un proceso ARIMA\((p,d,q)\)** si:
+>$$
+>\Delta^d y_t \sim \text{ARMA}(p, q)
+>$$
+  
+  
+### Modelos ARIMA (2/3)
+  
+<span class="emphasis-blue">Ejercicio</span>
+  
+Considera un proceso AR(\(1\)) con \( \phi_1 = 1 \) (una caminata aleatoria):
+  
+$$
+  \begin{align}
+y_t &= y_{t-1} + \varepsilon_t;\\
+\varepsilon_t &\sim WN(0,\sigma^2)
+\end{align}
+$$
+  
+Muestra que \( y_t \sim \text{ARIMA}(0,1,0) \).
+
+
+### Modelos ARIMA (3/3)
+
+<span class="emphasis-blue">Ejercicio</span>
+  
+Considera una _caminata aleatoria con deriva \( \mu \)_:
+  
+$$
+  \begin{align}
+y_t &= \mu + y_{t-1} + \varepsilon_t;\\
+\varepsilon_t &\sim WN(0,\sigma^2)
+\end{align}
+$$
+  
+Muestra que \( y_t \sim \text{ARIMA}(0,1,0) \).
+
+
+## La prueba de Dickey-Fuller
+
+### Prueba de Dickey-Fuller (1/3)
+
+Para diferenciar entre los modelos con tendencia determinista y tendencia estocástica podemos aplicar la **prueba de Dickey-Fuller**. En su versión más simple, la prueba considera el siguiente proceso AR(1):
+  
+$$
+\begin{align}
+y_t &= \phi_1 y_{t-1} + \varepsilon_t;\\
+\varepsilon_t &\sim WN(0,\sigma^2)
+\end{align}
+$$
+  
+Si hacemos una regresión de \( y_t \) sobre \( y_{t-1} \), podemos aplicar una prueba de significancia para el coeficiente \( \phi_1 \):
+  
+$$
+\begin{align}
+H_0: \phi_1= 1\\
+H_1: \phi_1\neq 1
+\end{align}
+$$
+  
+El estadístico de la prueba es:
+  
+$$
+  \hat{\tau} = \frac{\hat{\phi_1}-1}{\text{s.e.}(\hat{\phi_1})}
+$$
+  
+### Prueba de Dickey-Fuller (2/3)
+  
+Alternativamente:
+  
+$$
+  \begin{align}
+\Delta y_t &= (\phi_1 -1)y_{t-1} + \varepsilon_t \\
+&=\gamma y_{t-1} + \varepsilon_t \\
+\end{align}
+$$
+  
+Si hacemos una regresión de \( \Delta y_t \) sobre \( y_{t-1} \), podemos aplicar una prueba de significancia para el coeficiente \( \gamma \):
+  
+$$
+  \begin{align}
+H_0: \gamma= 0\\
+H_1: \gamma \neq 0
+\end{align}
+$$
+  
+El estadístico de la prueba es:
+  
+$$
+  \hat{\tau} = \frac{\hat{\gamma}}{\text{s.e.}(\hat{\gamma})}
+$$
+  
+  
+### Prueba de Dickey-Fuller (3/3)
+  
+Un problema encontrado por Dickey y Fuller es que el estadístico de la prueba (conocido como **estadístico de Dickey-Fuller**) no sigue una distribución \(t\), sino una distribución especial conocida en la literatura como **distribución de Dickey-Fuller**.
+
+
+Los valores críticos de la prueba pueden consultarse en varios libros de texto, así como en varios paquetes de computadora.
+
+
+### Dickey-Fuller con constante y con tendencia determinista
+
+El caso que hemos explicado es uno de tres posibles que pueden ser considerados por la prueba. Cada caso depende de la hipótesis alternativa:
+
+- **Caso 1**: \(y_t\) sigue un proceso estacionario con media cero.
+
+- **Caso 2**: \(y_t\) sigue un proceso estacionario con media diferente de cero. Esto es, un _proceso estacionario con deriva_:
+$$
+  \Delta y_t = \alpha_0 + \gamma y_{t-1} + \varepsilon_t
+$$
+
+- **Caso 3**: \(y_t\) sigue un proceso con tendencia estacionaria. Esto es, un _proceso estacionario con tendencia determinista_.
+$$
+  \Delta y_t = \alpha_0 + \alpha_1 t + \gamma y_{t-1} + \varepsilon_t
+$$
+  
+### Prueba Aumentada de Dickey Fuller, ADF (1/3)
+  
+La prueba de Dickey-Fuller no es válida si los errores no se comportan como un ruido blanco. La **Prueba Aumentada de Dickey-Fuller** (ADF) resuelve este problema considerando un proceso AR(\( p \)):
+  
+$$
+  y_t = \sum_{i=1}^p \phi_j y_{t-j} + \varepsilon_t
+$$
+  
+O, en primeras diferencias:
+  
+$$
+  \Delta y_t = \gamma y_{t-1} +  \sum_{i=2}^p \beta_i \Delta y_{t-i+1} + \varepsilon_t
+$$
+Si tenemos una raíz unitaria, entonces \(\gamma = 0\) y \(y_t\) sigue un proceso AR(\(p-1\)) en primeras diferencias. El estadístico de la prueba Dickey-Fuller sigue la misma distribución asintótica que antes.
+
+
+
+### Prueba Aumentada de Dickey Fuller, ADF (2/3)
+
+Igual que antes, podemos generalizar para incluir una media diferente que cero y una tendencia determinista. Entonces, la hipótesis alternativa considera:
+  
+- **Caso 1**, _proceso estacionario con media cero_.
+
+- **Caso 2**, _proceso estacionario con deriva_:
+$$
+  \Delta y_t = \alpha_0 + \gamma y_{t-1} +  \sum_{i=2}^p \beta_i \Delta y_{t-i+1} + \varepsilon_t
+$$
+  
+- **Caso 3**, _proceso estacionario con tendencia determinista_:
+$$
+  \Delta y_t = \alpha_0 + \alpha_1 t + \gamma y_{t-1} +  \sum_{i=2}^p \beta_i \Delta y_{t-i+1} + \varepsilon_t
+$$
+  
+### Prueba Aumentada de Dickey Fuller, ADF (3/3)
+  
+<span class="emphasis-blue">Nota</span>
+  
+Podemos probar de manera conjunta la _ausencia de deriva, tendencia temporal y raíz unitaria_ de forma conjunta utilizando un estadístico tipo F, conocido como la **F de Dickey-Fuller**.
+
+### Aplicación de la prueba ADF
+
+En la práctica no es tan claro qué caso de la prueba ADF considerar. Una opción es seguir el siguiente procedimiento.
+
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, fig.align='center', out.width='70%'}
+
+library(DiagrammeR)
+grViz("
+digraph dickey_fuller_flowchart {
+  # --- Layout ---
+  graph [layout = dot, rankdir = LR, splines=polyline, nodesep=0.2, ranksep=1]
+  
+  node [shape = box, 
+        style = rounded, 
+        fontname = Helvetica,
+        color = '#4E8A9C',
+        fontsize = 9,
+        width = 1.3,
+        height = 0.5]
+        
+  edge [fontname = Helvetica,
+        color = '#555555',
+        fontsize = 8]
+  
+  # --- Fila 1 (arriba) ---
+  start [label = 'PASO 1\nModelo con tendencia\nH0: γ = 0']
+  decision1 [label = '¿Rechaza H0?', shape = diamond, color='#D35400', width=1, height=0.8, fontsize=9]
+  conclusion_ts [label = 'Tendencia estacionaria)', 
+                 fillcolor='#D5F5E3', style=filled, color='#27AE60']
+  
+  # --- Fila 2 (medio) ---
+  step2 [label = 'PASO 2\nModelo con constante\nH=: γ = 0']
+  decision2 [label = '¿Rechaza H0?', shape = diamond, color='#D35400', width=1, height=0.8, fontsize=9]
+  conclusion_stat [label = 'Estacionaria\n(media ≠ 0)', 
+                   fillcolor='#D5F5E3', style=filled, color='#27AE60']
+  
+  # --- Fila 3 (abajo) ---
+  step3 [label = 'PASO 3\nModelo sin constante\nsin tendencia\nH0: γ = 0']
+  decision3 [label = '¿Rechaza H0?', shape = diamond, color='#D35400', width=1, height=0.8, fontsize=9]
+  conclusion_ur [label = 'NO estacionaria\nDiferenciar', 
+                 fillcolor='#FADBD8', style=filled, color='#E74C3C']
+  conclusion_zero [label = 'Estacionaria\n(media = 0)', 
+                   fillcolor='#D5F5E3', style=filled, color='#27AE60']
+  
+  # --- Flujo zigzag ---
+  start -> decision1
+  decision1 -> conclusion_ts [label='SÍ', fontcolor='#27AE60']
+  decision1 -> step2 [label='NO', fontcolor='#E74C3C']
+  
+  step2 -> decision2
+  decision2 -> conclusion_stat [label='SÍ', fontcolor='#27AE60']
+  decision2 -> step3 [label='NO', fontcolor='#E74C3C']
+  
+  step3 -> decision3
+  decision3 -> conclusion_zero [label='SÍ', fontcolor='#27AE60']
+  decision3 -> conclusion_ur [label='NO', fontcolor='#E74C3C']
+  
+  
+  # --- Alineación por filas ---
+  {rank=same; start; decision1; conclusion_ts}
+  {rank=same; step2; decision2; conclusion_stat}
+  {rank=same; step3; decision3; conclusion_zero}
+  
+  
+}
+")
+
+```
+
+
+
+### Tendencia determinista vs. tendencia aleatoria (1/2)
+
+La principal diferencia entre las tendencias determinista y aleatoria es:
+
+- Si la tendencia es determinista, _los shocks externos solo afectan al componente estacionario, no a la tendencia_. Entonces, en presencia de shocks externos, \(y_t\) se desvía temporalmente de su trayectoria, pero su naturaleza lo obliga a regresar a su trayectoria original. El efecto de los shocks es transitorio.
+
+- Si la tendencia es estocástica, _los shocks se incorporan permanentemente al nivel de la serie_ (a \(y_t\)). Entonces, la trayectoria futura de la serie se construye a partir de este nuevo nivel. El efecto de los shocks es permanente.
+
+### Tendencia determinista vs. tendencia aleatoria (2/2)
+
+Aplicar la transformación incorrecta para hacer el modelo estacionario tiene consecuencias graves.
+
+- _Si una serie es estacionaria en tendencia y aplicamos diferencias_, obtenemos:
+$$
+\Delta y_t = \beta + \varepsilon_t−\varepsilon_{t-1}
+$$
+Hemos introducido artificialmente una estructura de media móvil en los errores que no es invertible. Esto se conoce como **sobrediferenciación**, lo cual complica la estimación y el pronóstico.
+
+- _Si una serie es una caminata aleatoria y le removemos una tendencia lineal_, los residuos de esa regresión  seguirán conteniendo la raíz unitaria. No hemos solucionado el problema de no estacionariedad, simplemente hemos ajustado una **tendencia espuria**.
+
+### Tendencia espuria (1/2)
+
+Consideremos el caso de una caminata aleatoria:
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+set.seed(1)
+x <- rnorm(500)
+y <- stats::filter(x, filter = c(1), method = "recursive")[-(1:50)]
+
+t <- 1:length(y)
+
+culer = c(rgb(.66,.12,.85))
+tsplot(cbind(AR=y), type='o', pch=19, col=culer, xlab="", ylab="", main="Random Walk con tendencia espuria")
+abline(lm(y~t), lwd=3, col=rgb(.12,.66,.85))
+dev.off()
+```
+
+### Tendencia espuria (2/2)
+
+Si hacemos una regresión de \(y_t\) contra el tiempo, encontramos un coeficiente de tendencia _altamente significativo_. Naturalmente, este es resultado completamente falso. Este es el fenómeno de la tendencia espuria.
+
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+library(broom)
+library(knitr)
+
+# --- 2. Estimar el modelo de regresión espuria ---
+modelo <- lm(y ~ t)
+
+# --- 3. Crear y formatear la tabla de resultados ---
+tabla <- tidy(modelo) %>%
+  mutate(
+    # Renombrar los términos para mayor claridad
+    term = if_else(term == "(Intercept)", "Constante", "Tendencia (t)"),
+    # Guardar valores redondeados
+    estimate_raw = round(estimate, 4),
+    std.error_raw = round(std.error, 4),
+    statistic_raw = round(statistic, 3),
+    p.value_raw = format.pval(p.value, digits = 3, eps = 0.001),
+    
+    # Aplicar formato HTML condicionalmente
+    `Coeficiente` = if_else(
+      term == "Tendencia (t)",
+      sprintf("<span style='color:#F8766D; font-weight:bold;'>%s</span>", format(estimate_raw, nsmall = 4)),
+      format(estimate_raw, nsmall = 4) # Sin formato para la constante
+    ),
+    `Valor p` = if_else(
+      term == "Tendencia (t)",
+      sprintf("<span style='color:#F8766D; font-weight:bold;'>%s</span>", p.value_raw),
+      p.value_raw # Sin formato para la constante
+    )
+  ) %>%
+  # Seleccionar y renombrar las columnas finales
+  select(
+    Término = term,
+    `Coeficiente`,
+    `Desv. Estándar` = std.error_raw,
+    `Estadístico t` = statistic_raw,
+    `Valor p`
+  )
+
+# --- 4. Mostrar la tabla con el formato deseado ---
+kable(tabla, format = "html", escape = FALSE,
+      caption = "Regresión de una Caminata Aleatoria contra una Tendencia (Espuria)",
+      table.attr = 'class="clean-table"')
+
+```
+
+
+### Ejemplo (1/4)
+
+<span class="emphasis-blue">Ejemplo</span>
+  
+Naturalmente, una vez que la serie de tiempo es estacionaria, todo el análisis (ajuste, pronósticos, etc.) es idéntico al análisis de los modelos ARMA(\(p\), \(q\)). Por ejemplo, considera la tasa de cambio Yen-Dólar (en logaritmos) para el periodo enero 1973 a julio de 1996:
+  
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+library(tidyverse)
+library(here)
+library(astsa)
+library(forecast)
+
+culer = c('cyan4', 4, 2, 6)
+yen_data <- read.csv(here("data/E315--Yen-Dollar.csv"))
+lyen <- ts(log(yen_data$yen), start =c(1973,1), frequency = 12)
+
+tsplot(lyen, type='o', pch=19, col=culer, main="(Logaritmo del) tipo de cambio Yen-Dolar", xlab="Tiempo", ylab="Tipo de cambio")
+dev.off()
+
+```
+
+
+### Ejemplo (2/4)
+
+<span class="emphasis-blue">Ejemplo</span>
+  
+Utilizamos una prueba de Dickey-Fuller aumentada para incluir seis retardos, constante y tendencia lineal. Esta prueba muestra que la serie de tiempo no es estacionaria:
+  
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+library(urca)
+
+ur.df(lyen, type = "trend", lags = 6)
+
+```
+
+
+### Ejemplo (3/4)
+
+<span class="emphasis-blue">Ejemplo</span>
+  
+En cambio, las primeras diferencias de la serie de tiempo son estacionarias:
+  
+```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+ur.df(diff(lyen), type = "drift", lags = 6)
+
+```
+
+
+### Ejemplo (4/4)
+
+<span class="emphasis-blue">Ejemplo</span>
+  
+Un modelo ARIMA(0,1,1) resulta en:
+  
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+lyen_s <- window(lyen, start =c(1973,1), end = c(1994,12))
+sarima.for(lyen_s, n.ahead=19, p=0, d=1, q=1, plot.all=FALSE, main="(Logaritmo del) tipo de cambio Yen-Dolar", xlab="Tiempo", ylab="Tipo de cambio")
+lines(lyen)
+lines(fitted(Arima(lyen_s, order=c(0, 1, 1), seasonal=c(0,0,0))), col='red')
+dev.off()
+
+```
+
+
+## Componente estacional
+
+### ¿Qué es la variación estacional? (1/2)
+
+El componente de la serie de tiempo que representa la variabilidad en los datos debida a influencias de las estaciones, se llama **componente estacional**.
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+gas_data <- read.csv(here("data/E309--Gasoline.csv"))
+gas <- ts(gas_data$gasales, start =c(1980,1), frequency = 12)
+
+tsplot(gas, type='o', pch=19, col=culer, main="Ventas de gasolina en Estados Unidos", xlab="Tiempo", ylab="Ventas de gasolina")
+dev.off()
+```
+
+### ¿Qué es la variación estacional? (2/2)
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+liquor_data <- read.csv(here("data/E310--Liquor.csv"))
+liquor <- ts(liquor_data$liquor, start =c(1967,1), frequency = 12)
+
+tsplot(liquor, type='o', pch=19, col=culer, main="Ventas de licor en Estados Unidos", xlab="Tiempo", ylab="Ventas de licor")
+dev.off()
+```
+
+
+### Modelo estacional puro (1/2)
+
+Supongamos que \( s \) es el número de estaciones en un año. Debemos construir un conjunto de \( s \) **variables dummy estacionales**. Por ejemplo, si \( s = 4 \) (datos trimestrales):
+  
+$$
+  \begin{align}
+D_1 &= \begin{pmatrix} 1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 1 & \dots \end{pmatrix}\\
+D_2 &= \begin{pmatrix} 0 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & \dots \end{pmatrix}\\
+D_3 &= \begin{pmatrix} 0 & 0 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & \dots \end{pmatrix}\\
+D_4 &= \begin{pmatrix} 0 & 0 & 0 & 1 & 0 & 0 & 0 & 1 & 0 & \dots \end{pmatrix}\\
+\end{align}
+$$
+  
+  
+### Modelo estacional puro (2/3)
+  
+El **modelo estacional puro** es:
+  
+$$
+  y_t = \sum_{i=1}^s \gamma_i D_{it} + \varepsilon_t
+$$
+  
+Básicamente, tenemos un modelo en el que el intercepto es diferente en cada estación. Los coeficientes \( \gamma_i \) se conocen como **factores estacionales**.
+
+_Nota_. Como siempre, debemos tener cuidado de no caer en la _trampa de las dummies_.
+
+### Modelo estacional con tendencia (1/2)
+
+También podemos incluir una _tendencia determinista_ en un modelo estacional. Por ejemplo, si aumentamos el modelo estacional puro con una tendencia lineal tenemos:
+  
+$$
+  y_t = \beta_1 t + \sum_{i=1}^s \gamma_i D_{it} + \varepsilon_t
+$$
+  También es posible tener modelos más complejos:
+  
+$$
+  y_t = \beta_1 t + \sum_{i=1}^s \gamma_i D_{it} + \sum_{i=1}^{\nu_1} \delta_i^{HD} HDV_{it} + \sum_{i=1}^{\nu_2} \delta_i^{TD} TDV_{it} + \varepsilon_t
+$$
+  
+donde \(HDV\) representa periodos de fiesta relevantes, y \(TDV\) son periodos de comercio relevantes. Estas también son variables dummy. 
+
+_Los estimadores de los coeficientes de todos estos modelos pueden obtenerse por MCO._
+
+### Modelo estacional con tendencia (2/2)
+
+Por ejemplo, considera las ventas de gasolina en Estados Unidos (en dólares):
+  
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+d <- seasonaldummy(gas)
+S <- lm(gas~time(gas) + d, data=gas)
+
+tsplot(gas, type='o', pch=19, col=culer, main="Ventas de gasolina en Estados Unidos", xlab="Tiempo", ylab="Ventas de gasolina")
+lines(ts(fitted(S), start =c(1980,1), frequency = 12), col=culer[2], lwd=1)
+
+dev.off()
+
+```
+
+
+### Ejercicio (1/4)
+
+<span class="emphasis-blue">Ejercicio</span>
+  
+Considera el modelo:
+  
+$$
+  y_t = \sum_{i=1}^s \gamma_i D_{it} + \varepsilon_t
+$$
+  
+Muestra que \(y_t\) no es estacionario.
+
+### Ejercicio (2/4)
+
+<span class="emphasis-blue">Nota</span>
+  
+Considera el modelo:
+  
+$$
+  y_t = \sum_{i=1}^s \gamma_i D_{it} + \varepsilon_t
+$$
+  
+Una forma de hacer que este modelo sea estacionario, consiste en calcular:
+  
+  
+$$
+  \begin{align}
+y_t^\ast &= y_t - \sum_{i=1}^s \gamma_i D_{it}  \\
+& = \varepsilon_t
+\end{align}
+$$
+  
+Esta transformación puede hacerse operacional reemplazando los \(\gamma_i\) por sus estimadores de MCO.
+
+### Ejercicio (3/4)
+
+<span class="emphasis-blue">Ejercicio</span>
+  
+A diferencia de los modelos con tendencia, aplicar diferencias a un modelo con componente estacional no hace que la serie de tiempo sea estacionaria. Por ejemplo, considera el modelo:
+  
+$$
+  y_t = \sum_{i=1}^s \gamma_i D_{it} + \varepsilon_t
+$$
+  
+  Muestra que \(\Delta y_t\) no es estacionario.
+
+### Ejercicio (4/4)
+
+<span class="emphasis-blue">Ejercicio</span>
+  
+Considera el modelo con datos trimestrales (\(s=4\)):
+  
+$$
+  y_t = \sum_{i=1}^4 \gamma_i D_{it} + \varepsilon_t
+$$
+  
+Muestra que \(\Delta^4 y_t = y_t - y_{t-4}\) es estacionario. Este es un ejemplo de modelos **ARIMA estacionales**, también conocidos como modelos **SARIMA**.
+
+<span class="emphasis-blue">Nota.</span> Los modelos SARIMA nos permiten tratar la **estacionalidad estocástica**, la cual ocurre cuando _el patrón estacional no es constante sino que evoluciona en el tiempo_.
+
+### Ejemplo
+
+<span class="emphasis-blue">Ejemplo</span>
+
+Las técnicas habituales para analizar y pronosticar series de tiempo, aplican también para los modelos con componente estacional (ver modelos ARMA). Por ejemplo, para las ventas de gasolina en Estados Unidos (en dólares) tenemos:
+  
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+
+gas_s <- window(gas, start =c(1980,1), end = c(1989,12))
+d_s <- seasonaldummy(gas_s)
+S_s <- lm(gas_s~time(gas_s) + d_s, data=gas_s)
+
+sarima.for(gas_s, n.ahead=24, p=0, d=0, q=0, plot.all=TRUE, xreg=cbind(time(gas_s), d_s), newxreg= window(cbind(time(gas), d), start=c(1990,1)), main="Ventas de gasolina en Estados Unidos", xlab="Tiempo", ylab="Ventas de gasolina")
+lines(gas)
+lines(ts(fitted(S_s), start=c(1980,1), frequency = 12), col='red')
+
+dev.off()
+
+```

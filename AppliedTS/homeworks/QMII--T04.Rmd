@@ -1,0 +1,156 @@
+---
+title: "Métodos Cuantitativos II"
+subtitle: "Tarea 4"
+author: "Alejandro Mosiño"
+date: "v. 2026-04-25"
+
+
+output:
+  html_document:
+    toc: false
+  pdf_document:
+    toc: false
+    
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, 
+  encoding = encoding, 
+  output_dir = "../docs", 
+  output_format = "all") })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(forecast)
+```
+
+---
+
+# Ejercicio 1
+
+Considera una serie trimestral \(y_t\) con un _componente estacional determinista_. Considera el modelo:
+
+$$
+y_t = \beta_0 + \beta_1 t + \gamma_1 D_{1t} + \gamma_2 D_{2t} + \gamma_3 D_{3t} + \varepsilon_t,
+$$
+
+donde \(D_{1t}\), \(D_{2t}\) y \(D_{3t}\) son variables dummy estacionales.
+
+1. Explica por qué no se incluye una cuarta variable dummy estacional.
+
+2. Interpreta los coeficientes \(\gamma_1\), \(\gamma_2\) y \(\gamma_3\).
+
+3. Explica qué representa \(\beta_1\).
+
+4. ¿Qué significa que alguno de los coeficientes estacionales sea estadísticamente significativo?
+
+5. Explica cómo removerías el componente estacional determinista de la serie.
+
+---
+
+# Ejercicio 2
+
+Considera el siguiente proceso con raíz unitaria estacional:
+
+$$
+\begin{align*}
+y_t &= y_{t-s} + \varepsilon_t\\
+\varepsilon_t &\sim WN(0,\sigma^2).
+\end{align*}
+$$
+
+1. Muestra que \(y_t\) no es estacionario.
+
+2. Sea \(\Delta_s\) el operador de diferencias estacionales.  Muestra que \(\Delta_s y_t\) es estacionario:
+
+$$
+\Delta_s y_t = y_t - y_{t-s}.
+$$
+
+3. Explica la diferencia entre aplicar primeras diferencias, \(\Delta y_t\), y diferencias estacionales, \(\Delta_s y_t\).
+
+4. ¿En qué caso esperarías usar \(D=1\) en un modelo \(ARIMA(p,d,q)\times ARIMA(P,D,Q)_s\)?
+
+---
+
+# Ejercicio 3
+
+Considera el modelo \(MA(1)_{12}\):
+
+$$
+\begin{align*}
+y_t &= \varepsilon_t + \Theta_1 \varepsilon_{t-12}\\
+\varepsilon_t &\sim WN(0,\sigma^2).
+\end{align*}
+$$
+
+1. Muestra que:
+
+$$
+\mathbb{E}(y_t)=0.
+$$
+
+2. Muestra que la función de autocovarianza está dada por:
+
+$$
+\gamma_k =
+\begin{cases}
+(1+\Theta_1^2)\sigma^2 & \text{si } k=0,\\
+\Theta_1\sigma^2 & \text{si } k=12,\\
+0 & \text{en otro caso}.
+\end{cases}
+$$
+
+3. Obtén la función de autocorrelación (FAC), \(\rho_k\).
+
+4. Explica cómo se vería la FAC de este proceso.
+
+5. ¿Por qué este proceso puede interpretarse como un \(MA(12)\) con varios coeficientes iguales a cero?
+
+---
+
+# Ejercicio 4
+
+
+Considera el siguiente modelo multiplicativo:
+
+$$
+ARIMA(0,0,1)\times ARIMA(1,0,0)_{12}.
+$$
+
+1. Escribe la forma general del modelo usando el operador de rezagos.
+
+2. Expande el modelo para expresar \(y_t\) en función de sus rezagos y de los errores contemporáneos y rezagados.
+
+3. Explica qué parte del modelo captura la dinámica no estacional.
+
+4. Explica qué parte del modelo captura la dinámica estacional.
+
+5. Describe qué patrones esperarías observar en la FAC y en la FACP.
+
+---
+
+# Ejercicio 5
+
+Utiliza los datos mensuales sobre el _total de pasajeros en líneas aéreas de 1949 a 1960_: `E312--AirPassengers.csv`.
+
+1. Grafica la serie en niveles.
+
+2. Grafica la serie en logaritmos. Explica por qué podría ser útil trabajar con logaritmos.
+
+3. Aplica primeras diferencias a la serie en logaritmos, $\Delta \log(y_t)$. Grafica la serie resultante.
+
+4. Aplica diferencias estacionales a la serie en logaritmos, $\Delta_{12} \log(y_t)$. Grafica la serie resultante.
+
+5. Aplica tanto primeras diferencias como diferencias estacionales, $\Delta \Delta_{12} \log(y_t)$. Grafica la serie resultante.
+
+6. Analiza la FAC y la FACP de la serie transformada.
+
+7. Propón un modelo \(ARIMA(p,d,q)\times ARIMA(P,D,Q)_{12}\) adecuado.
+
+8. Estima el modelo propuesto.
+
+9. Realiza un pronóstico para los siguientes 12 meses.
+
+10. Reserva los últimos 12 meses como muestra de prueba. Estima el modelo con la muestra de entrenamiento y compara el pronóstico con los valores observados.

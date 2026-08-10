@@ -1,0 +1,108 @@
+---
+title: "Métodos Cuantitativos II"
+subtitle: "Tarea 2"
+author: "Alejandro Mosiño"
+date: "v. 2026-02-24"
+
+
+output:
+  html_document:
+    toc: false
+  pdf_document:
+    toc: false
+    
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, 
+  encoding = encoding, 
+  output_dir = "../docs", 
+  output_format = "all") })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(forecast)
+```
+
+# Ejercicio 1
+
+Considera el proceso ARMA(1,1):
+
+$$
+y_t = 0.8 y_{t-1} + \varepsilon_t + 0.5 \varepsilon_{t-1}
+$$
+
+a) Reescribe el proceso en términos del operador de rezagos: $\Phi(L) y_t = \Theta(L)\varepsilon_t$.  
+b) Determina si es estacionario.  
+c) Determina si es invertible.
+
+---
+
+# Ejercicio 2
+
+Considera el proceso:
+
+$$
+y_t = 0.7y_{t-1} + \varepsilon_t
+$$
+
+a) Escribe la representación MA(\(\infty\)) y deduce la FIR para $ h=0,1,\dots,10 $.  
+b) Encuentra y grafica la FIR  para $ h=0,1,\dots,10 $ suponiendo que el shock ocurre en \(t=0\).
+
+---
+
+# Ejercicio 3
+
+Genera $n = 500$ observaciones de los siguientes procesos:
+
+1) AR(\(2\)): $y_t = 0.6 y_{t-1} + 0.2 y_{t-2} + \varepsilon_t$
+2) MA(\(2\)): $y_t = \varepsilon_t + 0.6\varepsilon_{t-1} + 0.3\varepsilon_{t-2}$
+3) ARMA(\(1,1\)): $y_t = 0.6 y_{t-1} + \varepsilon_t + 0.5\varepsilon_{t-1}$
+
+Para cada serie:
+
+a) Grafica la serie.  
+b) Grafica la FAC y la FACP hasta el retardo 20.  
+c) ¿Cómo se ven la FAC y la FACP? Comenta.  
+
+
+---
+
+# Ejercicio 4
+
+Genera $n = 300$ observaciones de un proceso ARMA(\(1,1\)):
+
+$$
+y_t = 0.6 y_{t-1} + \varepsilon_t + 0.5 \varepsilon_{t-1}
+$$
+
+Para tus observaciones: 
+
+a) Ajusta los modelos: AR(1), MA(1), ARMA(1,1), ARMA(2,1).  
+b) Reporta AIC y BIC.  
+c) Selecciona el modelo (justifica si AIC y BIC no coinciden).  
+d) Aplica la prueba de Ljung–Box a los residuales del modelo elegido.  
+
+---
+
+# Ejercicio 5
+
+Con el modelo seleccionado en el Ejercicio 4:
+
+a) Realiza pronósticos para 8 periodos hacia adelante.  
+b) Grafica el pronóstico y su intervalo de confianza al 95%.  
+c) ¿Por qué el intervalo de confianza va creciendo?
+
+---
+
+# Ejercicio 6
+
+Utiliza los datos de ganancias trimestrales de Johnson & Johnson en logaritmos (E302--JohnsonJohnson.csv):
+
+a) Grafica la serie.  
+b) Grafica FAC y FACP hasta el retardo 20.  
+c) Propón (al menos) dos modelos candidatos ARMA(\(p,q\)).  
+d) Estima ambos modelos y compara los criterios de información.  
+e) Verifica residuales con Ljung–Box.
+f) Pronostica 4 trimestres.
