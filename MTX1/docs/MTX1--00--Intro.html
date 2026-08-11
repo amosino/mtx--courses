@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Introducción</title>
+  <title>Econometría</title>
 
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="chrome=1">
@@ -19,8 +19,9 @@
     var SLIDE_CONFIG = {
       // Slide settings
       settings: {
-                title: 'Introducción',
-                        useBuilds: true,
+                title: 'Econometría',
+                        subtitle: 'Introducción',
+                useBuilds: true,
         usePrettify: true,
         enableSlideAreas: true,
         enableTouch: true,
@@ -4386,42 +4387,38 @@ text-align: center;
 padding-top: 140px;
 line-height: 1.3;
 font-family: 'Lora', 'Open Sans', sans-serif;
+background-color: #ffffff !important;
 }
 .title-slide h1 {
 font-size: 72px;
 font-weight: bold;
 margin-bottom: 10px;
-color: #000000;
+color: #000000 !important;
 }
 .title-slide h2 {
 font-size: 44px;
 font-style: italic;
 font-weight: normal;
-color: #555555;
+color: #555555 !important;
 margin-bottom: 35px;
+border: none !important;
 }
 .title-slide h3 {
 font-size: 28px;
 font-weight: normal;
 margin-bottom: 5px;
-color: #222222;
+color: #222222 !important;
 }
 .title-slide .author em {
 font-size: 24px;
 font-style: italic;
-color: #777777;
+color: #777777 !important;
 }
 .title-slide .date {
 display: block;
 font-size: 20px;
-color: #777777;
+color: #777777 !important;
 margin-top: 25px;
-}
-.html-widget {
-display: block;
-margin-left: auto;
-margin-right: auto;
-max-width: 720px; 
 }
 
 
@@ -4578,18 +4575,69 @@ background-color: #f5f5f5 !important;
 
 
 
+a.pdf-footer {
+position: fixed;
+bottom: 12px;
+right: 14px;
+z-index: 9999;
+font-size: 11px;
+font-weight: 500;
+opacity: 0.6;
+color: #555555 !important;
+text-decoration: none !important;
+background: #f8f8f8;
+padding: 4px 8px;
+border-radius: 6px;
+border: 1px solid #adb5bd;
+transition: opacity 0.2s, background 0.2s;
+}
+a.pdf-footer:hover {
+opacity: 1.0;
+background: #e5e5e5;
+}
+
+
+
 @media print {
 * {
 -webkit-print-color-adjust: exact !important;
 color-adjust: exact !important;
 }
-body, slides > slide {
-font-size: 100% !important; 
+html,
+body,
+slides,
+slides > slide,
+slides slide {
+background: #ffffff !important;
+background-image: none !important;
+}
+body,
+slides > slide {
+font-size: 100% !important;
+}
+slides > slide {
+overflow: hidden !important;
+box-shadow: none !important;
+-webkit-box-shadow: none !important;
+}
+.rmdtable,
+slides > slide table {
+box-shadow: none !important;
+-webkit-box-shadow: none !important;
+}
+slides > slide:not(.nobackground):after {
+bottom: 30px !important;
+right: 60px !important;
+line-height: 1 !important;
+}
+p:has(> a.pdf-footer) {
+display: none !important;
 }
 .title-slide h1 { font-size: 72px !important; }
 .title-slide h2 { font-size: 44px !important; }
 .title-slide h3 { font-size: 28px !important; }
-}</style>
+}
+</style>
 
 </head>
 
@@ -4601,13 +4649,13 @@ font-size: 100% !important;
         <!-- The content of this hgroup is replaced programmatically through the slide_config.json. -->
     <hgroup class="auto-fadein">
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
-      
+      <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
             <p style="margin-top: 6px; margin-left: -2px;">v.2026.08.04</p>
           </hgroup>
   </slide>
 
-<p><a class="qmii-footer" href="MTXI--00--Intro-2026.pdf" target="_blank"> PDF </a></p>
+<p><a class="pdf-footer" href="MTX1--00--Intro.pdf" target="_blank"> PDF </a></p>
 
 <slide class="segue dark nobackground level2"><hgroup class = 'auto-fadein'><h2>¿Qué es la econometría?</h2></hgroup><article  id="qué-es-la-econometría" class="smaller ">
 
@@ -4672,8 +4720,8 @@ font-size: 100% !important;
 
 <p>El proceso de investigación en econometría se puede ilustrarse de la siguiente forma:</p>
 
-<div id="htmlwidget-8d72a0a8984a38063f7c" style="width:100%;height:280px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-8d72a0a8984a38063f7c">{"x":{"diagram":"\ndigraph proceso_econometrico {\n\n  graph [\n    layout = dot,\n    rankdir = TB,\n    bgcolor = transparent,\n    pad = 0.25,\n    nodesep = 0.55,\n    ranksep = 0.7,\n    splines = spline\n  ]\n\n  node [\n    shape = box,\n    style = \"rounded,filled\",\n    fontname = Helvetica,\n    fontcolor = white,\n    fontsize = 15,\n    penwidth = 0,\n    margin = \"0.22,0.18\",\n    width = 3,\n    height = 1.6,\n    fixedsize = true\n  ]\n\n  edge [\n    penwidth = 3,\n    arrowsize = 1.1,\n    arrowhead = vee,\n    color = \"#5D6D7E\"\n  ]\n\n  { rank = same; pregunta; teoria; datos; modelo }\n  { rank = same; evidencia; interpretacion; decisiones }\n\n  pregunta [\n    fillcolor = \"#1B2A4A\",\n    label = <<B>Pregunta econ&#243;mica<\/B><BR/><BR/>\n      <FONT POINT-SIZE=\"12\">&#191;Qu&#233; queremos<BR/>explicar?<\/FONT>>\n  ]\n\n  teoria [\n    fillcolor = \"#1F4E79\",\n    label = <<B>Teor&#237;a econ&#243;mica / intuici&#243;n<\/B><BR/><BR/>\n      <FONT POINT-SIZE=\"12\">&#191;Qu&#233; explicaci&#243;n<BR/>proponemos?<\/FONT>>\n  ]\n\n  datos [\n    fillcolor = \"#2E75B6\",\n    label = <<B>Datos<\/B><BR/><BR/>\n      <FONT POINT-SIZE=\"12\">&#191;Qu&#233; informaci&#243;n<BR/>necesitamos?<\/FONT>>\n  ]\n\n  modelo [\n    fillcolor = \"#2A9D8F\",\n    fontsize = 14,\n    label = <<B>Modelo econom&#233;trico<\/B><BR/><BR/>\n      <FONT POINT-SIZE=\"12\">&#191;C&#243;mo traducimos<BR/>la teor&#237;a?<\/FONT>>\n  ]\n\n  evidencia [\n    fillcolor = \"#21867A\",\n    label = <<B>Evidencia<\/B><BR/><BR/>\n      <FONT POINT-SIZE=\"12\">&#191;Qu&#233; muestran<BR/>los datos?<\/FONT>>\n  ]\n\n  interpretacion [\n    fillcolor = \"#3C8D40\",\n    label = <<B>Interpretaci&#243;n<\/B><BR/><BR/>\n      <FONT POINT-SIZE=\"12\">&#191;Qu&#233; podemos<BR/>concluir?<\/FONT>>\n  ]\n\n  decisiones [\n    fillcolor = \"#2E7D32\",\n    label = <<B>Decisiones<\/B><BR/><BR/>\n      <FONT POINT-SIZE=\"12\">&#191;Qu&#233; decisiones puede<BR/>respaldar la evidencia?<\/FONT>>\n  ]\n\n  decisiones -> interpretacion -> evidencia [\n    style = invis,\n    weight = 10\n  ]\n\n  pregunta -> teoria -> datos -> modelo\n  modelo -> evidencia\n  evidencia -> interpretacion -> decisiones [\n    constraint = false\n  ]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-ddb4e1c29d6140520428" style="width:100%;height:280px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-ddb4e1c29d6140520428">{"x":{"diagram":"\ndigraph proceso_econometrico {\n\n  graph [\n    layout = dot,\n    rankdir = TB,\n    bgcolor = transparent,\n    pad = 0.25,\n    nodesep = 0.55,\n    ranksep = 0.7,\n    splines = spline\n  ]\n\n  node [\n    shape = box,\n    style = \"rounded,filled\",\n    fontname = Helvetica,\n    fontcolor = white,\n    fontsize = 15,\n    penwidth = 0,\n    margin = \"0.22,0.18\",\n    width = 3,\n    height = 1.6,\n    fixedsize = true\n  ]\n\n  edge [\n    penwidth = 3,\n    arrowsize = 1.1,\n    arrowhead = vee,\n    color = \"#5D6D7E\"\n  ]\n\n  { rank = same; pregunta; teoria; datos; modelo }\n  { rank = same; evidencia; interpretacion; decisiones }\n\n  pregunta [\n    fillcolor = \"#1B2A4A\",\n    label = <<B>Pregunta econ&#243;mica<\/B><BR/><BR/>\n      <FONT POINT-SIZE=\"12\">&#191;Qu&#233; queremos<BR/>explicar?<\/FONT>>\n  ]\n\n  teoria [\n    fillcolor = \"#1F4E79\",\n    label = <<B>Teor&#237;a econ&#243;mica / intuici&#243;n<\/B><BR/><BR/>\n      <FONT POINT-SIZE=\"12\">&#191;Qu&#233; explicaci&#243;n<BR/>proponemos?<\/FONT>>\n  ]\n\n  datos [\n    fillcolor = \"#2E75B6\",\n    label = <<B>Datos<\/B><BR/><BR/>\n      <FONT POINT-SIZE=\"12\">&#191;Qu&#233; informaci&#243;n<BR/>necesitamos?<\/FONT>>\n  ]\n\n  modelo [\n    fillcolor = \"#2A9D8F\",\n    fontsize = 14,\n    label = <<B>Modelo econom&#233;trico<\/B><BR/><BR/>\n      <FONT POINT-SIZE=\"12\">&#191;C&#243;mo traducimos<BR/>la teor&#237;a?<\/FONT>>\n  ]\n\n  evidencia [\n    fillcolor = \"#21867A\",\n    label = <<B>Evidencia<\/B><BR/><BR/>\n      <FONT POINT-SIZE=\"12\">&#191;Qu&#233; muestran<BR/>los datos?<\/FONT>>\n  ]\n\n  interpretacion [\n    fillcolor = \"#3C8D40\",\n    label = <<B>Interpretaci&#243;n<\/B><BR/><BR/>\n      <FONT POINT-SIZE=\"12\">&#191;Qu&#233; podemos<BR/>concluir?<\/FONT>>\n  ]\n\n  decisiones [\n    fillcolor = \"#2E7D32\",\n    label = <<B>Decisiones<\/B><BR/><BR/>\n      <FONT POINT-SIZE=\"12\">&#191;Qu&#233; decisiones puede<BR/>respaldar la evidencia?<\/FONT>>\n  ]\n\n  decisiones -> interpretacion -> evidencia [\n    style = invis,\n    weight = 10\n  ]\n\n  pregunta -> teoria -> datos -> modelo\n  modelo -> evidencia\n  evidencia -> interpretacion -> decisiones [\n    constraint = false\n  ]\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 
 <blockquote>
 <p>En cada etapa del proceso el econometrista debe tomar decisiones que influyen en la calidad de la evidencia obtenida.</p>

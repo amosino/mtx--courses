@@ -9,3 +9,4 @@
 *.vrb
 *.out
 *.synctex.gz
+.Rproj.user

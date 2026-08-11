@@ -1,6 +1,8 @@
 ---
-title: "Introducción"
-author: "Alejandro Mosiño - _Universidad de Guanajuato_"
+title: "Econometría"
+subtitle: "Introducción"
+author: 
+  - "Alejandro Mosiño - _Universidad de Guanajuato_"
 date: "v.2026.08.04"
 
 knit: (function(inputFile, encoding) {
@@ -14,7 +16,7 @@ output:
     slide_level: 3
     css: ../src/custom.css
 ---
-<a class="qmii-footer" href="MTX1--00--Intro.pdf" target="_blank">
+<a class="pdf-footer" href="MTX1--00--Intro.pdf" target="_blank">
   PDF
 </a>
 
