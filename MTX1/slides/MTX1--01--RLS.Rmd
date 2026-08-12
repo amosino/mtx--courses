@@ -1,8 +1,9 @@
 ---
 title: "Econometría"
-subtitle: "_El modelo de regresión lineal simple_"
-author: "Alejandro Mosiño - _Universidad de Guanajuato_"
-date: "v.2026.08.07"
+subtitle: "El modelo de regresión lineal simple"
+author: 
+  - "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v.2026.08.11"
 
 knit: (function(inputFile, encoding) {
   rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
@@ -15,8 +16,18 @@ output:
     slide_level: 3
     css: ../src/custom.css
 ---
+<a class="pdf-footer" href="MTX1--01--RLS.pdf" target="_blank">
+  PDF
+</a>
 
 ## Construcción del modelo
+
+### La curiosidad
+
+Consideremos la siguiente pregunta de investigación:
+
+> ¿Cómo se relaciona el ingreso per cápita con la esperanza de vida? En particular, ¿un aumento en el ingreso hace que las personas vivan más?
+
 
 ### Datos
 
@@ -177,9 +188,9 @@ p3
 
 ## El modelo de regresión simple
 
-### La línea de regresión (1/2)
+### El término de error
 
-La ecuación para \(y_i\) tiene dos componentes:
+Para incorporar al modelo las diferencias entre la línea recta y los valores efectivamente observados, agregamos un **término de error**, también conocido como **perturbación** o **ruido**, \(u_i\). El modelo tiene ahora dos componentes:
 
 $$
 y_i = 
@@ -188,16 +199,23 @@ y_i =
 \text{\(\displaystyle \color{#00BFC4}{u_i}\)}
 $$
 
-1. El elemento <span style="color:#F8766D">\( \beta_1 + \beta_2 x_i \)</span> es la _parte no aleatoria_ (determinista).
+1. El elemento <span style="color:#F8766D">\( \beta_1 + \beta_2 x_i \)</span> es el _componente sistemático_ (parte no aleatoria o determinista).
 
-2. El elemento <span style="color:#00BFC4">\( u_i \)</span> es la _parte aleatoria_.
+2. El elemento <span style="color:#00BFC4">\( u_i \)</span> es el _componenente aleatorio_.
 
 
-### La línea de regresión (2/2)
+Ahora el modelo reconoce explícitamente que \(x_i\) no explica por sí sola todas las diferencias observadas en \(y_i\).
 
-Si conociéramos los valores de \(\beta_1\) y \(\beta_2\), la línea buscada partiría de \(\beta_1\) y tendría pendiente \(\beta_2\). En otras palabras, en ausencia del error (\(u_i = 0\)), observaríamos los puntos \(Q_1\) - \(Q_4\).
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="50%"}
+### Componente sistemático y el término de error
+
+Si conociéramos los _valores verdaderos_ de \(\beta_1\) y \(\beta_2\), podríamos localizar exactamente los puntos \(Q_1\) - \(Q_4\), que representan la parte sistemática del modelo. La línea  \(Q_1\) - \(Q_4\) puede pensarse como una _recta poblacional_.
+
+<div style="display:flex; align-items:flex-start; gap:24px;">
+
+<div style="flex:1;">
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
 library(tidyverse)
 
 # Datos ficticios diseñados para que los residuales se vean claros
@@ -256,7 +274,7 @@ ggplot(datos, aes(x = x, y = y)) +
   labs(
     x = expression(x[i]),
     y = expression(y[i]),
-    title = "Recta verdadera y errores",
+    title = "Recta poblacional y término de error",
     subtitle = expression(y[i] == beta[1] + beta[2]*x[i] + u[i])
   ) +
   coord_cartesian(clip = "off") +
@@ -268,24 +286,34 @@ ggplot(datos, aes(x = x, y = y)) +
 
 ```
 
+</div>
 
-El problema es que en la práctica solo observamos los puntos \(P_1\) - \(P_4\). Por lo tanto, _dado que los \(u_i\) son desconocidos_, no podemos saber con certeza la localización de los puntos \(Q_1\) - \(Q_4\).
+<div style="flex:1;">
+
+
+El problema es que en la práctica solo observamos los puntos \(P_1\) - \(P_4\). Por lo tanto, _dado que los \(u_i\) son desconocidos_, no podemos saber con certeza la localización de los puntos \(Q_1\) - \(Q_4\). 
+
+> En realidad _sólo Dios sabe dónde se encuentran los puntos \(Q_1\) - \(Q_4\)_.
+
+</div>
+</div>
+
 
 
 ### ¿Por qué existe \(u_i\)?
 
-La inclusión de \(u_i\) en el modelo se justifica por las siguientes razones:
+El término \(u_i\) recoge todos los factores que afectan a \(y_i\) y que no están representados explícitamente por \(x_i\). Por ejemplo:
 
-- Posible omisión de variables explicativas.
-- Agregación incorrecta de variables.
-- Especificación incorrecta del modelo.
-- Forma funcional incorrecta.
-- Errores de medición.
+- Variables explicativas no incluidas;
+- Características no observables;
+- Errores de medición;
+- Choques aleatorios;
+- Aproximaciones derivadas de la forma funcional utilizada.
 
 
-### Aproximando la línea \(Q_1\) - \(Q_4\) (1/3)
+### ¿Cómo aproximamos la recta poblacional? (1/3)
 
-¿Cómo aproximamos la línea delimitada por los puntos \(Q_1\) - \(Q_4\)?
+Como no conocemos \(\beta_1\) y \(\beta_2\), debemos estimarlos a partir de los puntos que sí observamos. ¿Cómo podemos hacerlo?
 
 <div style="display:flex; align-items:flex-start; gap:24px;">
 
@@ -341,7 +369,7 @@ ggplot(datos_eye_base, aes(x, y)) +
   scale_x_continuous(breaks = datos_eye_base$x, labels = NULL, limits = c(0.5, 4.5)) +
   scale_y_continuous(limits = c(min(datos_eye_base$y) - 2.8, max(datos_eye_base$y) + 2.5)) +
   labs(
-    title = "Recta estimada vs. recta verdadera",
+    title = "Aproximación de la recta poblacional",
     subtitle = expression(hat(y)[i] == b[1] + b[2] * x[i]),
     x = expression(x[i]), y = expression(y[i])
   ) +
@@ -355,7 +383,7 @@ ggplot(datos_eye_base, aes(x, y)) +
 </div>
 
 
-### Aproximando la línea \(Q_1\) - \(Q_4\) (2/3)
+### ¿Cómo aproximamos la recta poblacional? (2/3)
 
 Podemos usar técnicas más sofisticadas para encontrar \(b_1\) y \(b_2\). Estas requiere el cálculo del (de los) **residual** (**residuales**) de estimación, \(e_i\).
 
@@ -370,6 +398,9 @@ e_i &= y_i - \hat{y}_i \\
 &= y_i - b_1 - b_2 x_i
 \end{align}
 $$
+
+_Nota._ El error \(u_i\) mide la distancia respecto de la línea poblacional; el residual \(e_i\) mide la distancia respecto de la línea estimada.
+
 
 </div>
 
@@ -443,7 +474,7 @@ ggplot(datos_plot, aes(x = x, y = y)) +
   scale_x_continuous(breaks = datos_plot$x, labels = NULL, limits = c(0.5, 4.5)) +
   scale_y_continuous(limits = c(min(datos_plot$y) - 2.8, max(datos_plot$y) + 2.5)) +
   labs(
-    title = "Recta estimada y residuales",
+    title = "Aproximación de la recta poblacional y el residual",
     subtitle = expression(hat(y)[i] == b[1] + b[2]*x[i] ~~~ "," ~~ e[i] == y[i] - hat(y)[i]),
     x = expression(x[i]),
     y = expression(y[i])
@@ -460,15 +491,15 @@ ggplot(datos_plot, aes(x = x, y = y)) +
 </div>
 </div>
 
-El objetivo es encontrar \(b_1\) y \(b_2\) tal que los valores de \(e_i\) sean los más bajos posibles.
+Nuestro objetivo será encontrar \(b_1\) y \(b_2\) de manera que, en conjunto, los residuales sean lo más pequeños posible.
 
 
 
-### Aproximando la línea \(Q_1\) - \(Q_4\) (3/3)
+### ¿Cómo aproximamos la recta poblacional? (3/3)
 
 <span class="emphasis-blue">Ejercicio</span>
 
-Encuentra los valores de \(b_1\) y \(b_2\) tales que:
+Una primera posibilidad sería seleccionar los valores de \(b_1\) y \(b_2\) que hagan que la suma de los residuales se minimice:
 
 $$
 \begin{align}
@@ -477,19 +508,21 @@ $$
 \end{align}
 $$
 
-donde \(n\) es el número de observaciones. Explica y comenta.
+donde \(n\) es el número de observaciones. ¿Crees que este criterio funciona? Explica y comenta.
 
 ## El método de los mínimos cuadrados ordinarios
 
 ### El método de los mínimos cuadrados ordinarios
 
-El método de los **mínimos cuadrados ordinarios** (MCO u OLS, por sus siglas en inglés) encuentra los valores de \(b_1\) y \(b_2\) que:
+El criterio anterior presenta un problema: los residuales positivos y negativos pueden cancelarse. Entonces, necesitamos una forma de medir la magnitud de los residuales que evite esta cancelación.
+
+El método de **mínimos cuadrados ordinarios** (MCO u OLS, por sus siglas en inglés) propone una solución sencilla: elevar los residuales al cuadrado y elegir la recta que minimiza su suma. Entonces:
 
 $$
-(b_1,b_2) = \arg\min\sum_{i=1}^n RSS
+(b_1,b_2) = \arg\min RSS
 $$
 
-donde el **RSS** (Residual Sum of Squares) es la suma de los residuales al cuadrado:
+donde el **RSS** (Residual Sum of Squares) es la suma del cuadrado de los residuales:
 
 $$
 \begin{align}
@@ -498,7 +531,7 @@ RSS &= \sum_{i=1}^n e_i^2\\
 \end{align}
 $$
 
-### MCO: Ejemplo (1/2)
+### MCO: dos observaciones
 
 <span class="emphasis-blue">Ejercicio</span>  
 
@@ -563,7 +596,7 @@ ggplot(datos_disp, aes(x, y)) +
 
 Encuentra los estimadores de mínimos cuadrados ordinarios \(b_1\) y \(b_2\). Comenta tus resultados.
 
-### MCO: Ejemplo (2/2)
+### MCO: Cuando ningún ajuste es perfecto
 
 <span class="emphasis-blue">Ejercicio</span>  
 
@@ -623,7 +656,7 @@ ggplot(datos_disp, aes(x, y)) +
 </div>
 </div>
 
-Encuentra los estimadores de mínimos cuadrados ordinarios \(b_1\) y \(b_2\). Comenta tus resultados.
+Encuentra los estimadores de mínimos cuadrados ordinarios \(b_1\) y \(b_2\). Comenta tus resultados. En particular ¿qué cambió respecto al ejemplo anterior?
 
 
 ### MCO: Caso general (1/3)
@@ -647,7 +680,7 @@ $$
 
 ### MCO: Caso general (2/3)
 
-Nota que las ecuaciones normales de la regresión no son otra cosa que las condiciones de primer orden del problema de minimización. Manipulando estas obtenemos la solución al problema:
+Nota que las ecuaciones normales de la regresión no son otra cosa que las condiciones de primer orden del problema de minimización. Resolviendo estas, obtenemos los valores de \(b_1\) y \(b_2\) que minimizan el RSS:
 
 $$
 \begin{align}
@@ -680,13 +713,13 @@ knitr::kable(datos3,
 
 ```
 
-Encuentra los estimadores de mínimos cuadrados ordinarios \(b_1\) y \(b_2\). Comenta tus resultados.
+Encuentra los estimadores de mínimos cuadrados ordinarios \(b_1\) y \(b_2\). Comenta tus resultados. ¿Cuál sería la intución económica de la recta estimada?
 
 ### Fórmulas alternativas para \(b_2\)
 
-<span class="emphasis-blue">Ejercicio*</span>  
+<span class="emphasis-blue">Ejercicio*</span>
 
-Muestra que \(b_2\) también puede encontrarse mediante las siguientes fórmulas alternativas:
+La expresión anterior no es la única formas de escribir \(b_2\). Las siguientes representaciones serán útiles para estudiar posteriormente las propiedades del estimador:
 
 $$
 b_2 = \frac{\sum_{i=1}^n x_iy_i - n\bar{x}\bar{y}}{\sum_{i=1}^n x_i^2 - n\bar{x}^2}
@@ -700,25 +733,41 @@ w_i&= \frac{x_i - \bar{x}}{\sum_{i=1}^n (x_i - \bar{x})^2}
 \end{align}
 $$
 
-## Descomposición de la variable dependiente
+## Propiedades algebráicas de MCO
 
-### Descomposición de la variable dependiente (1/3)
+### Dos descomposiciones de la variable dependiente (1/3)
 
-Podemos descomponer la variable dependiente, \(y_i\) de dos maneras alternativas:
+Podemos descomponer la variable dependiente, \(y_i\), de dos maneras alternativas:
 
-- Descomposición de la variable dependiente en un _componente no estocástico y el término de error_.
-- Descomposición de la variable dependiente en su _valor estimado y el residual_.
+- Modelo poblacional: descomposición de la variable dependiente en un _componente sistemático y el término de error_.
 
-### Descomposición de la variable dependiente (2/3)
+- Modelo estimado: descomposición de la variable dependiente en su _valor estimado y el residual_.
 
-Descomposición de la variable dependiente en un _componente no estocástico y el término de error_:
+### Modelo poblacional
+
+Descomposición de la variable dependiente en un _componente sistemático y el término de error_.
+
+<div style="display:flex; align-items:flex-start; gap:24px;">
+
+<div style="flex:1;">
+
+Tenemos:
+
 
 $$
 y_i = \beta_1 + \beta_2 x_i + u_i
 $$
+Nota que, en esta descomposición, cada punto en la gráfica resulta de:
 
+$$
+P_i=Q_i+u_i
+$$
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="50%"}
+</div>
+
+<div style="flex:1;">
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
 
 library(tidyverse)
 
@@ -770,13 +819,21 @@ ggplot() +
 
 ```
 
+</div>
+</div>
 
-Descomposición de la variable dependiente en un _componente no estocástico, QT_, y el _término de error, PQ_.
 
 
-### Descomposición de la variable dependiente (3/3)
+### Modelo estimado
 
 Descomposición de la variable dependiente en su _valor estimado y el residual_.
+
+<div style="display:flex; align-items:flex-start; gap:24px;">
+
+<div style="flex:1;">
+
+Tenemos:
+
 
 $$
 \begin{align}
@@ -784,7 +841,18 @@ y_i &= \hat{y}_i + e_i \\
 &= b_1 + b_2 x_i + e_i
 \end{align}
 $$
-```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="50%"}
+Nota que, en esta descomposición, cada punto en la gráfica resulta de:
+
+$$
+P_i=R_i+e_i
+$$
+
+</div>
+
+<div style="flex:1;">
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
 
 library(tidyverse)
 
@@ -837,13 +905,13 @@ ggplot() +
 ```
 
 
-Descomposición de la variable dependiente en su  _valor estimado, RT_, y el _residual, PR_.
+</div>
+</div>
 
 
-## Resultados importantes de la regresión por MCO
 
 
-### Resultados importantes de la regresión por MCO (1/2)
+### Propiedades algebraicas de MCO: residuales
 
 Podemos demostrar que:
 
@@ -857,7 +925,7 @@ $$
 \mathbb{C}ov (x, e) = 0
 $$
 
-### Resultados importantes de la regresión por MCO (2/2)
+### Propiedades algebraicas de MCO: valores estimados
 
 <span class="emphasis-blue">Ejercicio</span>
 
@@ -873,11 +941,13 @@ $$
 $$
 
 
-## Interpretación de los coeficientes estimados
+## Interpretación y transformaciones
 
-### Interpretación de los coeficientes estimados (1/6)
+### Interpretación de los coeficientes estimados (1/3)
 
-¿Cómo interpretamos los coeficientes de la ecuación estimada?
+Hasta ahora hemos aprendido a construir la ecuación estimada. Pero el análisis no termina aquí. Aun debemos interpretar qué nos dice la estimación acerca del fenómeno que estamos estudiando.
+
+En general:
 
 $$
 \hat{y}_i = b_1 + b_2 x_i
@@ -889,7 +959,7 @@ $$
 - El valor estimado de \(y_i\) es igual a \(b_1\) cuando \(x_i = 0\).
 
 
-### Interpretación de los coeficientes estimados (2/6)
+### Interpretación de los coeficientes estimados (2/3)
 
 <span class="emphasis-blue">Ejemplo</span>
 
@@ -942,23 +1012,12 @@ $$
 \end{align}
 $$
 
-### Interpretación de los coeficientes estimados (3/6)
 
-Los estimadores estimados también nos permiten calcular la **elasticidad** de la variable \(x_i\) sobre \(y_i\):
+¿Cómo lees este resultado?
 
-$$
-\begin{align}
-\varepsilon_{y,x} &= \frac{\%\Delta y}{\%\Delta x} \\
-&=\frac{\partial y}{\partial x} \cdot \frac{x}{y} = b_2 \cdot \frac{x}{y}
-\end{align}
-$$
+### Interpretación de los coeficientes estimados (3/3)
 
-<span class="emphasis-blue">Nota</span>. En la práctica, \(x\) y \(y\) se reemplazan por los valores promedio.
-
-
-### Interpretación de los coeficientes estimados (4/6)
-
-De igual forma, los coeficientes estimados pueden utilizarse para hacer pronósticos:
+De igual forma, los coeficientes estimados pueden utilizarse para hacer predicciones:
 
 $$
 \begin{align}
@@ -966,10 +1025,12 @@ $$
 &= b_1 + b_2 x_0
 \end{align}
 $$
-Donde \(x_0\) es algún valor de \(x\). Por ejemplo, ¿cuál es la esperanza de vida para un país cuyo ingreso per capita es de $18,000?
+Donde \(x_0\) es algún valor de \(x\). 
+
+¿Cuál es la esperanza de vida para un país cuyo ingreso per capita es de $18,000?
 
 
-### Interpretación de los coeficientes estimados (5/6)
+### Transformaciones de escala
 
 
 <span class="emphasis-blue">Ejercicio*</span>
@@ -989,8 +1050,7 @@ y_i^* & = \lambda_1 + \lambda_2 y_i
 \end{align}
 $$
 
-### Interpretación de los coeficientes estimados (6/6)
-
+### Transformaciones de centrado
 
 <span class="emphasis-blue">Ejercicio*</span>
 
@@ -1013,9 +1073,16 @@ $$
 
 ## Propiedades de los coeficientes estimados
 
-### Supuestos del modelo de regresión simple (1/4)
+### ¿Qué tan buenos son los estimadores de MCO?
 
-Para mostrar las propiedades de los coeficientes estimados, necesitamos primero conocer cuáles son los supuestos del modelo de regresión simple. 
+Hasta ahora hemos aprendido a construir e interpretar los estimadores \(b_1\) y \(b_2\). Pero... ¿Podemos confiar en ellos?
+
+
+Para responder a esta pregunta, debemos estudiar sus _propiedades matemáticas_.
+
+### ¿Qué necesitamos suponer? (1/4)
+
+Las propiedades de los estimadores de MCO dependen de una serie de supuestos sobre el modelo. Estos supuestos son los siguientes:
 
 <ol start="1">
   <li>El modelo es lineal en sus parámetros y está correctamente especificado:
@@ -1027,7 +1094,7 @@ Para mostrar las propiedades de los coeficientes estimados, necesitamos primero 
 </ol>
 
 
-### Supuestos del modelo de regresión simple (2/4)
+### ¿Qué necesitamos suponer? (2/4)
 
 Los siguientes son los supuestos relacionados con el _término de error_, \(u_i\). Estos se conocen como **supuestos de Gauss-Markov**:
 
@@ -1053,7 +1120,7 @@ Los siguientes son los supuestos relacionados con el _término de error_, \(u_i\
 </ol>
 
 
-### Supuestos del modelo de regresión simple (3/4)
+### ¿Qué necesitamos suponer? (3/4)
 
 <ol start="4">
   <li>La covarianza entre los errores de cualesquiera dos observaciones es cero. Este es el supuesto de la **no autocorrelación**:
@@ -1076,7 +1143,7 @@ Los siguientes son los supuestos relacionados con el _término de error_, \(u_i\
 </li>
 </ol>
 
-### Supuestos del modelo de regresión simple (4/4)
+### ¿Qué necesitamos suponer? (4/4)
 
 <ol start="6">
   <li>(_Conveniencia_). Finalmente, se supone que el error, \(u_i\), sigue una distribución normal.
@@ -1102,7 +1169,7 @@ b_2 =
 $$
 
 
-1. El elemento \(\text{\(\displaystyle \color{#F8766D}{\beta_2}\)}\) es la parte no aleatoria (determinista).
+1. El elemento \(\text{\(\displaystyle \color{#F8766D}{\beta_2}\)}\) es la parte sistemática (determinista).
 
 
 2. El elemento \(\text{\(\displaystyle \color{#00BFC4}{\frac{\mathbb{C}ov(x,u)}{\mathbb{V}ar(x)}}\)}\) es la parte aleatoria.
@@ -1135,20 +1202,22 @@ $$
 $$
 
 
-### Propiedades de los estimadores de MCO
+### ¿Qué significa que un estimador sea bueno?
 
-Los supuestos anteriores (_específicamente los de Gauss-Markov_) nos permiten demostrar que los estimadores son:
+Un buen estimador debería cumplir tres propiedades fundamentales:
 
-- **Insesgados**:
+- **Insesgadez**. Esto es, _en promedio_, el estimador es igual a su valor verdadero. En el caso de los estimadores de MCO, esto significa que:
+
 $$
 \mathbb{E}(b_1) = \beta_1; \qquad \mathbb{E}(b_2) = \beta_2
 $$
-- **Eficientes**: De toda la gama de estimadores insesgados para \(\beta_1\) y \(\beta_2\), \(b_1\) y \(b_2\) son los de mínima varianza.
+
+- **Eficiencia**. Buscamos los estimadores con la mínima varianza.
   
-- **Consistentes**: los estimadores para \(\beta_1\) y \(\beta_2\) convergen en probabilidad a sus verdaderos parámetros cuando \(n \to \infty\).
+- **Consistencia**. Los estimadores convergen en probabilidad a sus valores verdaderos cuando \(n \to \infty\).
 
 
-### Los coeficientes son insesgados
+### Los estimadores de MCO son insesgados
 
 <span class="emphasis-blue">Ejercicio</span>  
 
@@ -1161,7 +1230,7 @@ $$
 $$
 
 
-### Los estimadores son eficientes (1/5)
+### Los estimadores de MCO son eficientes (1/5)
 
 Para saber si los estimadores de MCO son eficientes, primero tenemos que calcular su varianza:
 
@@ -1172,7 +1241,7 @@ $$
 \end{align}
 $$
 
-### Los estimadores son eficientes (2/5)
+### Los estimadores de MCO son eficientes (2/5)
 
 <span class="emphasis-blue">Ejercicio</span>  
 
@@ -1187,7 +1256,7 @@ $$
 \mathbb{V}ar(b_1) = \sigma^2 \left[ \frac{\sum_{i=1}^n x_i^2}{n \sum_{i=1}^n (x_i - \bar{x})^2}\right]; \qquad \mathbb{C}ov(b_1,b_2) = \sigma^2 \left[ \frac{-\overline{x}}{ \sum_{i=1}^n (x_i - \bar{x})^2}\right]
 $$
 
-### Los estimadores son eficientes (3/5)
+### Los estimadores de MCO son eficientes (3/5)
 
 Para demostrar que los estimadores de MCO tienen la varianza más pequeña, definimos toda la gama posible de estimadores lineales insesgados para \(\beta_2\):
 $$
@@ -1200,7 +1269,7 @@ $$
 c_i = w_i
 $$
 
-### Los estimadores son eficientes (4/5)
+### Los estimadores de MCO son eficientes (4/5)
 
 <span class="emphasis-blue">Ejercicio</span>  
 
@@ -1215,7 +1284,7 @@ $$
 \mathbb{V}ar(\tilde{\beta}_2) = \frac{\sigma^2}{\sum_{i=1}^n (x_i - \bar{x})^2} + \sigma^2 \sum_{i=1}^n\left(c_i - w_i\right)^2
 $$
 
-### Los estimadores son eficientes (5/5)
+### Los estimadores de MCO son eficientes (5/5)
 
 Concluimos que los estimadores de MCO con eficientes dado que:
 
@@ -1229,17 +1298,17 @@ $$
 
 ### Teorema de Gauss–Markov
 
-Los resultados que hemos encontrado se resumen en el **Teorema de Gauss - Markov**:
+Las propiedades anteriores se resumen en uno de los resultados fundamentales de la econometría clásica:
 
-Si los supuestos 1–5 del modelo de regresión simple se satisfacen, los estimadores de MCO, \(b_1\) y \(b_2\), son **MELI** (Mejores Estimadores Lineales Insesgados).
-
-
-<span class="emphasis-blue">Nota. </span> Los estimadores son **BLUE** (_Best Linear Unbiased Estimators_)  
+> Si los supuestos 1–5 del modelo de regresión simple se satisfacen, los estimadores de MCO, \(b_1\) y \(b_2\), son **MELI** (Mejores Estimadores Lineales Insesgados).
 
 
-### Los estimadores son consistentes(1/3)
+<span class="emphasis-blue">Nota. </span> Los estimadores son **BLUE** (_Best Linear Unbiased Estimators_). Este es el conocido **Teorema de Gauss - Markov**.
 
-Para saber si los estimadores son consistentes, debemos recordar primero algunas de las reglas de los límites en probabilidad, **plim**. Sean \(x\) y \(y\) dos series de valores:
+
+### Los estimadores son consistentes (1/3)
+
+A diferencia de la insesgadez y la eficiencia, la consistencia describe el comportamiento de los estimadores cuando el tamaño de muestra crece indefinidamente. Para saber si los estimadores son consistentes, debemos recordar primero algunas de las reglas de los límites en probabilidad, **plim**. Sean \(x\) y \(y\) dos series de valores:
 
 <ol start="1">
   <li>Si \(z = x/y\):  
@@ -1249,7 +1318,7 @@ $$\text{plim}(z) = \text{plim}(x) \cdot \text{plim}(y)$$
 </li> 
 </ol> 
 
-### Los estimadores son consistentes(2/3)
+### Los estimadores son consistentes (2/3)
 
 
 <ol start="3">
@@ -1293,11 +1362,11 @@ $$
 
 ### Estimadores para las varianzas de \(b_1\) y \(b_2\) (1/4)
 
-<span class="emphasis-blue">Nota importante</span>
+<span class="emphasis-blue">Nota.</span>
 
-Nota que, dado que \(u_i\) es desconocido \(\sigma^2\) también lo es. Esto implica que, para estimar la varianza de los estimadores, primero tenemos que estimar la varianza de los errores.
+Las expresiones obtenidas para \(\mathbb{V}{ar}(b_1)\) y \(\mathbb{V}{ar}(b_2)\) dependen de \(\sigma^2\), la varianza del término de error. Naturalemente, como \(u_i\) es desconocido, también lo será \(\sigma^2\).
 
-Se puede demostrar que un estimador insesgado de la varianza de los errores es:
+Se puede demostrar que un _estimador insesgado de la varianza de los errores_ es:
 
 $$
 \begin{align}
@@ -1379,15 +1448,27 @@ kable(tabla2, format = "html", escape = FALSE,
 
 ## Bondad de ajuste: \(R^2\)
 
-### Análisis de varianza, la \(R^2\) (1/6)
+### ¿Qué tan bien explica el modelo los datos?
 
-El objetivo de un análisis de regresión es explicar el comportamiento de la variable dependiente \(y_i\). Estas pueden resumirse calculando la **Suma total de cuadrados (TSS)**:
+Hasta ahora hemos aprendido a construir una regresión e interpretar sus coeficientes, pero todavía queda una pregunta importante: 
+
+>¿Qué tan bien se ajusta el modelo a los datos observados?
+
+
+### Suma total de los cuadrados
+
+_¿Qué tan bien se ajusta el modelo a los datos observados?_
+
+Para responder, calculamos primero la **Suma total de cuadrados (TSS)**:
 
 $$
 TSS = \sum_{i=1}^n (y_i - \bar{y})^2
 $$
+La TSS mide la _variabilidad total_ de la variable dependiente. En particular, suma los cuadrados de las desviaciones de cada observación respecto de su media. 
 
-### Análisis de varianza, la \(R^2\)(2/6)
+El TSS Representa toda la _variabilidad que existe en los datos antes de estimar cualquier modelo_.
+
+### Suma de cuadrados explicados y RSS (1/2)
 
 Recordemos que:
 
@@ -1400,11 +1481,26 @@ A partir de esta, podemos mostrar que:
 $$
 \sum_{i=1}^n (y_i - \bar{y})^2 = \sum_{i=1}^n (\widehat{y}_i - \bar{y})^2 + \sum_{i=1}^n e_i^2
 $$
-Esto es la suma total de cuadrados (TSS) se descompone en la **suma de cuadrados explicados (ESS)** y la suma del cuadrado de los residuales (RSS).
+Esto es, la suma total de cuadrados (TSS) se descompone en la **suma de cuadrados explicados (ESS)** y la suma del cuadrado de los residuales (RSS):
 
-### Análisis de varianza, la \(R^2\) (3/6)
+$$
+TSS = ESS + RSS
+$$
 
-La \(R^2\), o **coeficiente de determinación**, es la proporción de las variaciones totales en \(y_i\) que sí podemos explicar a través de la estimación del modelo. Es decir: 
+### Suma de cuadrados explicados y RSS (2/2)
+
+$$
+TSS = ESS + RSS
+$$
+
+- La ESS mide la _variabilidad explicada_ por el modelo. Representa la _parte de la variabilidad total que la regresión logra explicar mediante las variables incluidas en el modelo_.
+
+
+- La RSS mide la _variabilidad que el modelo no logra explicar_. Representa la _parte de la variabilidad total que permanece sin explicar después de estimar la regresión._
+
+### Análisis de varianza, la \(R^2\) (1/4)
+
+La \(R^2\), o **coeficiente de determinación**, mide qué proporción de la variabilidad observada en \(y_i\) logra explicar el modelo estimado. Es decir: 
 
 
 $$
@@ -1417,7 +1513,7 @@ $$
 R^2 = 1- \frac{ \sum_{i=1}^n e_i^2}{\sum_{i=1}^n (y_i - \bar{y})^2} = 1 - \frac{RSS}{TSS}
 $$
 
-### Análisis de varianza, la \(R^2\) (4/6)
+### Análisis de varianza, la \(R^2\) (2/4)
 
 A partir de su definición, es claro que:
 
@@ -1427,11 +1523,13 @@ $$
 
 Tenemos que:
 
-- Cuando la \(R^2\) se acerca a 1, más de la variabilidad de \(y_i\) se explica por el modelo. Entonces, _a mayor \(R^2\) mejor ajuste_ (sin implicar necesariamente causalidad).
+- Cuando la \(R^2\) se acerca a 1, más de la variabilidad de \(y_i\) se explica por el modelo. Entonces, _a mayor \(R^2\) mejor ajuste_.
 
 - Cuando la \(R^2\) se acerca a 0, menos de la variabilidad de \(y_i\) se explica por el modelo (más de la variabilidad de \(y_i\) es inexplicable). Entonces, _a menor \(R^2\) peor ajuste_.
 
-### Análisis de varianza, la \(R^2\) (5/6)
+_Nota._ Una \(R^2\) no implica, por sí sola, que la relación sea causal ni que el modelo sea correcto. ¿O tú qué piensas?
+
+### Análisis de varianza, la \(R^2\) (3/4)
 
 <span class="emphasis-blue">Ejemplo</span>
 
@@ -1441,6 +1539,7 @@ Para el modelo de la esperanza de vida y el ingreso per capita tenemos:
 library(tidyverse)
 library(knitr)
 library(kableExtra)
+
 
 # ---- Si no existe `modelo`, creo uno de ejemplo (lo elimino al final) ----
 ._tmp_modelo_created <- FALSE
@@ -1504,18 +1603,25 @@ tabla <- tibble(
   `   ` = right$nombre, `    ` = right$valor
 )
 
-kable(tabla, format = "html", escape = FALSE,
-      col.names = c("", "", "", ""),
-      table.attr = 'class="clean-table"',
-      align = c("l","r","l","r")) %>%
-  kable_styling(full_width = FALSE)
+kable(
+  tabla,
+  format = "html",
+  escape = FALSE,
+  col.names = c("", "", "", ""),
+  table.attr = 'class="clean-table"',
+  align = c("l", "r", "l", "r")
+)
+
 
 # Limpiar si creé un modelo temporal
 if (._tmp_modelo_created) rm(modelo, df_tmp)
 
 ```
 
-### Análisis de varianza, la \(R^2\) (6/6)
+¿Cómo interpretas este resultado? En particular, ¿qué tan bien responde este modelo a la pregunta inicial?
+
+
+### Análisis de varianza, la \(R^2\) (4/4)
 
 <span class="emphasis-blue">Ejercicio*</span>
 
@@ -1550,3 +1656,22 @@ $$
 r_{y,\widehat{y}} = \sqrt{R^2}
 $$
 
+## Resumen
+
+### ¿Qué hemos aprendido?
+
+> ¿Cómo se relaciona el ingreso per cápita con la esperanza de vida?
+
+Para responderla aprendimos a:
+
+- Representar la relación mediante un modelo lineal;
+- Incorporar un término de error;
+- Estimar el componente sistemático mediante mínimos cuadrados ordinarios;
+- Demostrar las propiedades de los estimadores;
+- Interpretar los coeficientes estimados;
+- Evaluar qué tan bien explica el modelo los datos.
+
+### ¿Qué sigue?
+
+
+Hasta ahora, hemos aprendido a construir evidencia cuando una variable explicativa es suficiente para representar el fenómeno de interés. En el siguiente capítulo veremos cómo extender ese razonamiento a problemas donde intervienen múltiples variables de manera simultánea.
