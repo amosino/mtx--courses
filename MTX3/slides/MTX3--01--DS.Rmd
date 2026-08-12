@@ -1,5 +1,6 @@
 ---
-title: "Medidas de dependencia serial y estacionariedad"
+title: "Series de Tiempo Económicas"
+subtitle: "Medidas de dependencia serial y estacionariedad"
 author: 
   - "Alejandro Mosiño - _Universidad de Guanajuato_"
 date: "v. 2025.08.24"
@@ -13,7 +14,12 @@ output:
     transition: 0
     slide_level: 3
     css: ../src/custom.css
+    self_contained: TRUE
 ---
+
+<a class="pdf-footer" href="MTX1--00--Intro.pdf" target="_blank">
+  PDF
+</a>
 
 ## Dependencia serial
 
@@ -381,7 +387,6 @@ y=filter(x, filter=c(1.5,-.75), method="recursive")[-(1:50)]
 z=cumsum(x)
 culer = c(rgb(.66,.12,.85), rgb(.12,.66,.85), rgb(.85,.30,.12))
 tsplot(cbind(WN=x, AR=y, RW=z), type='o', pch=19, col=culer)
-dev.off()
 
 ```
 
@@ -483,11 +488,12 @@ El **correlograma** es la representación gráfica de la función de autocorrela
 
 ```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='60%', out.height='60%'}
 
-par(mfrow=c(3,1))
-acf1(x, 48, main="FAC Ruido Blanco")
-acf1(y, 48, main="FAC AR(2)")
-acf1(z, 48, main="FAC Caminata Aleatoria")
-dev.off()
+{
+  par(mfrow = c(3,1))
+  acf1(x, 48, main = "FAC Ruido Blanco")
+  acf1(y, 48, main = "FAC AR(2)")
+  acf1(z, 48, main = "FAC Caminata Aleatoria")
+}
 
 ```
 
@@ -515,11 +521,15 @@ Algunos ejemplos:
 
 ```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='60%', out.height='60%'}
 
-par(mfrow=c(3,1))
-ccf2(x, y, 48, main="Ruido Blanco & AR(2)")
-ccf2(x, z, 48, main="Ruido Blanco & Caminata Aleatoria")
-ccf2(y, z, 48, main="AR(2) & Caminata Aleatoria")
-dev.off()
+{
+  par(mfrow = c(3,1))
+  ccf2(x, y, 48, main = "Ruido Blanco & AR(2)")
+  ccf2(x, z, 48, main = "Ruido Blanco & Caminata Aleatoria")
+  ccf2(y, z, 48, main = "AR(2) & Caminata Aleatoria")
+}
+#ccf2(x, y, 48, main="Ruido Blanco & AR(2)")
+#ccf2(x, z, 48, main="Ruido Blanco & Caminata Aleatoria")
+#ccf2(y, z, 48, main="AR(2) & Caminata Aleatoria")
 
 ```
 
