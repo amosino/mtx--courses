@@ -209,7 +209,7 @@ Ahora el modelo reconoce explícitamente que \(x_i\) no explica por sí sola tod
 
 ### Componente sistemático y el término de error
 
-Si conociéramos los _valores verdaderos_ de \(\beta_1\) y \(\beta_2\), podríamos localizar exactamente los puntos \(Q_1\) - \(Q_4\), que representan la parte sistemática del modelo. La línea  \(Q_1\) - \(Q_4\) puede pensarse como una _recta poblacional_.
+Si conociéramos los _valores verdaderos_ de \(\beta_1\) y \(\beta_2\), podríamos localizar exactamente los puntos \(Q_1\) - \(Q_4\), que representan la parte sistemática del modelo. La línea  \(Q_1\) - \(Q_4\) puede pensarse como la **tendencia poblacional**.
 
 <div style="display:flex; align-items:flex-start; gap:24px;">
 
@@ -274,7 +274,7 @@ ggplot(datos, aes(x = x, y = y)) +
   labs(
     x = expression(x[i]),
     y = expression(y[i]),
-    title = "Recta poblacional y término de error",
+    title = "Tendencia poblacional y término de error",
     subtitle = expression(y[i] == beta[1] + beta[2]*x[i] + u[i])
   ) +
   coord_cartesian(clip = "off") +
@@ -311,7 +311,7 @@ El término \(u_i\) recoge todos los factores que afectan a \(y_i\) y que no est
 - Aproximaciones derivadas de la forma funcional utilizada.
 
 
-### ¿Cómo aproximamos la recta poblacional? (1/3)
+### ¿Cómo aproximamos la tendencia poblacional? (1/3)
 
 Como no conocemos \(\beta_1\) y \(\beta_2\), debemos estimarlos a partir de los puntos que sí observamos. ¿Cómo podemos hacerlo?
 
@@ -369,7 +369,7 @@ ggplot(datos_eye_base, aes(x, y)) +
   scale_x_continuous(breaks = datos_eye_base$x, labels = NULL, limits = c(0.5, 4.5)) +
   scale_y_continuous(limits = c(min(datos_eye_base$y) - 2.8, max(datos_eye_base$y) + 2.5)) +
   labs(
-    title = "Aproximación de la recta poblacional",
+    title = "Aproximación de la tendencia poblacional",
     subtitle = expression(hat(y)[i] == b[1] + b[2] * x[i]),
     x = expression(x[i]), y = expression(y[i])
   ) +
@@ -383,7 +383,7 @@ ggplot(datos_eye_base, aes(x, y)) +
 </div>
 
 
-### ¿Cómo aproximamos la recta poblacional? (2/3)
+### ¿Cómo aproximamos la tendencia poblacional? (2/3)
 
 Podemos usar técnicas más sofisticadas para encontrar \(b_1\) y \(b_2\). Estas requiere el cálculo del (de los) **residual** (**residuales**) de estimación, \(e_i\).
 
@@ -399,7 +399,7 @@ e_i &= y_i - \hat{y}_i \\
 \end{align}
 $$
 
-_Nota._ El error \(u_i\) mide la distancia respecto de la línea poblacional; el residual \(e_i\) mide la distancia respecto de la línea estimada.
+_Nota._ El error \(u_i\) mide la distancia respecto de la tendencia poblacional; el residual \(e_i\) mide la distancia respecto de la **tendencia estimada**.
 
 
 </div>
@@ -474,7 +474,7 @@ ggplot(datos_plot, aes(x = x, y = y)) +
   scale_x_continuous(breaks = datos_plot$x, labels = NULL, limits = c(0.5, 4.5)) +
   scale_y_continuous(limits = c(min(datos_plot$y) - 2.8, max(datos_plot$y) + 2.5)) +
   labs(
-    title = "Aproximación de la recta poblacional y el residual",
+    title = "Aproximación de la tendencia poblacional y el residual",
     subtitle = expression(hat(y)[i] == b[1] + b[2]*x[i] ~~~ "," ~~ e[i] == y[i] - hat(y)[i]),
     x = expression(x[i]),
     y = expression(y[i])
@@ -495,7 +495,7 @@ Nuestro objetivo será encontrar \(b_1\) y \(b_2\) de manera que, en conjunto, l
 
 
 
-### ¿Cómo aproximamos la recta poblacional? (3/3)
+### ¿Cómo aproximamos la tendencia poblacional? (3/3)
 
 <span class="emphasis-blue">Ejercicio</span>
 
