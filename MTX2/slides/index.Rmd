@@ -1,0 +1,50 @@
+---
+title: "Econometría II"
+subtitle: "Desviaciones del modelo clásico, datos de panel, variables instrumentales y elección discreta"
+author:
+  - "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v. 2026.08.13"
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output:
+  html_document:
+    theme: flatly
+    toc: true
+    toc_depth: 2
+    toc_float: true
+---
+
+<style>
+  body { font-size: 16px; }
+  .course-box{
+    border: 1px solid #e6e6e6;
+    border-radius: 10px;
+    padding: 16px;
+    margin: 12px 0;
+    background: #fafafa;
+  }
+  .chapter-table td { vertical-align: top; }
+  .muted { color: #6c757d; }
+</style>
+
+# Temario
+
+| Bloque | Tema | Enlaces |
+|---:|---|---|
+| 00 | Unidad 0: Introducción | [HTML](MTX2--00--Intro.html) / [PDF](MTX2--00--Intro.pdf) |
+| 01 | Unidad 1: El método de los Mínimos Cuadrados Generalizados | [HTML](MTX2--01--MCG.html) / [PDF](MTX2--01--MCG.pdf) |
+| 02 | Unidad 2: La Heteroscedasticidad | [HTML](MTX2--02--Heteroscedasticidad.html) / [PDF](MTX2--02--Heteroscedasticidad.pdf) |
+| 03 | Unidad 3: La Autocorrelación | [HTML](MTX2--03--Autocorrelacion.html) / [PDF](MTX2--03--Autocorrelacion.pdf) |
+| 04 | Unidad 4: Introducción a la teoría asintótica | [HTML](MTX2--04--Asintotica.html) / [PDF](MTX2--04--Asintotica.pdf) |
+| 05 | Unidad 5: La Endogeneidad | [HTML](MTX2--05--Endogeneidad.html) / [PDF](MTX2--05--Endogeneidad.pdf) |
+| 06 | Unidad 6: Modelos de ecuaciones simultáneas | [HTML](MTX2--06--Simultaneas.html) / [PDF](MTX2--06--Simultaneas.pdf) |
+| 07 | Unidad 7: Modelos con datos de panel | [HTML](MTX2--07--Panel.html) / [PDF](MTX2--07--Panel.pdf) |
+| 08 | Unidad 8: Introducción a la estimación por máxima verosimilitud | [HTML](MTX2--08--Verosimilitud.html) / [PDF](MTX2--08--Verosimilitud.pdf) |
+| 09 | Unidad 9: Modelos de elección binaria | [HTML](MTX2--09--Binaria.html) / [PDF](MTX2--09--Binaria.pdf) |
+
+# Contacto
+
+**Alejandro Mosiño**  
+Universidad de Guanajuato
