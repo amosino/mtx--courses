@@ -1,5 +1,6 @@
 ---
-title: "Modelos de respuesta binaria"
+title: "Econometría II"
+subtitle: "Modelos de respuesta binaria"
 author: 
   - "Alejandro Mosiño - _Universidad de Guanajuato_"
 date: "v. 2026.05.19"
@@ -16,6 +17,9 @@ output:
     css: ../src/custom.css
 ---
 
+<a class="pdf-footer" href="MTX2--09--Binaria.pdf" target="_blank">
+  PDF
+</a>
 
 ## Introducción
 

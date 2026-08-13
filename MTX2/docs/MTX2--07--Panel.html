@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Modelos con datos de panel</title>
+  <title>Econometría II</title>
 
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="chrome=1">
@@ -19,8 +19,9 @@
     var SLIDE_CONFIG = {
       // Slide settings
       settings: {
-                title: 'Modelos con datos de panel',
-                        useBuilds: true,
+                title: 'Econometría II',
+                        subtitle: 'Modelos con datos de panel',
+                useBuilds: true,
         usePrettify: true,
         enableSlideAreas: true,
         enableTouch: true,
@@ -3172,35 +3173,37 @@ text-align: center;
 padding-top: 140px;
 line-height: 1.3;
 font-family: 'Lora', 'Open Sans', sans-serif;
+background-color: #ffffff !important;
 }
 .title-slide h1 {
 font-size: 72px;
 font-weight: bold;
 margin-bottom: 10px;
-color: #000000;
+color: #000000 !important;
 }
 .title-slide h2 {
 font-size: 44px;
 font-style: italic;
 font-weight: normal;
-color: #555555;
+color: #555555 !important;
 margin-bottom: 35px;
+border: none !important;
 }
 .title-slide h3 {
 font-size: 28px;
 font-weight: normal;
 margin-bottom: 5px;
-color: #222222;
+color: #222222 !important;
 }
 .title-slide .author em {
 font-size: 24px;
 font-style: italic;
-color: #777777;
+color: #777777 !important;
 }
 .title-slide .date {
 display: block;
 font-size: 20px;
-color: #777777;
+color: #777777 !important;
 margin-top: 25px;
 }
 
@@ -3277,11 +3280,12 @@ blockquote {
 background: #eaf5ea; 
 border-left: 5px solid #1b9e77; 
 padding: 0.5em 1.5em;
-margin: 1em 0;
+margin: 1em 0 !important;
 }
 blockquote p {
 color: #1b9e77 !important;
 font-weight: bold;
+margin: 1em 0 !important;
 }
 
 
@@ -3357,18 +3361,69 @@ background-color: #f5f5f5 !important;
 
 
 
+a.pdf-footer {
+position: fixed;
+bottom: 12px;
+right: 14px;
+z-index: 9999;
+font-size: 11px;
+font-weight: 500;
+opacity: 0.6;
+color: #555555 !important;
+text-decoration: none !important;
+background: #f8f8f8;
+padding: 4px 8px;
+border-radius: 6px;
+border: 1px solid #adb5bd;
+transition: opacity 0.2s, background 0.2s;
+}
+a.pdf-footer:hover {
+opacity: 1.0;
+background: #e5e5e5;
+}
+
+
+
 @media print {
 * {
 -webkit-print-color-adjust: exact !important;
 color-adjust: exact !important;
 }
-body, slides > slide {
-font-size: 100% !important; 
+html,
+body,
+slides,
+slides > slide,
+slides slide {
+background: #ffffff !important;
+background-image: none !important;
+}
+body,
+slides > slide {
+font-size: 100% !important;
+}
+slides > slide {
+overflow: hidden !important;
+box-shadow: none !important;
+-webkit-box-shadow: none !important;
+}
+.rmdtable,
+slides > slide table {
+box-shadow: none !important;
+-webkit-box-shadow: none !important;
+}
+slides > slide:not(.nobackground):after {
+bottom: 30px !important;
+right: 60px !important;
+line-height: 1 !important;
+}
+p:has(> a.pdf-footer) {
+display: none !important;
 }
 .title-slide h1 { font-size: 72px !important; }
 .title-slide h2 { font-size: 44px !important; }
 .title-slide h3 { font-size: 28px !important; }
-}</style>
+}
+</style>
 
 </head>
 
@@ -3380,11 +3435,13 @@ font-size: 100% !important;
         <!-- The content of this hgroup is replaced programmatically through the slide_config.json. -->
     <hgroup class="auto-fadein">
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
-      
+      <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
             <p style="margin-top: 6px; margin-left: -2px;">v. 2026.05.06</p>
           </hgroup>
   </slide>
+
+<p><a class="pdf-footer" href="MTX2--07--Panel.pdf" target="_blank"> PDF </a></p>
 
 <slide class="segue dark nobackground level2"><hgroup class = 'auto-fadein'><h2>Estructura de los datos panel</h2></hgroup><article  id="estructura-de-los-datos-panel" class="smaller ">
 
@@ -3556,7 +3613,7 @@ C_{6,15} &amp; Q_{6,15} &amp; PF_{6,15} &amp; LF_{6,15} \\
 <pre >## Pooling Model
 ## 
 ## Call:
-## plm(formula = C ~ Q + PF + LF, data = data, model = &quot;pooling&quot;)
+## plm(formula = C ~ Q + PF + LF, data = airlines, model = &quot;pooling&quot;)
 ## 
 ## Balanced Panel: n = 6, T = 15, N = 90
 ## 
@@ -3898,7 +3955,7 @@ Ejercicio</span></p>
 ##    (Swamy-Arora&#39;s transformation)
 ## 
 ## Call:
-## plm(formula = C ~ Q + PF + LF, data = data, model = &quot;random&quot;)
+## plm(formula = C ~ Q + PF + LF, data = airlines, model = &quot;random&quot;)
 ## 
 ## Balanced Panel: n = 6, T = 15, N = 90
 ## 
@@ -4019,7 +4076,8 @@ t&amp;=1,\ldots,15
 <pre >## Pooling Model
 ## 
 ## Call:
-## plm(formula = C ~ Q + PF + LF + factor(I) - 1, data = data, model = &quot;pooling&quot;)
+## plm(formula = C ~ Q + PF + LF + factor(I) - 1, data = airlines, 
+##     model = &quot;pooling&quot;)
 ## 
 ## Balanced Panel: n = 6, T = 15, N = 90
 ## 
@@ -4121,7 +4179,7 @@ y_{i1} &amp; y_{i2} &amp; \ldots &amp; y_{iT}
 <pre >## Oneway (individual) effect First-Difference Model
 ## 
 ## Call:
-## plm(formula = C ~ Q + PF + LF + factor(I), data = data, model = &quot;fd&quot;)
+## plm(formula = C ~ Q + PF + LF + factor(I), data = airlines, model = &quot;fd&quot;)
 ## 
 ## Balanced Panel: n = 6, T = 15, N = 90
 ## Observations used in estimation: 84
@@ -4220,7 +4278,7 @@ Ejercicio</span></p>
 <pre >## Oneway (individual) effect Within Model
 ## 
 ## Call:
-## plm(formula = C ~ Q + PF + LF, data = data, model = &quot;within&quot;)
+## plm(formula = C ~ Q + PF + LF, data = airlines, model = &quot;within&quot;)
 ## 
 ## Balanced Panel: n = 6, T = 15, N = 90
 ## 

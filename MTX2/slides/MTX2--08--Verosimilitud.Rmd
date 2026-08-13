@@ -1,5 +1,6 @@
 ---
-title: "Estimación por el método de máxima verosimilitud"
+title: "Econometría II"
+subtitle: "Estimación por el método de máxima verosimilitud"
 author: 
   - "Alejandro Mosiño - _Universidad de Guanajuato_"
 date: "v. 2024.12.18"
@@ -16,6 +17,9 @@ output:
     css: ../src/custom.css
 ---
 
+<a class="pdf-footer" href="MTX2--08--Verosimilitud.pdf" target="_blank">
+  PDF
+</a>
 
 ## Ejemplo con una distribución Bernoulli
 

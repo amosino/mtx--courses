@@ -1,5 +1,6 @@
 ---
-title: "Ecuaciones simultáneas"
+title: "Econometría II"
+subtitle: "Ecuaciones simultáneas"
 author: 
   - "Alejandro Mosiño - _Universidad de Guanajuato_"
 date: "v. 2025.04.09"
@@ -15,6 +16,10 @@ output:
     slide_level: 3
     css: ../src/custom.css
 ---
+
+<a class="pdf-footer" href="MTX2--06--Simultaneas.pdf" target="_blank">
+  PDF
+</a>
 
 ## Modelos estructural y reducido
 

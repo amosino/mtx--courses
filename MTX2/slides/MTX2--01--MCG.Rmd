@@ -1,5 +1,6 @@
 ---
-title: "El método de los Mínimos Cuadrados Generalizados"
+title: "Econometría II"
+subtitle: "El método de los Mínimos Cuadrados Generalizados"
 author: 
   - "Alejandro Mosiño - _Universidad de Guanajuato_"
 date: "v. 2026.01.27"
@@ -14,6 +15,11 @@ output:
     slide_level: 3
     css: ../src/custom.css
 ---
+
+<a class="pdf-footer" href="MTX2--01--MCG.pdf" target="_blank">
+  PDF
+</a>
+
 
 ## Varianzas y covarianzas de los errores
 

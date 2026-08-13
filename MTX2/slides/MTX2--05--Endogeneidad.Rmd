@@ -1,5 +1,6 @@
 ---
-title: "Regresores estocásticos y errores de medición"
+title: "Econometría II"
+sutitle: "Regresores estocásticos y errores de medición"
 author: 
   - "Alejandro Mosiño - _Universidad de Guanajuato_"
 date: "v. 2026.03.22"
@@ -15,6 +16,10 @@ output:
     slide_level: 3
     css: ../src/custom.css
 ---
+
+<a class="pdf-footer" href="MTX2--05--Endogeneidad.pdf" target="_blank">
+  PDF
+</a>
 
 ## Regresores estocásticos
 

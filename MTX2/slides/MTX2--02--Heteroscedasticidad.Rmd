@@ -1,5 +1,6 @@
 ---
-title: "La heteroscedasticidad"
+title: "Econometría II"
+subtitle: "La heteroscedasticidad"
 author: 
   - "Alejandro Mosiño - _Universidad de Guanajuato_"
 date: "v. 2025.02.10"
@@ -15,6 +16,10 @@ output:
     slide_level: 3
     css: ../src/custom.css
 ---
+
+<a class="pdf-footer" href="MTX2--02--Heteroscedasticidad.pdf" target="_blank">
+  PDF
+</a>
 
 ## ¿Qué es la heteroscedasticidad?
 

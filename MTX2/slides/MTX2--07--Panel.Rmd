@@ -1,5 +1,6 @@
 ---
-title: "Modelos con datos de panel"
+title: "Econometría II"
+subtitle: "Modelos con datos de panel"
 author: 
   - "Alejandro Mosiño - _Universidad de Guanajuato_"
 date: "v. 2026.05.06"
@@ -15,6 +16,11 @@ output:
     slide_level: 3
     css: ../src/custom.css
 ---
+
+<a class="pdf-footer" href="MTX2--07--Panel.pdf" target="_blank">
+  PDF
+</a>
+
 
 ## Estructura de los datos panel
 
@@ -227,11 +233,11 @@ library(tidyverse)
 library(plm)
 library(here)
 
-data <- read_delim(here("data/E211--airlines.csv"))
+airlines <- read_delim(here("data/E211--airlines.csv"))
 
 pls <- plm(C ~ Q + PF + LF, 
            model = "pooling",
-           data=data)
+           data=airlines)
 summary(pls)
 
 ```
@@ -658,7 +664,7 @@ La estimación por MCG del modelo de las aerolineas con efectos aleatorios resul
 
 rem <- plm(C ~ Q + PF + LF, 
            model = "random",
-           data=data)
+           data=airlines)
 summary(rem)
 
 ```
@@ -794,7 +800,7 @@ La estimación por MCO del modelo de aerolíneas con variables _dummy_ resulta e
 
 dvm <- plm(C ~ Q + PF + LF + factor(I) -1,
            model = "pooling",
-           data=data)
+           data=airlines)
 summary(dvm)
 
 ```
@@ -894,7 +900,7 @@ La estimación por MCO del modelo de aerolíneas en primeras diferencias resulta
 
 fdm <- plm(C ~ Q + PF + LF + factor(I),
            model = "fd",
-           data=data)
+           data=airlines)
 summary(fdm)
 ```
 
@@ -997,7 +1003,7 @@ La estimación por MCO del modelo de aerolíneas con efectos fijos versión _wit
 
 fem <- plm(C ~ Q + PF + LF,
            model = "within",
-           data=data)
+           data=airlines)
 summary(fem)
 
 ```
@@ -1091,7 +1097,7 @@ En el ejemplo de las aerolíneas tenemos:
 
 ```{r, echo=FALSE, results="show", message=FALSE, warning=FALSE, out.width='50%', out.height='50%'}
 
-plmtest(fem, type=("bp"))
+plmtest(C ~ Q + PF + LF, data = airlines, type = "bp")
 
 ```
 
