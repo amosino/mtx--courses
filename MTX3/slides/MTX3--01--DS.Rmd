@@ -17,7 +17,7 @@ output:
     self_contained: TRUE
 ---
 
-<a class="pdf-footer" href="MTX1--00--Intro.pdf" target="_blank">
+<a class="pdf-footer" href="MTX3--01--DS.pdf" target="_blank">
   PDF
 </a>
 

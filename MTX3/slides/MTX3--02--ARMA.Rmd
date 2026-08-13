@@ -1,0 +1,2025 @@
+---
+title: "Series de Tiempo Económicas"
+subtitle: "Modelos estacionarios"
+author: 
+  - "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v. 2026.03.09"
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    transition: 0
+    slide_level: 3
+    css: ../src/custom.css
+---
+
+<a class="pdf-footer" href="MTX3--02--ARMA.pdf" target="_blank">
+  PDF
+</a>
+
+
+## Introducción
+
+### Estacionariedad (1/2)
+
+Recordemos que una serie de tiempo, \( y_t \), es estacionaria si:
+
+
+1. Su media es constante:
+
+   $$
+   \begin{align}
+   \mathbb{E}(y_t) &= \mu_{y_t} \\
+   & = \mu
+   \end{align}
+   $$
+   
+2. Su función de autocovarianza, \( Cov(y_t, y_{t-h}) \),  es tal que:
+
+   $$
+   \begin{align}
+   Cov(y_t, y_{t-h}) & = \gamma_y(h)  \\
+   &= \gamma(h); \ \forall \ h \in \mathbb{Z}
+   \end{align}
+   $$
+
+### Estacionariedad (2/2)
+
+¿Cuáles de estas series de tiempo parecen estacionarias?
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+library(tidyverse)
+library(astsa)
+library(here)
+
+culer = c('cyan4', 4, 2, 6)
+
+
+Quarterly <- read.csv(here("data/E306--Quarterly.csv"))
+Unemp <- ts(Quarterly$Unemp, start =c(1960,1), frequency = 4)
+Tbill <- ts(Quarterly$Tbill , start =c(1960,1), frequency = 4)
+CPI <- ts(Quarterly$CPI, start =c(1960,1), frequency = 4)
+IndProd <- ts(Quarterly$IndProd, start =c(1960,1), frequency = 4)
+
+par(mfrow = c(2,2), cex.main=1)
+tsplot(Unemp, type='o', pch=19, col=culer, main="Tasa de desempleo", xlab="Tiempo", ylab="Desempleo")
+tsplot(Tbill, type='o', pch=19, col=culer, main= "Bonos del tesoro", xlab="Tiempo", ylab="Rendimiento")
+tsplot(CPI, type='o', pch=19, col=culer, main="Precios al consumidor", xlab="Tiempo", ylab="CPI")
+tsplot(IndProd, type='o', pch=19, col=culer, main="Producción industrial", xlab="Tiempo", ylab="IPI")
+dev.off()
+
+```
+
+### Modelos estacionarios
+
+Para modelar series de tiempo estacionarias usamos modelos **Autorregresivos con Promedios Móviles (ARMA)**. Estos combinan:
+
+- _Parte autorregresiva, AR_: La serie se modela como una combinación lineal de sus valores pasados.
+
+- _Parte de medias móviles, MA_: La serie se modela en función de sus errores pasados.
+  
+
+Los modelos ARMA nos permiten capturar la **parte cíclica** de una serie de tiempo, es decir, las fluctuaciones que ocurren alrededor de una media constante.
+
+### Modelos AR
+
+Formalmente, un modelo **AR(\(p\))** se define como:
+
+  \[
+  \begin{align}
+  y_t &= \phi_1 y_{t-1} + \phi_2 y_{t-2} + \dots + \phi_p y_{t-p} + \varepsilon_t\\
+  &= \sum_{i=1}^{p} \phi_i y_{t-i} + \varepsilon_t
+  \end{align}
+  \]
+  
+Donde:
+
+  - \( \phi_i \) son los coeficientes autorregresivos, \(i=1,\dots,p\).
+  - \( \varepsilon_t \) es un ruido blanco.
+  
+### Modelos MA
+
+Un modelo **MA(\(q\))** se define como:
+
+  \[
+  \begin{align}
+  y_t &= \varepsilon_t + \theta_1 \varepsilon_{t-1} + \theta_2 \varepsilon_{t-2} + \dots + \theta_q \varepsilon_{t-q} \\
+  &= \varepsilon_t + \sum_{j=1}^{q} \theta_j \varepsilon_{t-j}
+  \end{align}
+  \]
+  
+Donde:
+
+  - \( \theta_j \) son los coeficientes de promedios móviles, \(j=1,\dots,q\).
+  - \( \varepsilon_t \) es un ruido blanco.
+  
+
+### Modelos ARMA
+
+Un modelo **ARMA(\(p\),\(q\))** combina los modelos AR(\(p\)) y MA(\(p\)):
+
+  \[
+  \begin{align}
+  y_t &= \sum_{i=1}^{p} \phi_i y_{t-i} + \varepsilon_t \\
+  & + \sum_{j=1}^{q} \theta_j \varepsilon_{t-j}
+  \end{align}
+  \]
+
+Por ejemplo, un modelo ARMA(\(1\),\(1\)):
+
+\[
+  y_t = \phi_1 y_{t-1} + \varepsilon_t + \theta_1 \varepsilon_{t-1}
+\]
+
+
+## El operador de rezagos
+
+### El operador de rezagos
+
+El **operador de rezagos**, \(L\) o \(B\), es un _operador lineal_ tal que, aplicado a una serie de tiempo, \(y_t\):
+
+\[
+L y_t = y_{t-1}
+\]
+
+Naturalmente:
+
+\[
+\begin{align}
+L^2 y_t &= L(L y_t)\\
+&= L y_{t-1} \\
+&= y_{t-2}
+\end{align}
+\]
+
+En general:
+
+\[
+L^i y_t = y_{t-i}
+\]
+
+### Propiedades del operador de rezagos (1/3)
+
+Las siguientes son las propiedades del operador de rezagos:
+
+1. \(Lc = c\); para cualquier constante \(c\) arbitraria.
+2. \((L^i + L^j) y_t = y_{t-i} + y_{t-j}\); _propiedad distributiva_.
+3. \(L^i L^j y_t = y_{t-i-j}\); _propiedad asociativa_.
+4. \(L^{-i}  y_t = y_{t+i}\); **operador de liderazgo**.
+
+### Propiedades del operador de rezagos (2/3)
+
+Las siguientes son las propiedades del operador de rezagos:
+
+<ol start="5">
+  <li>Si \(|a|<1\), entonces: 
+
+   $$
+   \left[1+aL +(aL)^2+(aL)^3+\dots\right]y_t = \frac{1}{1-aL}y_t
+   $$
+   Esto es:
+   $$
+   \frac{1}{1-aL} = 1+aL +(aL)^2+(aL)^3+\dots
+   $$
+    </li>
+   
+### Propiedades del operador de rezagos (3/3)
+
+Las siguientes son las propiedades del operador de rezagos:
+
+<ol start="6">
+  <li>Si \(|a|>1\), entonces: 
+
+   $$
+   \left[1+(aL)^{-1} +(aL)^{-2}+(aL)^{-3}+\dots\right]y_t = -\frac{aL}{1-aL}y_t
+   $$
+   Esto es:
+   $$
+   \frac{1}{1-aL} = -\frac{1}{aL} \left(1+(aL)^{-1} +(aL)^{-2}+(aL)^{-3}+\dots\right)
+   $$
+   </li>
+   
+
+
+### El operador de rezagos y los modelos ARMA (1/2)
+
+Un modelo ARMA(\(p\), \(q\)) puede reescribirse en términos del operador de rezagos. En particular:
+
+\[
+  \begin{align}
+  y_t = \phi_1 y_{t-1} &+ \phi_2 y_{t-2} + \dots + \phi_p y_{t-p} + \varepsilon_t \\
+  & +\theta_1 \varepsilon_{t-1} + \theta_2 \varepsilon_{t-2} + \dots + \theta_q \varepsilon_{t-q} \\
+  \end{align}
+\]
+
+puede reescribirse como:
+
+\[
+  \begin{align}
+  y_t = \phi_1 Ly_{t} &+ \phi_2 L^2y_{t} + \dots + \phi_p L^py_{t} + \varepsilon_t \\
+  & + \theta_1 L\varepsilon_{t} + \theta_2 L^2\varepsilon_{t} + \dots + \theta_q L^q\varepsilon_{t}
+  \end{align}
+\]
+
+### El operador de rezagos y los modelos ARMA (2/2)
+
+Un modelo ARMA(\(p\), \(q\)) puede reescribirse en términos del operador de rezagos:
+
+\[
+  \Phi(L) y_t = \Theta(L)\varepsilon_{t}
+\]
+
+Donde:
+
+\[
+\begin{align}
+  \Phi(L)  & = 1-\phi_1 L - \phi_2 L^2 - \phi_3 L^3 - \dots - \phi_p L^p\\
+  \Theta(L)  &= 1+\theta_1 L + \theta_2 L^2 + \theta_3 L^3 + \dots + \theta_q L^q
+  \end{align}
+\]
+
+
+## Invertibilidad
+
+### Invertibilidad
+
+En ocasiones, podría resultar útil transformar un proceso AR en un MA y viceversa, o un modelo ARMA en un AR o un MA. _Si esto es posible_, decimos que el proceso es **invertible**.
+
+### Invertibilidad, AR (1/4)
+
+En general, un proceso AR(\(p\)):
+
+$$
+  \Phi(L) y_t = \varepsilon_t
+$$
+
+es invertible si:
+
+$$
+  y_t = \Phi(L)^{-1} \varepsilon_t
+$$
+
+Para esto, es necesario que el polinomio \(\Phi(L)^{-1}\) exista.
+
+> **Nota**. Se puede demostrar que una condición _suficiente_ para que el polinomio \(\Phi(L)^{-1}\) exista es que _las raíces del polinomio \(\Phi(L)=0\) se encuentren fuera del círculo unitario_. El resultado es un MA(\(\infty\)).
+
+### Invertibilidad, AR (2/4)
+
+Por ejemplo, considera un proceso AR(\(1\)):
+
+$$
+y_t = \phi_1 y_{t-1} + \varepsilon_t
+$$
+
+En este caso, es muy fácil demostrar que, si \(|\phi_1|<1\), este proceso se puede invertir en:
+
+$$
+y_t = \sum_{i=0}^{\infty} \phi_1^i \varepsilon_{t-i}
+$$
+
+el cual es un proceso del tipo \(MA(\infty)\). Nota que la única raiz del polinomio \(\Phi(L)=0\) es \(1/\phi_1\). Esta está fuera del cícurlo unitario si:
+
+$$
+\left|\frac{1}{\phi_1}\right| > 1 \iff |\phi_1|<1
+$$
+
+
+### Invertibilidad, AR (3/4)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Considera un proceso AR(\(2\)):
+
+
+\[
+y_t = \phi_1 y_{t-1} + \phi_2 y_{t-2} + \varepsilon_{t}
+\]
+
+1. ¿Cómo es el polinomio \(\Phi(L)\)?
+2. ¿Cuáles son las raíces del polinomio \(\Phi(L)=0\)?
+3. ¿Cómo aseguramos que las raíces del polinomio \(\Phi(L)=0\) se encuentren fuera del círculo unitario?
+
+### Invertibilidad, AR (4/4)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Muestra que, si las raíces del polinomio \(\Phi(L)=0\) se encuentran fuera del círculo unitario, un proceso AR(\(2\)) puede expresarse como:
+
+
+$$
+y_t = \sum_{i=0}^{\infty} \psi_i \varepsilon_{t-i}
+$$
+
+donde: \(\psi_0 = 1\), \(\psi_1 = \phi_1\), \(\psi_2 = \phi_1^2+\phi_2\) y \(\psi_k =\phi_1 \psi_{k-1} + \phi_2 \psi_{k-2}\), para \(k>2\).
+
+### Invertibilidad, MA (1/2)
+
+Al igual que los procesos AR, los procesos MA(\(q\)):
+
+$$
+  y_t = \Theta(L)\varepsilon_t
+$$
+
+pueden invertirse si:
+
+$$
+  \Theta(L)^{-1}y_t =  \varepsilon_t
+$$
+
+Para esto, es necesario que el polinomio \(\Theta(L)^{-1}\) exista. 
+
+> **Nota**. Se puede demostrar que una condición _necesaria y suficiente_ para que el polinomio \(\Theta(L)^{-1}\) exista es que _las raíces del polinomio \(\Theta(L)=0\) se encuentren fuera del círculo unitario_. El resultado es un AR(\(\infty\)).
+
+### Invertibilidad, MA (2/2)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Muestra que, si las raíces del polinomio \(\Theta(L)=0\) se encuentran fuera del círculo unitario, un proceso MA(\(1\)) puede expresarse como:
+
+
+\[
+y_t = -\sum_{i=1}^{\infty} \psi_i y_{t-1} + \varepsilon_{t}
+\]
+
+donde: \(\psi_i = (-\theta_1)^i\), para \(i\geq 1\).
+
+
+### Invertibilidad, ARMA (1/2)
+
+Finalmente, los procesos ARMA(\(p\), \(q\)) pueden invertirse en procesos MA(\(\infty\)) o AR(\(\infty\)) dependiendo de las raíces de los polinomios \(\Phi(L)=0\) y \(\Theta(L)=0\).
+
+### Invertibilidad, ARMA (2/2)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Muestra que, si las raíces del polinomio \(\Phi(L)=0\) se encuentran fuera del círculo unitario, un proceso ARMA(\(1\), \(1\)) puede invertirse en un proceso MA(\(\infty\)):
+
+
+\[
+y_t = \sum_{i=0}^{\infty} \psi_i \varepsilon_{t-i}
+\]
+
+donde: \(\psi_0 = 1\), \(\psi_1 = \phi_1 + \theta_1\), \(\psi_k = \phi_1 \psi_{k-1}\), para \(k\geq 2\).
+
+## Función de Impulso-Respuesta
+
+### Función de Impulso-Respuesta (1/2)
+
+La **Función de Impulso-Respuesta (FIR)**:
+
+- Muestra cómo un choque en el término de error, \( \varepsilon_t \), afecta a una serie de tiempo, \(y_t\), en periodos futuros.
+
+- Permite analizar la _dinámica temporal_ de un proceso y la persistencia de los efectos de un shock.
+
+### Función de Impulso-Respuesta (2/2)
+
+Consideremos una proceso ARMA(\(p\),\(q\)):
+
+\[
+  \Phi(L) y_t = \Theta(L)\varepsilon_{t}
+\]
+
+Deseamos saber el efecto que tiene un shock (_normalizado a una unidad_) en el periodo \(s\)-ésimo, \(\varepsilon_{s}\), sobre la variable \(y_t\). Este efecto depende de los parámetros \(p\) y \(q\).
+
+### Función de Impulso-Respuesta: MA(\(1\))
+
+Consideremos un proceso MA(\(1\)):
+
+  \[
+  y_t = \varepsilon_t + \theta_1 \varepsilon_{t-1}
+  \]
+
+En este caso, la FIR:
+
+<table class="clean-table">
+  <thead>
+    <tr>
+      <th>Periodo</th>
+      <th>\( s-2 \)</th>
+      <th>\( s-1 \)</th>
+      <th>\( s \)</th>
+      <th>\( s+1 \)</th>
+      <th>\( s+2 \)</th>
+      <th>\( s+3 \)</th>
+      <th>\( \dots \)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>\( \varepsilon_t \)</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>\( \dots \)</td>
+    </tr>
+    <tr>
+      <td>\( y_t \)</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td>\( \theta_1 \)</td>
+      <td>0</td>
+      <td>0</td>
+      <td>\( \dots \)</td>
+    </tr>
+  </tbody>
+</table>
+
+
+### Función de Impulso-Respuesta: MA(\(q\))
+
+Consideremos un proceso MA(q):
+
+  \[
+  y_t = \varepsilon_t + \theta_1 \varepsilon_{t-1} + \theta_2 \varepsilon_{t-2} + \dots + \theta_q \varepsilon_{t-q}
+  \]
+
+En este caso, la FIR:
+
+<table class="clean-table">
+  <thead>
+    <tr>
+      <th>Periodo</th>
+      <th>\( s-2 \)</th>
+      <th>\( s-1 \)</th>
+      <th>\( s \)</th>
+      <th>\( s+1 \)</th>
+      <th>\( s+2 \)</th>
+      <th>\( s+3 \)</th>
+      <th>\( \dots \)</th>
+      <th>\( s+q \)</th>
+      <th>\( s+q+1 \)</th>
+      <th>\( \dots \)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>\( \varepsilon_t \)</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>\( \dots \)</td>
+      <td>0</td>
+      <td>0</td>
+      <td>\( \dots \)</td>
+    </tr>
+    <tr>
+      <td>\( y_t \)</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td>\( \theta_1 \)</td>
+      <td>\( \theta_2 \)</td>
+      <td>\( \theta_3 \)</td>
+      <td>\( \dots \)</td>
+      <td>\( \theta_q \)</td>
+      <td>0</td>
+      <td>\( \dots \)</td>
+    </tr>
+  </tbody>
+</table>
+
+
+### Función de Impulso-Respuesta: AR(1)
+
+Para calcular la FIR de un proceso AR(\(1\)), primero tenemos que invertirlo. Como hemos visto antes, un proceso AR(\(1\)) puede invertirse en un proceso MA(\(\infty\)) en tanto el coeficiente \(|\phi_1|<1\):
+
+\[
+y_t = \sum_{i=0}^{\infty} \phi_1^i \varepsilon_{t-i}
+\]
+
+Entonces, la FIR es:
+
+<table class="clean-table">
+  <thead>
+    <tr>
+      <th>Periodo</th>
+      <th>\( s-2 \)</th>
+      <th>\( s-1 \)</th>
+      <th>\( s \)</th>
+      <th>\( s+1 \)</th>
+      <th>\( s+2 \)</th>
+      <th>\( s+3 \)</th>
+      <th>\( \dots \)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>\( \varepsilon_t \)</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>\( \dots \)</td>
+    </tr>
+    <tr>
+      <td>\( y_t \)</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td>\( \phi_1 \)</td>
+      <td>\( \phi_1^2 \)</td>
+      <td>\( \phi_1^3 \)</td>
+      <td>\( \dots \)</td>
+    </tr>
+  </tbody>
+</table>
+
+### Función de Impulso-Respuesta: ARMA(\(p,q\))
+
+Para calcular la FIR de un proceso ARMA(\(p,q\)), primero lo invertimos en un MA(\(\infty\)). Si esto es posible:
+
+\[
+y_t = \sum_{i=0}^{\infty} \psi_i \varepsilon_{t-i}
+\]
+
+Entonces, la FIR es:
+
+<table class="clean-table">
+  <thead>
+    <tr>
+      <th>Periodo</th>
+      <th>\( s-2 \)</th>
+      <th>\( s-1 \)</th>
+      <th>\( s \)</th>
+      <th>\( s+1 \)</th>
+      <th>\( s+2 \)</th>
+      <th>\( s+3 \)</th>
+      <th>\( \dots \)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>\( \varepsilon_t \)</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>\( \dots \)</td>
+    </tr>
+    <tr>
+      <td>\( y_t \)</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td>\( \psi_1 \)</td>
+      <td>\( \psi_2 \)</td>
+      <td>\( \psi_3 \)</td>
+      <td>\( \dots \)</td>
+    </tr>
+  </tbody>
+</table>
+
+
+### Función de Impulso-Respuesta: Ejemplo (1/2)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Considera el proceso AR(\(2\)):
+
+\[
+y_t = 0.6y_{t-1} + 0.2y_{t-2} + \varepsilon_{t}
+\]
+
+<ol start="1">
+  <li>Muestra que la FIR es:
+   </li>
+   
+   <table class="clean-table">
+  <thead>
+    <tr>
+      <th>Periodo</th>
+      <th>\( s-2 \)</th>
+      <th>\( s-1 \)</th>
+      <th>\( s \)</th>
+      <th>\( s+1 \)</th>
+      <th>\( s+2 \)</th>
+      <th>\( s+3 \)</th>
+      <th>\( \dots \)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>\( \varepsilon_t \)</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>\( \dots \)</td>
+    </tr>
+    <tr>
+      <td>\( y_t \)</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0.6</td>
+      <td>0.516</td>
+      <td>0.4579</td>
+      <td>\( \dots \)</td>
+    </tr>
+  </tbody>
+</table>
+
+### Función de Impulso-Respuesta: Ejemplo (2/2)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+<ol start="2">
+<li>Grafica la FIR de este proceso. Muestra que esta es:
+</li>
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='60%', out.height='60%'}
+
+# Parámetros del modelo AR(2)
+phi1 <- 0.6
+phi2 <- 0.2
+num_periods <- 20  # Número de periodos a calcular
+
+# Inicializar la FIR con un choque unitario en t=0
+impulse_response <- numeric(num_periods)
+impulse_response[1] <- 1  # Choque inicial en epsilon_t
+
+# Calcular la FIR iterativamente
+for (t in 2:num_periods) {
+  if (t == 2) {
+    impulse_response[t] <- phi1 * impulse_response[t-1]
+  } else {
+    impulse_response[t] <- phi1 * impulse_response[t-1] + phi2 * impulse_response[t-2]
+  }
+}
+
+# Graficar la función de impulso-respuesta
+plot(0:(num_periods-1), impulse_response, type="h", lwd=2, col="cyan4",
+     xlab="Periodos", ylab="FIR",
+     main="Función de Impulso-Respuesta del AR(2)")
+points(0:(num_periods-1), impulse_response, pch=16, col="red")
+grid()
+
+```
+
+
+## Función de autocovarianza y autocorrelación
+
+
+### Función de autocovarianza y autocorrelación
+
+Consideremos un modelo ARMA(\(p\),\(q\)):
+
+\[
+  \Phi(L) y_t = \Theta(L)\varepsilon_{t}\\
+  \varepsilon_t \sim WN(0,\sigma^2)
+\]
+
+Deseamos calcular la funciones de autocovarianza y de autocorrelación. Para esto, conviene invertir el proceso en su forma MA(\(\infty\)).
+
+
+
+### Función de Autocovarianza y Autocorrelación: MA(\(1\))
+
+Para un proceso MA(\(1\)):
+
+\[
+  y_t = \varepsilon_t + \theta_1 \varepsilon_{t-1}
+\]
+
+es fácil demostrar que:
+
+\[
+\gamma(h) = \begin{cases}
+(1 + \theta_1^2) \sigma^2 & h=0\\
+\theta_1 \sigma^2 & |h|=1\\
+0 & |h|>1
+\end{cases}
+\qquad
+\rho(h) = \begin{cases}
+1 & h=0\\
+\frac{\theta_1}{1 + \theta_1^2} & |h|=1\\
+0 & |h|>1
+\end{cases}
+\]
+
+Nota que este proceso cumple con las condiciones de estacionariedad y ergodicidad.
+
+### Función de Autocovarianza y Autocorrelación: MA(\(q\))
+
+Ahora, para un proceso MA(\(q\)):
+
+\[
+  y_t = \varepsilon_t + \theta_1 \varepsilon_{t-1} + \theta_2 \varepsilon_{t-2} + \dots + \theta_q \varepsilon_{t-q}
+\]
+
+tenemos:
+
+\[
+\gamma(h) = \begin{cases}
+\sigma^2 \sum_{i=0}^{q} \theta_i^2 & h=0\\
+\sigma^2 \sum_{i=0}^{q-h} \theta_i\theta_{i+h} & 1\leq |h| \leq q\\
+0 & |h|>q
+\end{cases}
+\qquad
+\rho(h) = \begin{cases}
+1 & h=0\\
+\frac{\sum_{i=0}^{q-h} \theta_i\theta_{i+h}}{\sum_{i=0}^{q} \theta_i^2} & 1\leq |h| \leq q\\
+0 & |h|>1
+\end{cases}
+\]
+
+donde \(\theta_0 = 1\). Este proceso es, naturalmente, estacionario y ergódico.
+
+### Función de Autocovarianza y Autocorrelación: MA(\(\infty\)) (1/4)
+
+¿Será un proceso MA(\(\infty\)) estacionario? Si lo fuera:
+
+\[
+\gamma(h) = \begin{cases}
+\sigma^2 \sum_{i=0}^{\infty} \theta_i^2 & h=0\\
+\sigma^2 \sum_{i=0}^{\infty} \theta_i\theta_{i+h} & |h| \geq 1
+\end{cases}
+\qquad
+\rho(h) = \begin{cases}
+1 & h=0\\
+\frac{\sum_{i=0}^{\infty} \theta_i\theta_{i+h}}{\sum_{i=0}^{\infty}\theta_i^2} & |h| \geq 1\\
+\end{cases}
+\]
+
+donde \(\theta_0 = 1\). Nota que la estacionariedad de este proceso depende del término \(\sum_{i=0}^{\infty} \theta_i^2\). ¿Es este término finito?
+
+### Función de Autocovarianza y Autocorrelación: MA(\(\infty\)) (2/4)
+
+<span class="emphasis-blue">Proposición</span>
+
+Si \({\varepsilon_t}\) es una secuencia de ruidos blancos con media cero y varianza finita, \(\sigma^2<\infty\), y si \(\sum_{i=0}^\infty \theta_i^2 < \infty\), entonces la serie:
+
+$$
+y_t =  \sum_{i=0}^\infty \theta_i \varepsilon_{t-i}
+$$
+
+**converge en media cuadrática**.
+
+### Función de Autocovarianza y Autocorrelación: MA(\(\infty\)) (3/4)
+
+En ocasiones, resulta más fácil utilizar la condición de **convergencia absoluta**. Esta requiere:
+
+
+$$
+\sum_{i=0}^\infty |\theta_i|<\infty
+$$
+
+Se puede demostrar que, _si un proceso converge en valor absoluto, también lo hace en media cuadrática_.
+
+### Función de Autocovarianza y Autocorrelación: MA(\(\infty\)) (4/4)
+
+<span class="emphasis-blue">Ejemplo</span>
+
+Consideremos un proceso AR(\(1\)):
+
+$$
+\begin{align}
+y_t &= \phi_1 y_{t-1} + \varepsilon_t \\
+\varepsilon_t &\sim WN(0,\sigma^2)
+\end{align}
+$$
+
+Si \(|\phi_1|<1\), este proceso es _invertible y estacionario_, puesto que:
+
+$$
+y_t = \sum_{i=0}^{\infty} \phi_1^i \varepsilon_{t-i} \ \iff \ \sum_{i=0}^\infty |\phi_1^i| < \infty
+$$
+
+### Descomposición de Wold (1/2)
+
+<span class="emphasis-blue">Teorema (Wold)</span>
+
+Sea \(\{y_t\}\) un proceso débilmente estacionario con media cero y varianza finita. Entonces existe una representación única de la forma:
+
+$$
+y_t = \sum_{i=0}^{\infty} \psi_i \,\varepsilon_{t-i}, 
+\qquad \psi_0 = 1, 
+\qquad \sum_{i=0}^{\infty} \psi_i^2 < \infty,
+$$
+
+donde \(\{\varepsilon_t\}\) es un proceso de ruido blanco con media cero y varianza finita \(\sigma^2\).
+
+
+### Teorema de Wold (2/2)
+
+<span class="emphasis-blue">Nota</span>  
+
+En los procesos ARMA(\(p,q\)):
+
+- _Estacionariedad_: se garantiza cuando las raíces del polinomio \(\Phi(L)=0\) están fuera del círculo unitario.  
+- _Invertibilidad_: se garantiza cuando las raíces del polinomio \(\Theta(L)=0\) están fuera del círculo unitario.  
+
+
+## Ecuaciones de Yule-Walker
+
+### Ecuaciones de Yule-Walker (1/6)
+
+Para calcular las funciones de autocovarianza y autocorrelación de un proceso AR(\(p\)), también podemos utilizar las **ecuaciones de Yule-Walker**:
+
+
+$$
+\begin{align}
+y_t &= \phi_1 y_{t-1} + \phi_2 y_{t-2} + \dots + \phi_p y_{t-p} + \varepsilon_t \\
+\varepsilon_t &\sim WN(0,\sigma^2)
+\end{align}
+$$
+
+* Multiplicamos ambos lados de la ecuación por \(y_t\) y calculamos el valor esperado:
+
+$$
+\gamma(0) = \phi_1 \gamma(1) + \phi_2 \gamma(2) + \dots + \phi_p \gamma(p) +  \sigma^2
+$$
+
+
+
+### Ecuaciones de Yule-Walker (2/6)
+
+Para calcular las funciones de autocovarianza y autocorrelación de un proceso AR(\(p\)), podemos utilizar las ecuaciones de Yule-Walker:
+
+* Dividimos el resultado por \(\gamma(0)\):
+
+$$
+1 = \phi_1 \rho(1) + \phi_2 \rho(2) + \dots + \phi_p \rho(p) +  \frac{\sigma^2}{\gamma(0)}
+$$
+
+
+* Repetimos los dos pasos previos, pero ahora multiplicando ambos lados del proceso por \(y_{t-1}\):
+
+$$
+\rho(1) = \phi_1 + \phi_2 \rho(1) + \phi_3\rho(2) + \dots + \phi_p\rho(p-1)
+$$
+
+### Ecuaciones de Yule-Walker (3/6)
+
+Para calcular las funciones de autocovarianza y autocorrelación de un proceso AR(\(p\)), podemos utilizar las ecuaciones de Yule-Walker:
+
+
+* Repetimos los primeros dos pasos, pero ahora multiplicando ambos lados del proceso por \(y_{t-2}\):
+
+$$
+\rho(2) = \phi_1\rho(1) + \phi_2 + \phi_3\rho(1) + \dots + \phi_p\rho(p-2) 
+$$
+
+
+* Repetimos los primeros dos pasos, pero ahora multiplicando ambos lados del proceso por \(y_{t-3}, y_{t-4},\dots\). En general, si multiplicamos por \(y_{t-k}\):
+
+$$
+\rho(k) = \phi_1\rho(k-1) + \phi_2\rho(k-2) + \dots + \phi_{p-k} + \phi_{p-k+1}\rho(1) + \dots + \phi_p\rho(p-k)
+$$
+
+### Ecuaciones de Yule-Walker (4/6)
+
+Para calcular las funciones de autocovarianza y autocorrelación de un proceso AR(\(p\)), podemos utilizar las ecuaciones de Yule-Walker:
+
+
+* Nota que, _si conocemos los valores de los coeficientes_, \(\phi_1, \phi_2, \dots, \phi_p\), podemos obtener la función de autocorrelación resolviendo el sistema de ecuaciones de forma recursiva.
+
+### Ecuaciones de Yule-Walker (5/6)
+
+Para calcular las funciones de autocovarianza y autocorrelación de un proceso AR(\(p\)), podemos utilizar las ecuaciones de Yule-Walker:
+
+
+* Finalmente, nota que:
+
+$$
+\gamma(0) = \frac{\sigma^2}{1-\phi_1\rho(1)-\phi_2\rho(2) - \dots - \phi_p\rho(p)}
+$$
+
+* La función de autocovarianza se encuentra usando este resultado y recordando que:
+
+$$
+\rho(k) = \frac{\gamma(k)}{\gamma(0)}
+$$
+
+
+### Ecuaciones de Yule-Walker (6/6)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Muestra que, para un proceso AR(\(2\)), la función de autocorrelación es:
+
+$$
+\begin{align}
+\rho(1) &= \frac{\phi_1}{1-\phi_2} \\
+\rho(2) &= \frac{\phi_1^2}{1-\phi_2} + \phi_2 \\
+\rho(3) &= \frac{\phi_1^3}{1-\phi_2} + \phi_1\phi_2 + \frac{\phi_1\phi_2}{1-\phi_2} \\
+& \vdots
+\end{align}
+$$
+
+
+
+
+### Estimación de los coeficientes de un AR(\(p\)) (1/2)
+
+El procedimiento de Yule-Walker nos permite plantear la **fórmula de Yule-Walker**:
+
+$$
+\mathbf{R \Phi} = \mathbf{r}
+$$
+
+Donde: 
+$$
+\mathbf{R}=\begin{pmatrix} 
+1 & \rho_1 & \rho_2 & \dots & \rho_{p-2} & \rho_{p-1} \\
+\rho_1 & 1 & \rho_1 & \dots & \rho_{p-3} & \rho_{p-2} \\
+\vdots & \vdots & \vdots & \dots & \vdots & \vdots \\
+\rho_{p-2} & \rho_{p-3} & \rho_{p-4} & \dots & 1 & \rho_{1} \\
+\rho_{p-1} & \rho_{p-2} & \rho_{p-3} & \dots & \rho_{1} & 1 \\
+ \end{pmatrix}; \quad
+\mathbf{\Phi} = \begin{pmatrix}\phi_1 \\ \phi_2 \\ \vdots \\ \phi_{p-1} \\ \phi_p \end{pmatrix}; \quad
+\mathbf{r}=\begin{pmatrix}\rho_1 \\ \rho_2 \\ \vdots \\ \rho_{p-1} \\ \rho_p \end{pmatrix}
+$$
+
+
+### Estimación de los coeficientes de un AR(\(p\)) (2/2)
+
+<span class="emphasis-blue">Nota</span> 
+
+
+<ol start="1">
+  <li>_Si conocemos (o estimamos) la función de autocorrelación_, \(\rho_1, \rho_2, \dots, \rho_p\), podemos encontrar estimadores para los coeficientes de un proceso AR(\(p\)):
+
+$$
+\mathbf{\hat{\Phi}}^{YW} = \mathbf{R}^{-1} \mathbf{r}
+$$
+</li>
+
+<li>Dado que la matriz \(\mathbf{R}\) es cuadrada, simétrica y de rango completo, la matriz \(\mathbf{R}^{-1}\) existe. Además, cada elemento del vector \(\mathbf{\hat{\Phi}}^{YW}\) puede encontrarse mediante la **regla de Cramer**.</li>
+
+
+### La función de autocorrelación parcial (1/5)
+
+Nota que un proceso AR(\(p\)) puede escribirse como:
+
+$$
+\begin{align}
+y_t &= \phi_1 y_{t-1} + \phi_2 y_{t-2} + \dots + \phi_p y_{t-p} + 0\cdot y_{t-p-1} + 0\cdot y_{t-p-2} + \dots + 0\cdot y_{t-p-m} + \varepsilon_t \\
+\varepsilon_t &\sim WN(0,\sigma^2)
+\end{align}
+$$
+Esto es, _si realmente tenemos un proceso AR(\(p\))_ todos los coeficientes:
+
+$$
+\begin{align}
+\phi_{p+1} &= \phi_{p+2} = \dots = \phi_{p+m} \\
+&= 0
+\end{align}
+$$
+
+### La función de autocorrelación parcial (2/5)
+
+Lo anterior indica que, si tenemos un proceso AR(\(p\)), pero usamos la fórmula de Yule-Walker para estimar los coeficientes de un AR(\(p+m\)), deberíamos encontrar:
+
+* Los coeficientes estimados \(\phi_1^{YW}, \phi_2^{YW}, \dots, \phi_p^{YW} \) son estadísticamente diferentes de cero.
+
+
+* Los coeficientes estimados \(\phi_{p+1}^{YW}, \phi_{p+2}^{YW}, \dots, \phi_{p+m}^{YW} \) son estadísticamente iguales a cero.
+
+
+### La función de autocorrelación parcial (3/5)
+
+La **función de autocorrelación parcial (FACP)**, no es más que la secuencia de coeficientes \(\phi_{kk}\) del sistema:
+
+$$
+\begin{align}
+y_t &= \phi_{11}y_{t-1} + \varepsilon_{1t}\\
+y_t &= \phi_{21}y_{t-1} + \phi_{22}y_{t-2} + \varepsilon_{2t}\\
+y_t &= \phi_{31}y_{t-1} + \phi_{32}y_{t-2} + \phi_{33}y_{t-3} + \varepsilon_{3t}\\
+&\vdots\\
+y_t &= \phi_{k1}y_{t-1} + \phi_{k2}y_{t-2} + \dots + \phi_{kk}y_{t-k} + \varepsilon_{kt}\\
+\end{align}
+$$
+
+
+### La función de autocorrelación parcial (4/5)
+
+La FACP puede encontrarse mediante la aplicación sucesiva de la fórmula de Yule-Walker:
+
+1. Se establece un punto de corte, por ejemplo, sea \(p=T/4\).
+2. Sea \(1\leq k \leq p\) y sean \(\mathbf{R}^{(i)}\) y \(\mathbf{r}^{(i)}\) las versiones de las matrices \(\mathbf{R}\) y \(\mathbf{r}\) de la fórmula de Yule-Walker para el caso \(k\)-ésimo. Para cada valor de \(k\):
+$$
+\mathbf{\hat{\Phi}}^{(k)} = (\mathbf{R}^{(k)})^{-1} \mathbf{r}^{(k)} = \begin{pmatrix}\hat{\phi_1} \\ \hat{\phi_2} \\ \vdots \\ \hat{\phi_k} \end{pmatrix}
+$$
+4. Naturalmente, \(\phi_{kk} = \hat{\phi}_k\).
+
+
+
+### La función de autocorrelación parcial (5/5)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Muestra que, para un proceso AR(\(2\)), la función de autocorrelación parcial es:
+
+$$
+\begin{align}
+\phi_{11} &= \rho_1 \\
+\phi_{22} &= \frac{\rho_2-\rho_1^2}{1-\rho_1^2}
+\end{align}
+$$
+
+
+## Estimación por Máxima verosimilitud
+
+### Función de verosimilitud: Preliminares
+
+Pensemos en una serie de tiempo como una secuencia de variables aleatorias \(\{Y_t\}_{t=1}^T\), con realizaciones \(\{y_t\}_{t=1}^T\). Si esta serie de tiempo sigue un proceso ARMA(\(p\),\(q\)) y _todos sus parámetros son conocidos_, podemos plantear su **función de densidad conjunta**.
+
+Para esto, hacemos uso de lo siguiente:
+
+<ol start="1">
+
+  <li>Sean \(X\), \(Y\) y \(Z\) tres variables aleatorias con realizaciones \(x\), \(y\) y \(z\), respectivamente. Entonces:
+
+$$
+f_{X,Y}(x,y) = f_{X}(x)f_{Y|X}(y|x)
+$$
+</li>
+<li>
+
+Además, la densidad conjunta condicional se descompone como:
+
+$$
+f_{X,Y|Z}(x,y|z) = f_{X|Z}(x|z)f_{Y|X,Z}(y|x,z)
+$$
+</li>
+
+### Función de densidad conjunta (1/5)
+
+
+Para empezar, sea, \(X=Y_1\) y \(Y=Y_2, Y_3,\dots, Y_T\). Entonces:
+
+$$
+\begin{align}
+f_{X,Y}(x,y) &= f_{X}(x)f_{Y|X}(y|x) \\
+&= f_{Y_1}(y_1)f_{Y_2,Y_3,\dots,Y_T|Y_1}(y_2,y_3,\dots,y_T|y_1)
+\end{align}
+$$
+
+### Función de densidad conjunta (2/5)
+
+Pero, nota que si ahora \(X=Y_2\), \(Y=Y_3, Y_4,\dots, Y_T\) y \(Z=Y_1\), tenemos:
+
+$$
+\begin{align}
+f_{X,Y|Z}(x,y|z) &= f_{X|Z}(x|z)f_{Y|X,Z}(y|x,z) \\
+&= f_{Y_2|Y_1}(y_2|y_1)f_{Y_3,Y_4,\dots,Y_T|Y_1, Y_2}(y_3,y_4,\dots,y_T|y_1, y_2)
+\end{align}
+$$
+
+Por lo tanto:
+
+$$
+\begin{align}
+f_{X,Y}(x,y) &= f_{X}(x)f_{Y|X}(y|x) \\
+&= f_{Y_1}(y_1)f_{Y_2|Y_1}(y_2|y_1)f_{Y_3,Y_4,\dots,Y_T|Y_1, Y_2}(y_3,y_4,\dots,y_T|y_1, y_2)
+\end{align}
+$$
+
+### Función de densidad conjunta (3/5)
+
+Podemos encontrar \(f_{Y_3,Y_4,\dots,Y_T|Y_1, Y_2}(y_3,y_4,\dots,y_T|y_1, y_2)\) si definimos ahora \(X=Y_3\), \(Y=Y_4, Y_5,\dots,Y_T\) y \(Z=Y_1,Y_2\):
+
+$$
+\begin{align}
+f_{X,Y|Z}(x,y|z) &= f_{X|Z}(x|z)f_{Y|X,Z}(y|x,z) \\
+&= f_{Y_3|Y_1, Y_2}(y_3|y_1, y_2)f_{Y_4,Y_5,\dots,Y_T|Y_1, Y_2, Y_3}(y_4,y_5,\dots,y_T|y_1, y_2, y_3)
+\end{align}
+$$
+
+
+Por lo tanto:
+
+$$
+\begin{align}
+f_{X,Y}(x,y) &= f_{X}(x)f_{Y|X}(y|x) \\
+&= f_{Y_1}(y_1)f_{Y_2|Y_1}(y_2|y_1)f_{Y_3|Y_1, Y_2}(y_3|y_1,y_2)f_{Y_4,Y_5,\dots,Y_T|Y_1, Y_2, Y_3}(y_4,y_5,\dots,y_T|y_1, y_2, y_3)
+\end{align}
+$$
+
+
+### Función de densidad conjunta (4/5)
+
+
+Si continuamos con el mismo razonamiento, es fácil encontrar que la función de densidad conjunta las variables aleatorias \(\{Y_t\}_{t=1}^T\) es:
+
+$$
+\begin{align}
+f_{Y_1, Y_2, \dots, Y_T}(y_1, y_2,\dots,y_T) &= f_{Y_1}(y_1) \times f_{Y_2|Y_1}(y_2|y_1) \times f_{Y_3|Y_2,Y_1}(y_3|y_2,y_1) \times \dots \\ &\times f_{Y_T|Y_{T-1},Y_{T-2},\dots,Y_{1}}(y_T|y_{T-1},y_{T-2},\dots,y_{1}) \\
+& = f_{Y_1}(y_1) \times \prod_{t=2}^T f_{Y_t|Y_{t-1},Y_{t-2},\dots,Y_{1}}(y_t|y_{t-1},y_{t-2},\dots,y_{1})
+\end{align}
+$$
+
+### Función de densidad conjunta (5/5)
+
+
+Lo anterior puede aplicarse para cualquier distribución que se le asigne a las variables \(Y_t\). Sin embargo, conviene recordar que si \(Y_t \sim \mathcal{N}(\mu_Y, \sigma^2_Y)\):
+
+$$
+f_{Y_t}(y_t)= \frac{1}{\sqrt{2\pi\sigma_Y^2 }}\exp\left\{ -\frac{1}{2\sigma_Y^2}(Y_t-\mu_Y)^2\right\}
+$$
+
+Y si \(\mathbf{Y} \sim \mathcal{N}(\mathbf{\mu}_Y, \mathbf{\Sigma}_Y)\)
+
+$$
+f_{\mathbf{Y}}(\mathbf{y})= (2\pi)^{-\frac{k}{2}}|\mathbf{\Sigma}|^{-\frac{1}{2}}\exp\left\{ -\frac{1}{2}(\mathbf{Y}-\mathbf{\mu}_Y)'\mathbf{\Sigma}^{-1}(\mathbf{Y}-\mathbf{\mu}_Y)\right\}
+$$
+
+### Función de densidad conjunta: ejemplo (1/6)
+
+Supongamos que la serie de tiempo, \(y_t\) sigue un proceso AR(\(1\)):
+
+$$
+\begin{align}
+y_t &= \phi_0 + \phi_1 y_{t-1} + \varepsilon_t \\
+\varepsilon_t &\sim iid\mathcal{N}(0,\sigma^2)
+\end{align}
+$$
+
+donde, de momento, _todos los parámetros del modelo son conocidos_. De antes, sabemos que:
+
+$$
+\begin{align}
+\mu_y &= \frac{\phi_0}{1-\phi_1} \\
+&=\mu\\
+\sigma^2_y &= \frac{\sigma^2}{1-\phi_1^2}\\
+&=\gamma_0
+\end{align}
+$$
+
+### Función de densidad conjunta: ejemplo (2/6)
+
+Primero, necesitamos calcular \(f_{Y_1}(y_1)\). Dado que hemos supuesto que \(\varepsilon_t\) sigue una distrubución \(iid\mathcal{N}\), podemos concluir que:
+
+$$
+y_t \sim \mathcal{N}(\mu, \gamma_0)
+$$
+
+Entonces:
+
+$$
+\begin{align}
+f_{Y_1}(y_1)&= \frac{1}{\sqrt{2\pi\gamma_0 }}\exp\left\{ -\frac{1}{2\gamma_0}(y_1-\mu)^2\right\}\\
+&= \frac{1}{\sqrt{2\pi\gamma_0 }}\exp\left\{ -\frac{1}{2\gamma_0}\varepsilon_1^2\right\}
+\end{align}
+$$
+
+### Función de densidad conjunta: ejemplo (3/6)
+
+Ahora necesitamos \(\mathbb{E}(y_2|y_1)\). Nota que:
+
+$$
+\begin{align}
+\mathbb{E}(y_2|y_1) &=\phi_0 + \phi_1 y_1\\
+\mathbb{V}ar(y_2|y_1) &= \sigma^2
+\end{align}
+$$
+
+Por lo tanto:
+
+$$
+\begin{align}
+f_{Y_2|Y_1}(y_2|y_1) &= \frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}(y_2-\phi_0 - \phi_1y_1)^2\right\} \\
+&= \frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}\varepsilon_2^2\right\}
+\end{align}
+$$
+
+### Función de densidad conjunta: ejemplo (4/6)
+
+Ahora necesitamos \(\mathbb{E}(y_3|y_1, y_2)\). Nota que:
+
+
+$$
+\begin{align}
+\mathbb{E}(y_3|y_1,y_2) &=\phi_0 + \phi_1 y_2\\
+\mathbb{V}ar(y_3|y_1, y_2) &= \sigma^2
+\end{align}
+$$
+
+Por lo tanto:
+
+$$
+\begin{align}
+f_{Y_3|Y_1, Y_2}(y_3|y_1, y_2) &= \frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}(y_3-\phi_0 - \phi_1y_2)^2\right\}\\
+&= \frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}\varepsilon_3^2\right\}
+\end{align}
+$$
+
+### Función de densidad conjunta: ejemplo (5/6)
+
+Dado que tenemos un proceso AR(\(1\)), es fácil demostrar que para \(k\geq2\):
+
+
+$$
+\begin{align}
+\mathbb{E}(y_k|y_1,y_2,\dots,y_{k-1}) &=\phi_0 + \phi_1 y_{k-1}\\
+\mathbb{V}ar(y_k|y_1,y_2,\dots,y_{k-1}) &= \sigma^2
+\end{align}
+$$
+
+Por lo tanto:
+
+$$
+\begin{align}
+f_{Y_k|Y_1, Y_2,\dots Y_{k-1}}(y_k|y_1,y_2,\dots,y_{k-1}) &= \frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}(y_k-\phi_0 - \phi_1y_{k-1})^2\right\}\\
+&= \frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}\varepsilon_k^2\right\}\\
+\end{align}
+$$
+
+
+### Función de densidad conjunta: ejemplo (6/6)
+
+Entonces, la función de densidad conjunta de un proceso AR(\(1\)) es:
+
+
+$$
+f_{Y_1, Y_2,\dots,Y_T}(y_1, y_2,\dots,y_T) = \frac{1}{\sqrt{2\pi\gamma_0 }}\exp\left\{ -\frac{1}{2\gamma_0}\varepsilon_1^2\right\} \times \prod_{k=2}^{T}\frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}\varepsilon_k^2\right\}
+$$
+
+### Función de verosimilitud
+
+La **función de verosimilitud** no es más que la función de densidad conjunta cuando _los parámetros del modelo son desconocidos_. 
+
+En el caso de un proceso AR(\(1\)), por ejemplo, los coeficientes \(\phi_0\), \(\phi_1\), así como \(\sigma^2\), son desconocidos, por lo que su función de verosimilitud es:
+
+
+$$
+\begin{align}
+L(\phi_0, \phi_1, \sigma^2) &= \frac{1}{\sqrt{2\pi\gamma_0 }}\exp\left\{ -\frac{1}{2\gamma_0}\left(y_1-\frac{\phi_0}{1-\phi_1}\right)^2\right\}\\
+&\times \prod_{k=2}^{T}\frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}(y_k-\phi_0-\phi_1y_{k-1})^2\right\}
+\end{align}
+$$
+
+### Función de log-verosimilitud
+
+En ocasiones, resulta más conveniente calcular la **función de log-verosimilitud**. Esta no es más que el _logaritmo natural de la función de verosimilitud_. 
+
+En el caso de un proceso AR(\(1\)), por ejemplo, tenemos que la función de log-verosimilud es:
+
+
+$$
+\begin{align}
+\mathcal{L}(\phi_0, \phi_1, \sigma^2) = 
+&-\frac{T}{2}\ln(2\pi)-\frac{1}{2}\ln\left(\frac{\sigma^2}{1-\phi_1^2}\right)\\
+&-\frac{\left[y_1 - \phi_0/(1-\phi_1)\right]^2}{2\sigma^2/(1-\phi_1)} - \left(\frac{T-1}{2}\right)\ln(\sigma^2)\\
+&- \sum_{k=2}^{T}\left\{ -\frac{1}{2\sigma^2}(y_k-\phi_0-\phi_1y_{k-1})^2\right\}
+\end{align}
+$$
+
+
+### Función de verosimilitud de un AR(\(p\)) (1/6)
+
+Consideremos ahora un proceso AR(\(p\)):
+
+$$
+\begin{align}
+y_t &= \phi_0 + \phi_1 y_{t-1} + \phi_2 y_{t-2} + \dots + \phi_p y_{t-p} + \varepsilon_t \\
+\varepsilon_t&\sim iid\mathcal{N}(0,\sigma^2)
+\end{align}
+$$
+
+Para calcular la función de verosimilitud, necesitamos primero calcular la función de densidad conjunta _de las primeras \(p\) observaciones_, las cuales agruparemos en el vector \(\mathbf{y}_p\):
+
+$$
+\mathbf{y}_p = \begin{pmatrix}
+y_1 \\
+y_2 \\
+\vdots\\
+y_{p}
+\end{pmatrix}
+$$
+
+### Función de verosimilitud de un AR(\(p\)) (2/6)
+
+De antes, podemos deducir que:
+
+$$
+\mathbf{y}_p \sim \mathcal{N}(\boldsymbol{\mu},\mathbf{\Sigma})
+$$
+donde:
+
+$$
+\boldsymbol{\mu} = \begin{pmatrix}
+\mu \\
+\mu \\
+\vdots\\
+\mu
+\end{pmatrix}; \qquad
+\mathbf{\Sigma} = \begin{pmatrix}
+\gamma_0 & \gamma_1 & \gamma_2 & \gamma_3 & \dots & \gamma_{p-1}\\
+\gamma_1 & \gamma_0 & \gamma_1 & \gamma_2 & \dots & \gamma_{p-2}\\
+\gamma_2 & \gamma_1 & \gamma_0 & \gamma_1 & \dots & \gamma_{p-3}\\
+\vdots & \vdots& \vdots & \vdots & \ddots & \vdots\\
+\gamma_{p-1} & \gamma_{p-2} & \gamma_{p-3} & \gamma_{p-4} & \dots & \gamma_{0}\\
+\end{pmatrix}
+$$
+
+Y, naturalmente:
+
+$$
+\mu = \frac{\phi_0}{1-\phi_1-\phi_2-\dots-\phi_p}; \qquad
+\gamma_h = \gamma(h)
+$$
+
+### Función de verosimilitud de un AR(\(p\)) (3/6)
+
+Entonces, para el vector \(\mathbf{y}_p\):
+
+$$
+f_{Y_1, Y_2,\dots,Yp}(y_1, y_2, \dots, y_p)= (2\pi)^{\frac{p}{2}}|\mathbf{\Sigma}|^{-\frac{1}{2}}\exp\left\{ -\frac{1}{2}(\mathbf{y}_p-\mu)'\mathbf{\Sigma}^{-1}(\mathbf{y}_p-\mu)\right\}
+$$
+
+Además, siguiendo un procedimiento similar al de un AR(\(1\)\), es fácil encontrar que para el resto de las observaciones (\(k>p\)):
+
+
+$$
+\begin{align}
+f_{Y_k|Y_1, Y_2,\dots Y_{k-1}}(y_k|y_1,y_2,\dots,y_{k-1}) &= \frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}(y_k-\phi_0 - \phi_1y_{k-1}-\phi_2y_{k-2}-\dots-\phi_p y_{k-p})^2\right\}\\
+&= \frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}\varepsilon_k^2\right\}\\
+\end{align}
+$$
+
+### Función de verosimilitud de un AR(\(p\)) (4/6)
+
+Entonces, la función de verosimilitud para un proceso ARMA(\(p\)) es:
+
+$$
+\begin{align}
+L(\phi_0,\phi_1,\dots,\phi_p,\sigma^2) &= (2\pi)^{-\frac{p}{2}}|\mathbf{\Sigma}|^{-\frac{1}{2}}\exp\left\{ -\frac{1}{2}(\mathbf{y}_p-\mu)'\mathbf{\Sigma}^{-1}(\mathbf{y}_p-\mu)\right\} \\
+&\times \prod_{k=p+1}^T\frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}\varepsilon_k^2\right\}
+\end{align}
+$$
+
+Y la función de log-verosimilitud:
+
+$$
+\begin{align}
+\mathcal{L}(\phi_0,\phi_1,\dots,\phi_p,\sigma^2) = &-\frac{T}{2}\ln(2\pi)+\frac{1}{2}\ln|\mathbf{\Sigma}|^{-\frac{1}{2}} - \frac{1}{2}(\mathbf{y}_p-\mu)'\mathbf{\Sigma}^{-1}(\mathbf{y}_p-\mu) \\
+&- \frac{1}{2\sigma^2}\sum_{k=p+1}^T(y_t-\phi_0-\phi_1y_{t-1}-\phi_2y_{t-2}-\dots-\phi_py_{t-p})^2
+\end{align}
+$$
+
+### Función de verosimilitud de un AR(\(p\)) (5/6)
+
+<span class="emphasis-blue">Nota</span>
+
+Para encontrar la función de verosimilitud de un AR(\(p\)) es necesario encontrar la forma de la matriz \(\mathbf{\Sigma}^{-1} = \sigma^2 \mathbf{V}^{-1}\). Sean \(v_{ij}\) los elementos de\(\mathbf{V}^{-1}\). Galbraith y Galbraith (1974) demostraron que:
+
+$$
+v_{ij} = \left[ \sum_{k=0}^{i-1}\phi_k\phi_{k+j-i} - \sum_{k=p+1-j}^{p+i-j}\phi_k\phi_{k+j-i}\right]
+$$
+
+para \(1\leq i \leq j \leq p\) y \(\phi_0=-1\). Todos los elementos \(i>j\) se encuentran por simetría.
+
+### Función de verosimilitud de un AR(\(p\)) (6/6)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Muestra que para un proceso AR(\(2\)), la función de log verosimilitud es:
+
+$$
+\begin{align}
+\mathcal{L}(\phi_0,\phi_1,\phi_2,\sigma^2) = &-\frac{T}{2}\ln(2\pi)-\frac{T}{2}\ln(\sigma^2)+\frac{1}{2}\ln\left\{(1+\phi_2)^2[(1-\phi_2)^2-\phi_1^2]\right\} \\
+&- \left(\frac{1+\phi_2}{2\sigma^2}\right) \left[(1-\phi_2)(y_1-\mu)^2-2\phi_1(y_1-\mu)(y_2-\mu)+(1-\phi_2)(y_2-\mu)^2\right] \\
+&- \frac{1}{2\sigma^2}\sum_{k=3}^T(y_t-\phi_0-\phi_1y_{t-1}-\phi_2y_{t-2})^2
+\end{align}
+$$
+
+donde:
+
+$$
+\mu = \frac{\phi_0}{1-\phi_1-\phi_2}
+$$
+
+
+### Estimación por máxima verosimilitud
+
+Para estimar los coeficientes de un proceso AR(\(p\)), tenemos que _maximizar_ la función de verosimilitud (o, de forma equivalente, la de log-verosimilitud) con respecto a los coeficientes desconocidos. Esta técnica se conoce como **estimación por máxima verosimilitud**.
+
+
+Sin embargo, nota que esta es una función no lineal de los parámetros, por lo que _no existe solución cerrada_.
+
+
+### Máxima verosimilitud condicional (1/2)
+
+Nota que, si suponemos que las _primeras \(p\) observaciones_ de la serie de tiempo, \(y_1, y_2, \dots y_p \), son deterministas, la función de verosimilitud de un proceso AR(\(p\)) se simplifica a:
+
+$$
+\begin{align}
+L(\phi_0,\phi_1,\dots,\phi_p,\sigma^2) &= \prod_{k=p+1}^T\frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}\varepsilon_k^2\right\}
+\end{align}
+$$
+
+Y, la función de log-verosimilitud:
+
+$$
+\begin{align}
+\mathcal{L}(\phi_0, \phi_1, \sigma^2|y_1) = &-\frac{T-p}{2}\ln(2\pi)- \frac{T-p}{2}\ln(\sigma^2) \\
+&-\frac{1}{2\sigma^2} \sum_{k=p+1}^{T}(y_k-\phi_0-\phi_1y_{k-1}-\dots-\phi_p y_{k-p})^2
+\end{align}
+$$
+
+
+Estas se conocen como funciones de **verosimilitud condicional** y de **log-verosimilitud condicional**, respectivamente. Nota que, a diferencia de la función de verosimilitud exacta, la función de verosimilitud condicional _permite una solución cerrada para los coeficientes estimados_.
+
+
+### Estimación por máxima verosimilitud condicional (2/2)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Muestra que si las primeras \(p\) observaciones de un AR(\(p\)) son deterministas, los coeficientes estimados por máxima verosimilitud (condicional) son equivalentes a los estimadores de MCO.
+
+Muestra, además, que el estimador de la varianza del error es:
+
+$$
+\sigma^2 = \frac{1}{T-p}\sum_{k=p+1}^T \varepsilon_t^2
+$$
+
+
+## Verosimilitud condicional: Modelos ARMA(\(p\),\(q\))
+
+### Función de verosimilitud condicional: MA(\(1\)) (1/10)
+
+Para comenzar, consideremos un proceso MA(\(1\)):
+
+$$
+\begin{align}
+ y_t &= \mu + \varepsilon_t + \theta \varepsilon_{t-1}\\
+ \varepsilon_t &\sim iid\mathcal{N}(0,\sigma^2)
+\end{align}
+$$
+
+Primero, nota que, si conocemos \(\varepsilon_{t-1}\), siempre es posible calcular:
+
+$$
+\begin{align}
+ \mathbb{E}(y_t|\varepsilon_{t-1}) &= \mu + \theta \varepsilon_{t-1}\\
+ \mathbb{V}ar(y_t|\varepsilon_{t-1}) &= \sigma^2
+\end{align}
+$$
+
+### Función de verosimilitud condicional: MA(\(1\)) (2/10)
+
+Lo anterior implica que:
+
+$$
+\begin{align}
+ y_t |\varepsilon_{t-1} \sim \mathcal{N}(\mu + \theta \varepsilon_{t-1},\sigma^2)
+\end{align} 
+$$
+
+Y, por lo tanto, para todo \(t\):
+
+$$
+\begin{align}
+f_{Y_t|\varepsilon_{t-1}}(y_t|\varepsilon_{t-1})&= \frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}(y_t-\mu-\theta \varepsilon_{t-1})^2\right\}
+\end{align}
+$$
+
+### Función de verosimilitud condicional: MA(\(1\)) (3/10)
+
+Nota que, cuando \(t=1\):
+
+$$
+y_1 = \mu + \varepsilon_1 + \theta_1 \varepsilon_0
+$$
+
+Dado que no conocemos \(\varepsilon_0\), podemos hacer el supuesto adicional que \(\varepsilon_0=0\). Entonces, en este caso:
+
+
+$$
+\begin{align}
+f_{Y_1|\varepsilon_{0}}(y_1|\varepsilon_{0}=0)&= \frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}(y_1-\mu)^2\right\}\\
+&= \frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}\varepsilon_1^2\right\}
+\end{align}
+$$
+
+### Función de verosimilitud condicional: MA(\(1\)) (4/10)
+
+Ahora, para \(t=2\):
+
+$$
+y_2 = \mu + \varepsilon_2 + \theta_1 \varepsilon_1
+$$
+
+_Si condicionamos a que \(Y_1=y_1\), entonces \(\varepsilon_1\) se vuelve conocido_. Entonces:
+
+
+$$
+\begin{align}
+f_{Y_2|Y_1,\varepsilon_{0}}(y_2|y_1,\varepsilon_{0}=0)&= \frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}(y_2-\mu-\theta_1\varepsilon_{1})^2\right\}\\
+&= \frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}\varepsilon_2^2\right\}
+\end{align}
+$$
+
+### Función de verosimilitud condicional: MA(\(1\)) (5/10)
+
+Ahora, para \(t=3\):
+
+$$
+y_3 = \mu + \varepsilon_3 + \theta_1 \varepsilon_2
+$$
+
+Y, si condicionamos a que \(Y_1=y_1\) \(Y_2=y_2\), entonces:
+
+
+$$
+\begin{align}
+f_{Y_3|Y_1,Y_2,\varepsilon_{0}}(y_3|y_1,y_2,\varepsilon_{0}=0)&= \frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}(y_3-\mu-\theta_1\varepsilon_{2})^2\right\}\\
+&= \frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}\varepsilon_3^2\right\}
+\end{align}
+$$
+
+### Función de verosimilitud condicional: MA(\(1\)) (6/10)
+
+Queda claro que, para todo \(t\):
+
+$$
+y_t = \mu + \varepsilon_{t} + \theta_1 \varepsilon_{t-1}
+$$
+
+Y:
+
+
+$$
+\begin{align}
+f_{Y_t|Y_{1},Y_{2},\dots,Y_{t-1},\varepsilon_{0}}(y_t|y_{1},y_{2},\dots,y_{t-1},\varepsilon_{0}=0)&= \frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}(y_t-\mu-\theta_1\varepsilon_{t-1})^2\right\}\\
+&= \frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}\varepsilon_t^2\right\}
+\end{align}
+$$
+
+
+### Función de verosimilitud condicional: MA(\(1\)) (7/10)
+
+Entonces, la función de densidad conjunta condicionada a que \(\varepsilon_0=0\) para las \(T\) observaciones es:
+
+$$
+f_{Y_1, Y_2,\dots,Y_T|\varepsilon_0 =0}(y_1, y_2,\dots,y_T|\varepsilon_0 =0) = f_{Y_1|\varepsilon_0}((y_1|\varepsilon_0 =0) \times \prod_{k=2}^{T}f_{Y_t|Y_{1},Y_{2},\dots,Y_{t-1},\varepsilon_{0}}(y_t|y_{1},y_{2},\dots,y_{t-1},\varepsilon_{0}=0)
+$$
+
+### Función de verosimilitud condicional: MA(\(1\)) (8/10)
+
+Cuando no conocemos los parámetros del proceso, tenemos la función de verosimilitud:
+
+$$
+L(\mu, \theta_1,\sigma^2|\varepsilon_0=0) = \prod_{k=1}^{T}\frac{1}{\sqrt{2\pi\sigma^2 }}\exp\left\{ -\frac{1}{2\sigma^2}\varepsilon_t^2\right\}
+$$
+
+Y la función de log-verosimilitud:
+
+$$
+\mathcal{L}(\mu, \theta_1,\sigma^2|\varepsilon_0=0) = -\frac{T}{2}\ln(2\pi)-\frac{T}{2}\ln \sigma^2-\frac{1}{2\sigma^2}\sum_{k=1}^{T}\varepsilon_t^2
+$$
+
+Con:
+
+$$
+\varepsilon_t = 
+\begin{cases}
+y_1 - \mu; & t=1\\
+y_t - \mu - \theta_1 \varepsilon_{t-1}; & t>1
+\end{cases}
+$$
+
+
+### Función de verosimilitud condicional: MA(\(1\)) (9/10)
+
+<span class="emphasis-blue">Nota</span>
+
+Para realizar el cálculo anterior, hemos supuesto que \(\varepsilon_0=0\). ¿Qué tan importante es este supuesto?
+
+Nota que, en cada periodo \(t\):
+
+$$
+\varepsilon_t = y_t - \mu - \theta_1\varepsilon_{t-1}
+$$
+
+Esta no es más que una _ecuación en diferencias_ para \(\varepsilon_t\) con condición inicial \(\varepsilon_0=0\).
+
+### Función de verosimilitud condicional: MA(\(1\)) (10/10)
+
+<span class="emphasis-blue">Nota</span>
+
+Si resolvemos la ecuación en diferencias para \(\varepsilon_t\):
+
+$$
+\varepsilon_t = \sum_{i=0}^{t-1} (-1)^i\theta_1^i(y_{t-i}-\mu) + (-1)^t\theta_1^t\varepsilon_0
+$$
+
+Entonces, si \(|\theta_1|<1\), el coeficiente \(\theta_1^t\) converge a cero conforme \(t\) crece. Por lo tanto, el supuesto  de \(\varepsilon_0=0\) deja de tener importancia en tanto la serie de tiempo sea lo suficientemente larga.
+
+
+### Función de verosimilitud condicional: MA(\(q\)) (1/3)
+
+Podemos seguir el procedimiento anterior para encontrar la función de verosimilitud para un MA(\(q\)):
+
+$$
+\begin{align}
+ y_t &= \mu + \varepsilon_t + \theta_1 \epsilon_{t-1} + \theta_2 \varepsilon_{t-2}+\dots+ \theta_q \varepsilon_{t-q}\\
+ \varepsilon_t &\sim iid\mathcal{N}(0,\sigma^2)
+\end{align}
+$$
+
+Igual que antes, debemos establecer algunos supuestos sobre el comportamiento de \(\varepsilon_t\) para poder plantear la función de verosimilitud condicional.
+
+### Función de Verosimilitud condicional: MA(\(q\)) (2/3)
+
+Ahora, es necesario suponer que:
+
+$$
+\varepsilon_0 = \varepsilon_1 = \dots = \varepsilon_{q-1} = 0
+$$
+
+O bien que:
+
+$$
+\varepsilon_0 = \varepsilon_{-1} = \dots = \varepsilon_{-q+1} = 0
+$$
+_¿Por qué?_
+
+### Función de Verosimilitud condicional: MA(\(q\)) (3/3)
+
+Bajo alguno de los supuestos anteriores, podemos calcular:
+
+$$
+\varepsilon_t = y_t - \mu - \theta_1\varepsilon_{t-1}- \theta_2\varepsilon_{t-2}-\dots-\theta_q\varepsilon_{t-q}
+$$
+
+Lo cual nos permite deducir que:
+
+$$
+\mathcal{L}(\mu, \boldsymbol{\theta},\sigma^2|\boldsymbol{\varepsilon_0}=0) = -\frac{T}{2}\ln(2\pi)-\frac{T}{2}\ln \sigma^2-\frac{1}{2\sigma^2}\sum_{k=1}^{T}\varepsilon_t^2
+$$
+
+donde \(\boldsymbol{\theta} = (\theta_1 \ \theta_2 \ \dots \ \theta_q)^T\) y \(\boldsymbol{\varepsilon_0} = (\varepsilon_0 \ \varepsilon_{-1} \ \dots \ \varepsilon_{-q+1})^T\).
+
+
+### Función de Verosimilitud condicional: ARMA(\(p\),\(q\)) (1/3)
+
+Finalmente, para encontrar la función de verosimilitud condicional para un proceso  ARMA(\(p\),\(q\)) establecemos (por ejemplo):
+
+$$
+y_t = \frac{\mu}{1-\phi_1-\phi_-\dots-\phi_p}; \quad t=0,-1,\dots,-p+1
+$$
+
+Y:
+
+$$
+\varepsilon_t = 0; \quad t=0,-1,\dots,-q+1 = 0
+$$
+
+### Función de Verosimilitud condicional: ARMA(\(p\),\(q\)) (2/3)
+
+En este caso:
+
+$$
+\mathcal{L}(\mu, \boldsymbol{\phi}, \boldsymbol{\theta},\sigma^2|\mathbf{y_0},\boldsymbol{\varepsilon_0}) = -\frac{T}{2}\ln(2\pi)-\frac{T}{2}\ln \sigma^2-\frac{1}{2\sigma^2}\sum_{k=1}^{T}\varepsilon_t^2
+$$
+
+Donde \(\mathbf{y_0}\) se refiere a las condiciones iniciales establecidas para \(y_t\) y \(\boldsymbol{\varepsilon_0}\) se refiere a las condiciones iniciales establecidas para \(\varepsilon_t\).
+
+### Función de Verosimilitud condicional: ARMA(\(p\),\(q\)) (3/3)
+
+<span class="emphasis-blue">Nota</span>
+
+Para poder calcular la función de verosimilitud, otra posibilidad consiste en establecer:
+
+$$
+\varepsilon_t = 0; \quad t=0,-1,\dots,-q+1 = 0,
+$$
+
+pero fijar \(y_t\), \(t=1,2,\dots,p\) en sus valores observados. Esta opción, sin embargo, implica perder las primeras \(p\) observaciones de la muestra. En este caso:
+
+
+$$
+\mathcal{L}(\mu, \boldsymbol{\phi}, \boldsymbol{\theta},\sigma^2|\mathbf{y_0},\boldsymbol{\varepsilon_0}) = -\frac{T-p}{2}\ln(2\pi)-\frac{T-p}{2}\ln \sigma^2-\frac{1}{2\sigma^2}\sum_{k=p+1}^{T}\varepsilon_t^2
+$$
+
+
+## Identificación del orden de un ARMA(\(p\),\(q\))
+
+### Identificación del orden de un ARMA(\(p\),\(q\)) (1/8)
+
+En ausencia de parámetros, y bajo los supuestos de _estacionariedad_ y _ergodicidad_, usamos las observaciones \(\{y_t\}_{t=1}^T\) para encontrar:
+
+  - Promedio muestral
+  - Autocovarianza muestral
+  - Autocorrelación muestral
+  - Autocorrelación parcial
+  
+Para identificar el orden de un ARMA(\(p\),\(q\)), _comparamos el comportamiento de las medidas de dependencia serial muestrales con el comportamiento teórico_ para diferentes valores de \(p\) y de \(q\).
+
+### Identificación del orden de un ARMA(\(p\),\(q\)) (2/8)
+
+<span class="emphasis-blue">Regla 1</span>
+
+La _función de autocorrelación_ puede ayudarnos a saber si el modelo adecuado es un AR/ARMA o un MA. Si el modelo es un MA, la función de autocorrelación nos indica su orden.
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+# Cargamos librerías (si no las tienes instaladas, usa install.packages())
+library(astsa)
+
+# Semilla para reproducibilidad
+set.seed(5678)
+
+# Número de observaciones en la simulación
+n <- 200
+
+# Vector de colores
+culer <- c("cyan4", 4, 2, 6)
+
+# Simulaciones de cada proceso:
+sim_ma1    <- arima.sim(model = list(order = c(0,0,1), ma = 0.5),         n = n)
+sim_ma2    <- arima.sim(model = list(order = c(0,0,2), ma = c(0.5, 0.3)), n = n)
+sim_ar1    <- arima.sim(model = list(order = c(1,0,0), ar = 0.7),         n = n)
+sim_ar2 <- arima.sim(model = list(order = c(2,0,0), ar = c(0.2,0.7)), n = n)
+
+# Ajustamos la ventana de 2x2 y configuramos márgenes y tamaños de texto
+par(
+  mfrow    = c(2,2),      # 2 filas, 2 columnas
+  mar      = c(4,4,3,1),  # márgenes (abajo, izq, arriba, der)
+  cex.main = 1.3,         # tamaño del título
+  cex.lab  = 1.2,         # tamaño de las etiquetas de ejes
+  cex.axis = 1.1          # tamaño de las marcas en los ejes
+)
+
+# Gráfico 1: FAC de MA(1)
+acf(sim_ma1, 
+    main = "FAC de MA(1)",
+    col  = culer,
+    lwd  = 2)             # grosor de línea
+
+# Gráfico 2: FAC de MA(2)
+acf(sim_ma2,
+    main = "FAC de MA(2)",
+    col  = culer,
+    lwd  = 2)
+
+# Gráfico 3: FAC de AR(1)
+acf(sim_ar1,
+    main = "FAC de AR(1)",
+    col  = culer,
+    lwd  = 2)
+
+# Gráfico 4: FACP de AR(2)
+acf(sim_ar2,
+    main = "FAC de AR(2)",
+    col  = culer,
+    lwd  = 2)
+
+dev.off()
+```
+
+
+### Identificación del orden de un ARMA(\(p\),\(q\)) (3/8)
+
+<span class="emphasis-blue">Regla 2</span>
+
+Si el modelo resulta ser un AR(\(p\)), la _función de autocorrelación parcial_ nos indicará su orden.
+
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, out.width='70%', out.height='60%'}
+
+
+par(
+  mfrow    = c(2,2),      # 2 filas, 2 columnas
+  mar      = c(4,4,3,1),  # márgenes (abajo, izq, arriba, der)
+  cex.main = 1.3,         # tamaño del título
+  cex.lab  = 1.2,         # tamaño de las etiquetas de ejes
+  cex.axis = 1.1          # tamaño de las marcas en los ejes
+)
+
+# Gráfico 1: FACP de MA(1)
+pacf(sim_ma1, 
+    main = "FACP de MA(1)",
+    col  = culer,
+    lwd  = 2)             # grosor de línea
+
+# Gráfico 2: FACP de MA(2)
+pacf(sim_ma2,
+    main = "FACP de MA(2)",
+    col  = culer,
+    lwd  = 2)
+
+# Gráfico 3: FACP de AR(1)
+pacf(sim_ar1,
+    main = "FACP de AR(1)",
+    col  = culer,
+    lwd  = 2)
+
+# Gráfico 4: FACP de AR(2)
+pacf(sim_ar2,
+    main = "FACP de AR(2)",
+    col  = culer,
+    lwd  = 2)
+
+dev.off()
+```
+
+### Identificación del orden de un ARMA(\(p\),\(q\)) (4/8)
+
+<span class="emphasis-blue">Regla 3</span>
+
+Los residuales del modelo seleccionado deben comportarse (estadísticamente) como un ruido blanco.
+
+
+### Identificación del orden de un ARMA(\(p\),\(q\)) (5/8)
+
+Para saber si el residual de un proceso se comporta (estadísticamente) como un ruido blanco, usamos el **estadístico Q** de _Ljung-Box_:
+
+$$
+Q_{LB} = T(T+2)\sum_{h=1}^m\frac{\rho_h^2}{T-h}
+$$
+
+Probamos la hipótesis nula:
+
+$$
+\begin{align}
+H_0 :& \ \varepsilon_t \sim WN \\
+H_1 :& \ \varepsilon_t \nsim WN
+\end{align}
+$$
+
+Si la hipótesis nula es correcta, se puede demostrar que:
+
+$$
+Q_{LB} \sim \chi^2_m; \ m \approx \sqrt{T}
+$$
+
+### Identificación del orden de un ARMA(\(p\),\(q\)) (6/8)
+
+<span class="emphasis-blue">Regla 4</span>
+
+Si tenemos más de un modelo, podemos seleccionar el mejor usando la función de verosimilitud. En general, el modelo con un _valor más alto_ para la función de (log) verosimilitud es el mejor.
+
+Esto también nos ayuda a elegir el orden de un proceso ARMA(\(p,q\)) cuando \(p\) y \(q\) son simultáneamente diferentes de cero.
+
+
+### Identificación del orden de un ARMA(\(p\),\(q\)) (7/8)
+
+
+Alternativamente, podemos elegir el modelo comparando:
+
+- Los valores del **criterio de información de Akaike** (AIC):
+
+$$
+AIC = \mathbb{E}[-2\mathcal{L}(\cdot)] = T\ln(s^2) + 2k
+$$
+
+- Los valores del **criterio de información de Schwartz** (SIC o BIC):
+
+$$
+BIC = T\ln(s^2) + k\ln(T)
+$$
+
+En general, buscamos el modelo que tenga el _menor valor posible_ para estos criterios.
+
+
+### Identificación del orden de un ARMA(\(p\),\(q\)) (8/8)
+
+
+<span class="emphasis-blue">Regla 5</span>
+
+Si el AIC y el BIC seleccionan modelos diferentes, tomar en cuenta que:
+
+- _AIC es eficiente_: selecciona el modelo que tenga el error de predicción más pequeño.
+
+- _BIC es consistente_: selecciona el modelo correcto con probabilidad 1 si \(T\) es grande.
+
+## Pronósticos
+
+### Pronósticos usando ARMA(\(p\),\(q\)) (1/3)
+
+Una vez que hemos estimado los coeficientes de un proceso ARMA(\(p\),\(q\)), podemos utilizar el modelo para realizar pronósticos. 
+
+Sea \(y_T\) el último valor disponible de \(y_t\). Entonces, el mejor pronóstico para \(h\) periodos hacia el futuro de \(y_t\), \(\widehat y_{T+h\mid T}, \ h=1,2,\dots \), es la **proyección lineal óptima**:
+
+$$
+\begin{align}
+\widehat y_{T+h\mid T} &= \mathbb{E}(y_{T+h}\mid \Omega_T),\\ 
+\Omega_T&=\{y_T,y_{T-1},y_{T-2},\dots\}
+\end{align}
+$$
+la cual, _en el caso de normalidad_, coincide con el valor esperado condicional.
+
+### Pronósticos usando ARMA(\(p\),\(q\)) (2/3)
+
+<span class="emphasis-blue">Ejemplo</span>
+
+Consideremos un proceso AR(\(1\)):
+
+$$
+\begin{align}
+y_t&=\phi_0+\phi_1y_{t-1}+\varepsilon_t, \ |\phi_1|<1\\
+\varepsilon_t & \sim iid\mathcal{N}(0,\sigma^2)\\
+\end{align}
+$$
+En este caso tenemos:
+
+$$
+\begin{align}
+\mathbb{E}(y_{T+1}\mid\Omega_T) &= \phi_0 + \phi_1 y_T,\\
+\mathbb{E}(y_{T+2}\mid\Omega_T) &= \phi_0 (1+\phi_1) + \phi_1^{2} y_T,\\
+\mathbb{E}(y_{T+3}\mid\Omega_T) &= \phi_0(1+\phi_1+\phi_1^{2}) + \phi_1^{3} y_T,\\
+& \vdots \\
+\mathbb{E}(y_{T+h}\mid\Omega_T) &= \phi_0\sum_{j=0}^{h-1}\phi_1^{j} + \phi_1^{h} y_T\\
+&= \mu(1-\phi_1^h)+\phi_1^h y_T \\
+\end{align}
+$$
+
+### Pronósticos usando ARMA(\(p\),\(q\)) (3/3)
+
+<span class="emphasis-blue">Ejemplo (cont'd)</span>
+
+Nota que, para un proceso AR(\(1\)), si consideramos un horizonte más largo:
+
+$$
+\lim_{h\to\infty}\mathbb{E}(y_{T+h}\mid\Omega_T)=\mu,
+$$
+
+donde:
+
+$$
+\mu=\frac{\phi_0}{1-\phi_1}.
+$$
+Esto es, \(\mathbb{E}(y_{T+h})\) _converge a la media no condicional_ de \(y_t\).
+
+
+### Varianza del pronóstico (1/2)
+
+Por supuesto, la calidad del pronóstico \(y_{T+h}\) depende crucialmente de la **varianza del error del pronóstico**, \(\mathbb{V}ar\big[y_{T+h}-\mathbb{E}(y_{T+h}\mid\Omega_T)\big]\).
+
+
+<span class="emphasis-blue">Ejemplo</span>
+
+Consideremos un proceso AR(\(1\)). La varianza del error de pronóstico de \(y_t\) para \(h\) periodos hacia el futuro es:
+
+$$
+\begin{align}
+\mathbb{V}ar\!\big[y_{T+h}-\mathbb{E}(y_{T+h}\mid\Omega_T)\big]
+&=\sigma^2\sum_{j=0}^{h-1}\phi_1^{2j} \\
+&=\sigma^2\frac{1-\phi_1^{2h}}{1-\phi_1^2}
+\end{align}
+$$
+
+
+
+### Varianza del pronóstico (2/2)
+
+Nota que, conforme \(h\) crece, tenemos que la varianza del pronóstico _converge a la varianza no condicional_ de \(y_t\):
+
+$$
+\lim_{h\to\infty}\mathbb{V}ar\!\big[y_{T+h}-\mathbb{E}(y_{T+h}\mid\Omega_T)\big] =  
+\frac{\sigma^2}{1-\phi_1^2}.
+$$
+
+### Pronósticos, caso general
+
+Recordemos que, si un proceso ARMA(\(p,q\)) es estacionario e invertible, existe una representación MA(\(\infty\)) de la forma:
+
+$$
+y_t=\mu + \sum_{i=0}^{\infty}\psi_i\,\varepsilon_{t-i},\qquad \psi_0=1.
+$$
+
+En este caso:
+
+$$
+\begin{align}
+\mathbb{V}ar\!\big[y_{T+h}-\mathbb{E}(y_{T+h}\mid\Omega_T)\big]
+&=\sigma^2\sum_{i=0}^{h-1}\psi_i^{2} \\
+\lim_{h\to\infty}\mathbb{E}(y_{T+h}\mid\Omega_T)&=\mu\ .
+\end{align}
+$$
+
+### Intervalos de predicción
+
+Si \(\varepsilon_t\sim iid \mathcal{N}(0,\sigma^2)\), un intervalo de confianza de \(100(1-\alpha)\%\) para \(y_{T+h}\) se calcula como:
+
+$$
+\widehat y_{T+h\mid T}\ \pm\ z_{1-\alpha/2}\,\sqrt{\mathbb{V}ar\!\big[y_{T+h}-\mathbb{E}(y_{T+h}\mid\Omega_T)\big]}.
+$$
+
+
+Por ejemplo, si \(\alpha=0.05\), \(z_{1-\alpha/2}=1.96\). Entonces:
+
+$$
+\widehat y_{T+h\mid T}\ \pm\ 1.96\,\sqrt{\mathbb{V}ar\!\big[y_{T+h}-\mathbb{E}(y_{T+h}\mid\Omega_T)\big]}.
+$$
