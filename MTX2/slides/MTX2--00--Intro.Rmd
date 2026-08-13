@@ -3,7 +3,7 @@ title: "Econometría II"
 subtitle: "Introducción"
 author: 
   - "Alejandro Mosiño - _Universidad de Guanajuato_"
-date: "v. 2026.01.18"
+date: "v. 2026.08.13"
 
 knit: (function(inputFile, encoding) {
   rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
@@ -89,9 +89,9 @@ Algunos ejemplos de **modelos microeconométricos** son:
 
 ### Evaluación (1/2)
 
-- **Cuestionarios**: 10%
 - **Ejercicios**: 10%
-- **Ensayos**: 10%
+- **Cuestionarios**: 10%
+- **Lecturas**: 10%
 - **Examen parcial**: 20%
 - **Examen Final**: 50%
 - **Evaluación docente**: 0% (_¡Obligatoria!_)
