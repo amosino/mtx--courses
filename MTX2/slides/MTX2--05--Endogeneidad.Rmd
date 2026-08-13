@@ -1,6 +1,6 @@
 ---
 title: "Econometría II"
-sutitle: "Regresores estocásticos y errores de medición"
+subtitle: "Regresores estocásticos y errores de medición"
 author: 
   - "Alejandro Mosiño - _Universidad de Guanajuato_"
 date: "v. 2026.03.22"
