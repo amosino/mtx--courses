@@ -16,7 +16,3 @@ Cada curso sigue la siguiente estructura estandarizada:
 * `data/`: Conjuntos de datos utilizados en los ejemplos y tareas.
 * `src/`: Recursos de estilo, como archivos CSS personalizados (`custom.css`).
 * `docs/`: Archivos HTML y PDF compilados listos para visualizarse.
-
-## Cómo trabajar con los cursos
-
-Cada carpeta de curso es independiente y contiene su propio archivo de proyecto de RStudio (`.Rproj`). Se recomienda abrir el archivo `.Rproj` correspondiente al curso en el que se esté trabajando para que las rutas relativas se resuelvan de manera correcta mediante el paquete `here`.
