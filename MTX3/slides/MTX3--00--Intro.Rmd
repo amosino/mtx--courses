@@ -3,7 +3,7 @@ title: "Series de Tiempo Económicas"
 subtitle: "Introducción"
 author: 
   - "Alejandro Mosiño - _Universidad de Guanajuato_"
-date: "v. 2026.08.09"
+date: "v. 2026.08.13"
 knit: (function(inputFile, encoding) {
   rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
 
@@ -233,7 +233,7 @@ Utilizaremos principalmente **Gretl**, pero el estudiante puede optar por:
 
 ### Referencias
 
-- **Brockwell**, P., y Davis, R. (2002). *Introduction to Time Series and Forecasting* (Second Edition). Springer. 
+- **Brockwell**, P., y Davis, R. (2016). *Introduction to Time Series and Forecasting* (3rd Edition). Springer. 
 
 - **Enders**, W. (2014). *Applied Econometric Time Series* (4th Edition). Wiley.
 
