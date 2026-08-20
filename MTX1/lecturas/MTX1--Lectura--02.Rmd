@@ -150,7 +150,7 @@ Entrega **un solo archivo en formato PDF** que contenga todas tus respuestas.
 
 No hay una extensión mínima o máxima. La extensión adecuada es la necesaria para que tu razonamiento pueda entenderse y evaluarse.
 
-La actividad será evaluada mediante la **rúbrica disponible en Moodle**, la misma utilizada en la Lectura 01. La evaluación considerará especialmente:
+La actividad será evaluada mediante la **rúbrica disponible en Campus Digital**. La evaluación considerará especialmente:
 
 - el uso de evidencia concreta del material;
 - la calidad y coherencia del razonamiento;

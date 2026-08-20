@@ -1,0 +1,78 @@
+---
+title: "Lectura 01"
+subtitle: "¿Podemos aprender a predecir el futuro?"
+
+output:
+  html_document:
+    css: ../src/lecturas.css
+    self_contained: true
+    toc: false
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+---
+
+# ¿Podemos aprender a predecir el futuro?
+
+Escucha el siguiente episodio de *Freakonomics Radio*:
+
+**Freakonomics Radio — *How to Be Less Terrible at Predicting the Future***  
+https://freakonomics.com/podcast/how-to-be-less-terrible-at-predicting-the-future/
+
+El episodio discute por qué nuestras predicciones suelen fallar y qué podemos hacer para aprender a pronosticar mejor.
+
+Después de escucharlo, realiza las siguientes actividades.
+
+**Recomendación.** Es preferible escuchar el episodio mientras sigues la transcripción, en lugar de limitarte a leerla. El objetivo principal de la actividad es econométrico, pero esta práctica también ayuda a desarrollar la comprensión del inglés académico.
+
+## 1. Predicciones y evidencia
+
+Elige una de las predicciones o situaciones discutidas en el episodio.
+
+Explica brevemente:
+
+- ¿qué se intentaba predecir?;
+- ¿qué información o evidencia se utilizaba para formular la predicción?;
+- ¿qué hacía difícil anticipar correctamente lo que ocurriría?
+
+**No se trata de resumir el episodio.** Utiliza un ejemplo concreto para explicar el problema.
+
+## 2. ¿Qué podemos aprender cuando nos equivocamos?
+
+Supón que una predicción resulta equivocada.
+
+_¿Significa necesariamente que fue una mala predicción?_
+
+Utilizando ideas o ejemplos del episodio, explica qué tendríamos que considerar para evaluar si la predicción estaba razonablemente construida cuando se realizó.
+
+## 3. Del podcast a una serie de tiempo
+
+Imagina que queremos pronosticar la tasa de inflación de México para el próximo año y disponemos de sus valores mensuales de los últimos veinte años.
+
+Sin utilizar todavía ningún método econométrico, responde:
+
+1. ¿Qué buscarías en esos datos antes de intentar hacer una predicción?
+2. ¿Crees que observar el comportamiento pasado sería suficiente para pronosticar el futuro? Explica por qué.
+3. Menciona una situación que podría hacer que una predicción basada en el comportamiento pasado fallara.
+
+## 4. Una conclusión
+
+A partir del episodio y del ejercicio anterior, completa la siguiente afirmación y justifica tu respuesta:
+
+> **Para utilizar información del pasado con el propósito de predecir el futuro, necesitamos...**
+
+Tu respuesta debe apoyarse en al menos una idea concreta del episodio.
+
+# Entrega
+
+Integra tus respuestas en un documento de **máximo dos cuartillas**.
+
+La actividad será evaluada mediante la **rúbrica disponible en Campus Digital**. No se evaluará la capacidad para resumir el episodio, sino la forma en que utilizas sus ideas y ejemplos para construir y justificar tus respuestas, particularmente:
+
+- el uso de evidencia concreta del material;
+- la calidad y coherencia del razonamiento;
+- la capacidad para reconocer la incertidumbre involucrada en una predicción;
+- la capacidad para evaluar críticamente un pronóstico, más allá de si finalmente acertó o falló;
+- la aplicación del razonamiento a un problema de series de tiempo;
+- la claridad con la que comunicas tus argumentos y reflexionas sobre ellos.
