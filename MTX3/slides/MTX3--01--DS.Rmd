@@ -581,4 +581,4 @@ $$
 $$
 
 
-Se puede demostrar que, si \(y_t \sim iid\mathcal{N}(\cdot)\), una serie de tiempo es ergódica en covarianza si es ergódica en su media.
+Se puede demostrar que, si \(y_t \sim iid\mathcal{N}(\cdot)\), _una serie de tiempo es ergódica en covarianza si es ergódica en su media_.
