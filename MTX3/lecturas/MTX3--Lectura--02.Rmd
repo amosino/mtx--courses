@@ -1,0 +1,141 @@
+---
+title: "Lectura 02"
+subtitle: "¿Importa el orden en que ocurren las cosas?"
+
+output:
+  html_document:
+    css: ../src/lecturas.css
+    self_contained: true
+    toc: false
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+---
+
+# ¿Importa el orden en que ocurren las cosas?
+
+En esta actividad trabajaremos con dos materiales:
+
+**The Economist — *Economics lessons from Home Depot***  
+https://www.economist.com/finance-and-economics/2026/05/20/economics-lessons-from-home-depot
+
+**Freakonomics Radio / Freakonomics, M.D. — *What Can We Do About the Hardest Patients?***  
+https://freakonomics.com/podcast/what-can-we-do-about-the-hardest-patients/
+
+El primer material utiliza la historia reciente de Home Depot para discutir lo que ha ocurrido en el mercado de vivienda estadounidense. El segundo analiza un programa dirigido a pacientes que ingresaban repetidamente al hospital.
+
+Los contextos son muy distintos. Sin embargo, ambos plantean una pregunta importante cuando trabajamos con información ordenada en el tiempo: **¿qué podemos aprender de una trayectoria y qué necesitamos saber antes de interpretarla?**
+
+Después de revisar los materiales, realiza las siguientes actividades.
+
+**Recomendación.** En el caso del episodio de *Freakonomics Radio*, es preferible escuchar el fragmento asignado mientras sigues la transcripción, en lugar de limitarte a leerla. El objetivo principal de la actividad es econométrico, pero esta práctica también ayuda a desarrollar la comprensión del inglés académico.
+
+## 1. ¿Qué cambia cuando conocemos la historia?
+
+Antes de leer el artículo de *The Economist*, imagina la siguiente situación:
+
+> Las transacciones de clientes de una empresa vinculada con el mercado de vivienda se encuentran actualmente por debajo del máximo alcanzado algunos años atrás.
+
+¿Qué necesitarías conocer sobre lo ocurrido anteriormente para interpretar esta información?
+
+Escribe una respuesta breve y **consérvala sin modificar**.
+
+Ahora lee *Economics lessons from Home Depot*.
+
+**a)** Selecciona entre tres y cinco momentos que consideres necesarios para comprender la situación más reciente descrita en el artículo. Para cada uno identifica:
+
+- qué ocurrió;
+- qué relación guarda con lo ocurrido anteriormente;
+- por qué ese momento ayuda a interpretar la situación actual.
+
+**b)** Imagina ahora que alguien conoce esos mismos hechos, pero no sabe en qué orden ocurrieron.
+
+Explica una cosa que todavía podría afirmar y otra que ya no podría sostener con la misma evidencia.
+
+**c)** Vuelve a tu respuesta inicial. ¿La mantendrías tal como la escribiste? Explica qué conservarías y qué modificarías después de conocer la trayectoria descrita en el artículo.
+
+**No se trata de resumir el artículo.** Utiliza momentos concretos de la historia para explicar qué información aporta conocer su orden.
+
+## 2. Una historia que parecía clara
+
+Ahora trabajaremos con *What Can We Do About the Hardest Patients?*
+
+**Escucha el episodio desde el minuto 6:15 hasta el minuto 12:00 y detente ahí antes de continuar.** Puedes seguir simultáneamente la transcripción disponible en la página.
+
+El fragmento presenta a un grupo de pacientes con necesidades complejas, el programa desarrollado para atenderlos y lo que ocurrió con sus hospitalizaciones posteriormente.
+
+A partir de la información disponible hasta este momento:
+
+**a)** ¿Qué interpretación inicial propondrías sobre lo ocurrido después de que los pacientes ingresaron al programa?
+
+**b)** ¿Qué evidencia del fragmento sustenta esa interpretación?
+
+**c)** Propón al menos una explicación diferente que también sea compatible con la trayectoria observada.
+
+Conserva tus respuestas antes de continuar.
+
+**Una vez que hayas respondido las preguntas anteriores, continúa el episodio desde el minuto 12:00 hasta el minuto 19:05.**
+
+**d)** ¿La nueva evidencia cambia tu interpretación inicial? Puedes conservarla, modificarla o abandonarla. Explica tu decisión utilizando evidencia concreta.
+
+**e)** ¿Qué nos enseña este caso sobre el riesgo de interpretar una trayectoria únicamente a partir de lo que ocurrió antes y después de un acontecimiento?
+
+No busques simplemente la explicación proporcionada por el episodio. Lo importante es explicar **por qué la evidencia adicional cambia, o no cambia, lo que estabas dispuesto a concluir**.
+
+## 3. ¿Qué deberíamos mirar?
+
+A partir de los dos materiales anteriores, formula **tres preguntas** que te harías antes de interpretar una variable observada a través del tiempo.
+
+Las preguntas deben responder a problemas distintos que hayas encontrado durante la actividad.
+
+Para cada una:
+
+1. explica por qué es importante;
+2. utiliza un ejemplo de alguno de los dos materiales para mostrar qué podría ocurrir si la ignoramos.
+
+No se trata de construir una receta automática. Tus preguntas deben ayudarte a examinar críticamente la evidencia, no sustituir la interpretación.
+
+## 4. Mismos datos, ¿misma historia?
+
+Una empresa registra durante seis meses el saldo de pedidos pendientes de dos líneas de productos:
+
+**Línea A:** 40, 42, 44, 46, 48, 50.
+
+**Línea B:** 40, 50, 42, 48, 44, 46.
+
+Ambas líneas contienen exactamente los mismos seis valores.
+
+**a)** Si ignoraras el orden en que aparecen, ¿qué información sería igual para ambas líneas?
+
+**b)** ¿Qué cambia cuando conservas el orden temporal? Describe la trayectoria de cada línea utilizando la secuencia de observaciones como evidencia.
+
+**c)** ¿Qué preguntas sobre el proceso que genera estos datos te gustaría responder antes de explicar por qué las dos trayectorias son diferentes?
+
+**d)** ¿Qué no podrías concluir únicamente a partir de estas seis observaciones?
+
+Finalmente, vuelve a las tres preguntas que formulaste en la actividad anterior. ¿Cuáles te resultaron útiles para analizar este nuevo problema? Explica brevemente cómo las utilizaste.
+
+## 5. Una conclusión
+
+Vuelve a la respuesta que escribiste al inicio de la actividad.
+
+A partir de los dos materiales y de los ejercicios anteriores, completa la siguiente afirmación y justifica tu respuesta:
+
+> **Para interpretar una variable observada a través del tiempo, necesitamos...**
+
+Tu respuesta debe apoyarse en evidencia concreta de al menos uno de los materiales y explicar tanto **qué información aporta conocer la trayectoria** como **qué no podemos saber únicamente a partir de ella**.
+
+# Entrega
+
+Integra tus respuestas en un documento de **máximo dos cuartillas**.
+
+La actividad será evaluada mediante la **rúbrica disponible en Campus Digital**. No se evaluará la capacidad para resumir los materiales, sino la forma en que utilizas la evidencia para construir, revisar y justificar tus interpretaciones, particularmente:
+
+- el uso de evidencia concreta de los materiales;
+- la calidad y coherencia del razonamiento;
+- la capacidad para reconocer qué información aporta el orden temporal;
+- la capacidad para distinguir entre una trayectoria observada y las explicaciones compatibles con ella;
+- la revisión de una interpretación cuando aparece nueva evidencia;
+- la aplicación del razonamiento a una situación diferente;
+- la claridad con la que comunicas tus argumentos y reconoces sus límites.
