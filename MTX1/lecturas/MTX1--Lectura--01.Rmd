@@ -1,0 +1,241 @@
+---
+title: "Lectura 01"
+subtitle: "De la tasa arancelaria al precio observado"
+
+output:
+  html_document:
+    css: ../src/lecturas.css
+    self_contained: true
+    toc: false
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs")})
+
+---
+
+# De la tasa arancelaria al precio observado
+
+Cuando observamos una relación económica, los datos no siempre llegan listos para ser analizados.
+
+Antes de estimar una regresión debemos decidir qué queremos observar, cómo representar las variables y qué información utilizaremos para responder nuestra pregunta.
+
+En esta lectura trabajaremos con un caso reciente: la relación entre los aranceles impuestos por Estados Unidos y los precios de los bienes expuestos a ellos.
+
+El objetivo no es evaluar la política arancelaria. Utilizaremos este caso para pensar en una pregunta más general:
+
+> **¿Cómo pasamos de un fenómeno económico observado a una relación que podemos representar, estimar e interpretar?**
+
+---
+
+## Material
+
+Esta lectura se basa en el siguiente artículo de *The Economist*:
+
+**The Economist — *Tracking the cost of Donald Trump’s tariffs***  
+[https://www.economist.com/interactive/trump-tariff-costs-tracker](https://www.economist.com/interactive/trump-tariff-costs-tracker)
+
+---
+
+# 1. Antes de comenzar
+
+Antes de consultar el material, considera la siguiente afirmación:
+
+> *Si un país enfrenta un arancel nominal de 26%, los productos importados desde ese país estarán expuestos a un arancel cercano a 26% y sus precios al consumidor aumentarán aproximadamente en esa magnitud.*
+
+¿Te parece una interpretación razonable?
+
+Explica brevemente por qué.
+
+Indica además tu grado de confianza en la respuesta, utilizando una escala de 1 a 5, donde 1 significa *muy poca confianza* y 5 significa *mucha confianza*.
+
+Finalmente, señala qué evidencia necesitarías para sostener o revisar tu interpretación.
+
+Conserva esta respuesta. Volveremos a ella al final de la actividad.
+
+---
+
+# 2. Del fenómeno a la evidencia
+
+Ahora revisa el material de *The Economist*.
+
+Uno de los ejemplos muestra que Canadá enfrentaba una tasa arancelaria nominal de 26%, mientras que su tasa efectiva era aproximadamente 8.9%.
+
+Construye un **mapa de evidencia** que muestre cómo podemos pasar del arancel anunciado a estudiar empíricamente su relación con los precios.
+
+Tu mapa debe distinguir entre:
+
+- observaciones;
+- medidas construidas;
+- supuestos;
+- interpretaciones.
+
+No se trata de reproducir el artículo. Decide qué información es indispensable y cómo se relacionan sus distintos elementos.
+
+Utiliza el caso de Canadá como una prueba de que tu organización tiene sentido, no simplemente como un dato aislado.
+
+Al terminar el mapa, responde:
+
+**a.** ¿Cuál sería la unidad de observación si quisiéramos estudiar la relación entre exposición arancelaria e inflación utilizando las categorías de consumo del material?
+
+**b.** ¿Qué variable utilizarías para representar la exposición a los aranceles? Explica por qué.
+
+**c.** ¿Qué variable utilizarías para representar el comportamiento de los precios?
+
+**d.** ¿Qué aspecto relevante del fenómeno seguiría sin quedar completamente representado aun después de elegir estas variables?
+
+---
+
+# 3. De la evidencia al modelo
+
+Supongamos que queremos representar la relación entre exposición arancelaria e inflación mediante un modelo de regresión lineal simple:
+
+$$
+y_i=\beta_1+\beta_2x_i+u_i
+$$
+
+donde \(i\) representa una categoría de consumo.
+
+A partir del material de *The Economist*, explica qué representarían en este contexto:
+
+- \(y_i\);
+- \(x_i\);
+- \(\beta_1\);
+- \(\beta_2\);
+- \(u_i\).
+
+No te limites a traducir la notación. Explica el significado económico de cada elemento y, cuando corresponda, sus unidades.
+
+Después vuelve al material.
+
+*The Economist* menciona distintos factores que pueden intervenir entre la exposición a un arancel y el precio finalmente observado, entre ellos los costos de insumos intermedios, los márgenes, el transporte, las demoras y los cambios en el comportamiento de las empresas.
+
+Explica por qué dos categorías con una exposición arancelaria semejante podrían presentar inflaciones relativas diferentes.
+
+A partir de tu respuesta, explica qué significa afirmar que la regresión es una **representación** del fenómeno y no el fenómeno mismo.
+
+---
+
+# 4. De la representación a la estimación
+
+El material de *The Economist* no proporciona una regresión que podamos utilizar directamente para esta actividad.
+
+Por ello, considera el siguiente resultado **hipotético**, construido exclusivamente con fines didácticos:
+
+$$
+\widehat{y}_i=0.15+0.06x_i
+$$
+
+$$
+R^2=0.18
+$$
+
+donde \(x_i\) representa la exposición arancelaria efectiva de la categoría \(i\), medida en puntos porcentuales, y \(y_i\) su inflación relativa, también medida en puntos porcentuales.
+
+**Este resultado no fue estimado ni reportado por *The Economist*.**
+
+## 4.1. ¿Qué nos dice la recta estimada?
+
+Interpreta el resultado anterior.
+
+Tu explicación debe permitir que una persona que conoce el problema económico, pero no ha visto la regresión, comprenda:
+
+- qué representa la pendiente;
+- cuáles son sus unidades;
+- qué información proporciona el intercepto y qué necesitarías saber antes de darle una interpretación económica;
+- qué nos dice \(R^2=0.18\) sobre la representación estimada.
+
+---
+
+## 4.2. Lo observado y lo representado
+
+Considera ahora dos categorías hipotéticas:
+
+| Categoría | Exposición efectiva \(x_i\) | Inflación relativa observada \(y_i\) | Valor ajustado \(\widehat{y}_i\) | Residual \(e_i=y_i-\widehat{y}_i\) |
+|---|---:|---:|---:|---:|
+| A | 10 | 1.30 |  |  |
+| B | 20 | 0.90 |  |  |
+
+Completa la tabla.
+
+Después utiliza tus resultados para explicar, en un solo argumento, cómo se relacionan:
+
+- el valor observado;
+- el valor que representa la recta estimada;
+- el residual.
+
+Finalmente, explica por qué el residual que acabas de calcular no es exactamente lo mismo que el término de error \(u_i\) del modelo poblacional.
+
+---
+
+# 5. ¿Qué evidencia tenemos?
+
+Un analista observa el resultado hipotético anterior y concluye:
+
+> *La regresión demuestra que los aranceles causan inflación. Cada punto adicional de exposición produce necesariamente 0.06 puntos de inflación en todas las categorías. Como el ajuste es bajo, la relación estimada no aporta evidencia útil.*
+
+Evalúa el razonamiento del analista.
+
+No respondas únicamente indicando si es correcto o incorrecto. Identifica qué partes pueden sostenerse con la estimación, cuáles van más allá de la evidencia disponible y explica por qué.
+
+Después, sustituye la afirmación del analista por una **declaración de evidencia** que consideres defendible.
+
+Tu declaración debe conectar:
+
+**la pregunta económica, la evidencia observada, la relación estimada y aquello que la representación no permite concluir.**
+
+---
+
+# 6. Un problema diferente
+
+Considera ahora otro escenario.
+
+Para varias categorías de consumo se construye una medida de exposición al aumento de los costos de transporte y se obtiene la siguiente regresión:
+
+$$
+\widehat{z}_i=0.10+0.04w_i,
+\qquad R^2=0.12
+$$
+
+donde \(w_i\) mide la exposición al aumento de los costos de transporte y \(z_i\) la inflación relativa.
+
+Imagina que debes explicar este resultado a una persona interesada en saber qué ocurrió con los precios.
+
+¿Qué puedes comunicar a partir de la regresión?
+
+¿Qué necesitarías saber acerca de la construcción de \(w_i\) antes de interpretar el resultado?
+
+¿Qué evidencia adicional necesitarías para comprender qué hay detrás de la relación observada?
+
+No traslades automáticamente las conclusiones del caso de los aranceles. Utiliza lo aprendido sobre **cómo interpretar una representación cuantitativa**.
+
+---
+
+# 7. Volvamos al principio
+
+Regresa a la respuesta que escribiste antes de consultar el material.
+
+Compárala ahora con la declaración de evidencia que construiste en la sección 5.
+
+Identifica:
+
+- una idea de tu interpretación inicial que conservarías;
+- una idea que modificarías;
+- la evidencia o el razonamiento que te llevó a revisarla.
+
+Para cerrar, completa con tus propias palabras:
+
+> **Una regresión lineal simple nos permite ________________________________________, pero no debemos confundir ________________________________________ con ________________________________________.**
+
+---
+
+# Entrega
+
+Entrega **un solo archivo en formato PDF** que contenga todas las actividades solicitadas.
+
+No existe una extensión mínima o máxima. La extensión adecuada es aquella que te permita desarrollar y justificar con claridad tu razonamiento.
+
+La actividad será evaluada utilizando la rúbrica disponible en Campus Digital.
+
+Puedes utilizar herramientas de inteligencia artificial como apoyo durante la actividad. Si lo haces, eres responsable de evaluar críticamente sus respuestas y de poder justificar los argumentos que presentes.
+
+Si una herramienta de IA modificó de manera importante alguna de tus respuestas, conserva un ejemplo de una sugerencia que hayas **aceptado, rechazado o reformulado** y explica brevemente por qué tomaste esa decisión.

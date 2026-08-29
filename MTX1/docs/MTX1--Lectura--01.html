@@ -11,7 +11,7 @@
 
 
 
-<title>Lectura 02</title>
+<title>Lectura 01</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -733,224 +733,293 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Lectura 02</h1>
-<h3 class="subtitle">¿Cómo se mide el sueño americano?</h3>
+<h1 class="title toc-ignore">Lectura 01</h1>
+<h3 class="subtitle">De la tasa arancelaria al precio observado</h3>
 
 </div>
 
 
-<p>En la lectura anterior discutimos una idea que estará presente
-durante todo el curso: <strong>los datos no hablan por sí
-solos</strong>. Para construir evidencia necesitamos preguntarnos de
-dónde provienen, qué representan y qué otras explicaciones podrían ser
-compatibles con lo que observamos.</p>
-<p>Ahora daremos un paso adicional.</p>
-<p>En el capítulo sobre regresión lineal simple aprendimos a representar
-mediante un modelo la relación entre dos variables. Sin embargo, antes
-de estimar una regresión hay una decisión más fundamental: <strong>¿qué
-queremos medir y qué evidencia necesitamos para hacerlo?</strong></p>
-<p>En esta actividad utilizaremos la movilidad intergeneracional para
-analizar cómo una pregunta económica amplia puede convertirse en una
-pregunta empírica y, posteriormente, en una relación cuantitativa.</p>
-<p>No busques “la respuesta correcta”. Lo importante es que tus
-respuestas estén razonadas, sean consistentes entre sí y, cuando
-corresponda, utilicen evidencia concreta del material.</p>
+<div id="de-la-tasa-arancelaria-al-precio-observado" class="section level1">
+<h1>De la tasa arancelaria al precio observado</h1>
+<p>Cuando observamos una relación económica, los datos no siempre llegan
+listos para ser analizados.</p>
+<p>Antes de estimar una regresión debemos decidir qué queremos observar,
+cómo representar las variables y qué información utilizaremos para
+responder nuestra pregunta.</p>
+<p>En esta lectura trabajaremos con un caso reciente: la relación entre
+los aranceles impuestos por Estados Unidos y los precios de los bienes
+expuestos a ellos.</p>
+<p>El objetivo no es evaluar la política arancelaria. Utilizaremos este
+caso para pensar en una pregunta más general:</p>
+<blockquote>
+<p><strong>¿Cómo pasamos de un fenómeno económico observado a una
+relación que podemos representar, estimar e interpretar?</strong></p>
+</blockquote>
+<hr />
 <div id="material" class="section level2">
 <h2>Material</h2>
-<p><strong>Freakonomics Radio. <em>Is the American Dream Really
-Dead?</em></strong></p>
-<p><a href="https://freakonomics.com/podcast/is-the-american-dream-really-dead/" class="uri">https://freakonomics.com/podcast/is-the-american-dream-really-dead/</a></p>
-<p>Para realizar la actividad, el fragmento central es
-<strong>10:20–17:00</strong>. Si lo deseas, puedes escuchar el episodio
-desde el inicio y continuar después del minuto 17:00. El resto del
-episodio ayuda a comprender mejor la discusión, pero no es necesario
-para responder la actividad.</p>
-<p>En la página del episodio también está disponible la
-transcripción.</p>
-<p><strong>Recomendación.</strong> Es preferible escuchar el episodio
-mientras sigues la transcripción, en lugar de limitarte a leerla. El
-objetivo principal de la actividad es econométrico, pero esta práctica
-también ayuda a desarrollar la comprensión del inglés académico.</p>
+<p>Esta lectura se basa en el siguiente artículo de <em>The
+Economist</em>:</p>
+<p><strong>The Economist — <em>Tracking the cost of Donald Trump’s
+tariffs</em></strong><br />
+<a href="https://www.economist.com/interactive/trump-tariff-costs-tracker">https://www.economist.com/interactive/trump-tariff-costs-tracker</a></p>
 <hr />
 </div>
-<div id="antes-de-escuchar-cómo-medirías-la-igualdad-de-oportunidades" class="section level2">
-<h2>1. Antes de escuchar: ¿cómo medirías la igualdad de
-oportunidades?</h2>
-<p><strong>Antes de escuchar el fragmento asignado</strong>, imagina que
-alguien afirma:</p>
+</div>
+<div id="antes-de-comenzar" class="section level1">
+<h1>1. Antes de comenzar</h1>
+<p>Antes de consultar el material, considera la siguiente
+afirmación:</p>
 <blockquote>
-<p>Estados Unidos es una sociedad con una elevada igualdad de
-oportunidades.</p>
+<p><em>Si un país enfrenta un arancel nominal de 26%, los productos
+importados desde ese país estarán expuestos a un arancel cercano a 26% y
+sus precios al consumidor aumentarán aproximadamente en esa
+magnitud.</em></p>
 </blockquote>
-<p>Quieres evaluar esta afirmación utilizando evidencia, no solamente tu
-opinión.</p>
-<p><strong>a)</strong> ¿Qué información necesitarías para comenzar a
-estudiarla empíricamente?</p>
-<p><strong>b)</strong> Propón una variable que utilizarías para
-representar la situación económica de origen de una persona y otra para
-representar su situación económica en la edad adulta.</p>
-<p><strong>c)</strong> Explica por qué esas dos variables aportarían
-evidencia sobre igualdad de oportunidades. No basta con nombrarlas:
-debes explicar el razonamiento que las conecta con la afirmación
-original.</p>
-<p>Guarda estas respuestas tal como las escribiste. Volveremos a ellas
-al final.</p>
-</div>
-<div id="cómo-se-mide-un-sueño" class="section level2">
-<h2>2. ¿Cómo se mide un sueño?</h2>
-<p>Ahora escucha el fragmento <strong>10:20–17:00</strong>.</p>
-<p>Raj Chetty y Stephen Dubner hablan del <em>American Dream</em> y de
-la igualdad de oportunidades. Sin embargo, ninguno de estos conceptos
-aparece directamente en una base de datos.</p>
-<p><strong>a)</strong> ¿Qué pregunta empírica utiliza Chetty para
-estudiar la movilidad intergeneracional?</p>
-<p><strong>b)</strong> ¿Qué información contienen los registros
-administrativos que menciona y qué le permiten observar?</p>
-<p><strong>c)</strong> Explica con tus propias palabras cómo se pasa de
-una idea abstracta como <strong>igualdad de oportunidades</strong> a
-evidencia que puede observarse en los datos.</p>
-<p><strong>d)</strong> Compara este procedimiento con tu respuesta al
-punto 1. ¿Habías propuesto medir el fenómeno de una manera semejante?
-Identifica <strong>una coincidencia y una diferencia</strong> y explica
-por qué son importantes.</p>
-</div>
-<div id="es-mucho-o-poco" class="section level2">
-<h2>3. ¿7.5% es mucho o poco?</h2>
-<p>En el episodio se señala que, entre los niños nacidos en familias
-ubicadas en el quintil inferior de la distribución del ingreso en
-Estados Unidos, aproximadamente <strong>7.5% alcanza el quintil
-superior</strong>.</p>
-<p><strong>a)</strong> Explica exactamente qué significa ese 7.5%. Tu
-respuesta debe identificar la población de origen y el resultado que se
-está midiendo.</p>
-<p><strong>b)</strong> ¿El 7.5% permite, por sí solo, concluir que la
-movilidad social en Estados Unidos es alta o baja? Justifica.</p>
-<p><strong>c)</strong> Identifica una comparación presentada en el
-episodio que ayude a interpretar esa cifra. Explica qué información
-adicional proporciona.</p>
-<p><strong>d)</strong> Una persona escucha únicamente el 7.5% y
-concluye:</p>
-<blockquote>
-<p>Los hijos de familias pobres están destinados a seguir siendo
-pobres.</p>
-</blockquote>
-<p>¿La evidencia presentada permite sostener esa afirmación? Explica
-cuidadosamente qué muestra la cifra y qué se estaría añadiendo al
-interpretarla de esa manera.</p>
-</div>
-<div id="del-fenómeno-al-modelo" class="section level2">
-<h2>4. Del fenómeno al modelo</h2>
-<p>Supongamos ahora que queremos representar mediante un modelo de
-regresión lineal simple la relación entre la situación económica durante
-la infancia y el ingreso alcanzado en la edad adulta:</p>
-<p><span class="math display">\[
-Y_i=\beta_0+\beta_1X_i+u_i,
-\]</span></p>
-<p>donde <span class="math inline">\(Y_i\)</span> representa el ingreso
-de la persona <span class="math inline">\(i\)</span> en la edad adulta y
-<span class="math inline">\(X_i\)</span> el ingreso de su familia
-durante la infancia.</p>
-<p>Considera dos personas que crecieron en familias con ingresos
-prácticamente idénticos, pero que alcanzaron ingresos muy diferentes en
-la edad adulta.</p>
-<p><strong>a)</strong> ¿Es esta situación incompatible con el modelo de
-regresión lineal simple? Explica utilizando los componentes del
-modelo.</p>
-<p><strong>b)</strong> Propón <strong>tres factores distintos</strong>
-que podrían formar parte de <span class="math inline">\(u_i\)</span>.
-Para cada uno, explica el mecanismo mediante el cual podría contribuir a
-las diferencias observadas en <span class="math inline">\(Y_i\)</span>.</p>
-<p><strong>c)</strong> La existencia de esos factores, ¿implica que
-<span class="math inline">\(\beta_1\)</span> deja de proporcionar
-información sobre la relación entre <span class="math inline">\(X_i\)</span> y <span class="math inline">\(Y_i\)</span>? Justifica.</p>
-<p><strong>d)</strong> Elige uno de los tres factores que propusiste.
-¿Qué tendría que ocurrir para que su presencia en <span class="math inline">\(u_i\)</span> planteara un problema más serio para
-interpretar <span class="math inline">\(\beta_1\)</span> como la
-relación sistemática entre el ingreso familiar durante la infancia y el
-ingreso adulto?</p>
-</div>
-<div id="qué-nos-dice-realmente-una-regresión" class="section level2">
-<h2>5. ¿Qué nos dice realmente una regresión?</h2>
-<p>Supongamos que estimamos el modelo anterior y obtenemos:</p>
-<p><span class="math display">\[
-\hat{\beta}_1&gt;0.
-\]</span></p>
-<p><strong>a)</strong> Interpreta sustantivamente este resultado. No
-basta con señalar que existe una relación positiva: explica qué
-significaría en el contexto de movilidad intergeneracional.</p>
-<p>Ahora supongamos, además, que el <span class="math inline">\(R^2\)</span> de la regresión es relativamente
-bajo. Un estudiante concluye:</p>
-<blockquote>
-<p>Entonces el ingreso de los padres prácticamente no importa para el
-ingreso de los hijos.</p>
-</blockquote>
-<p><strong>b)</strong> ¿Estás de acuerdo? Explica qué información
-proporciona un <span class="math inline">\(R^2\)</span> bajo en este
-modelo.</p>
-<p><strong>c)</strong> ¿Qué <strong>no</strong> permite concluir ese
-<span class="math inline">\(R^2\)</span> acerca de la importancia
-económica de la relación representada por <span class="math inline">\(\hat{\beta}_1\)</span>?</p>
-<p><strong>d)</strong> Considerando conjuntamente <span class="math inline">\(\hat{\beta}_1\)</span>, <span class="math inline">\(R^2\)</span> y <span class="math inline">\(u_i\)</span>, escribe dos o tres oraciones que
-expliquen qué podría enseñarnos esta regresión sobre movilidad
-intergeneracional y qué parte del fenómeno seguiría quedando fuera de
-ella.</p>
-</div>
-<div id="volvamos-a-la-pregunta-inicial" class="section level2">
-<h2>6. Volvamos a la pregunta inicial</h2>
-<p>Regresa a tus respuestas del punto 1. No las modifiques antes de
-compararlas con lo que responderías ahora.</p>
-<p><strong>a)</strong> ¿Mantendrías las variables que propusiste
-originalmente para estudiar la igualdad de oportunidades? Puedes
-conservarlas, modificarlas o sustituirlas. Justifica tu decisión.</p>
-<p><strong>b)</strong> Formula ahora <strong>una pregunta económica
-diferente</strong> que pudiera estudiarse mediante una relación entre
-dos variables. No puede ser una variante de ingreso de padres e ingreso
-de hijos.</p>
-<p>Para tu pregunta:</p>
-<ol style="list-style-type: decimal">
-<li>identifica <span class="math inline">\(Y_i\)</span> y <span class="math inline">\(X_i\)</span>;</li>
-<li>explica qué significaría sustantivamente <span class="math inline">\(\beta_1\)</span>;</li>
-<li>propone un factor económicamente relevante que formaría parte de
-<span class="math inline">\(u_i\)</span>;</li>
-<li>explica qué problema podría surgir si ese factor estuviera
-relacionado sistemáticamente con <span class="math inline">\(X_i\)</span>.</li>
-</ol>
-<p><strong>c)</strong> Finalmente, responde en un párrafo breve:</p>
-<blockquote>
-<p><strong>¿Qué preguntas deberías hacerte antes de interpretar una
-recta estimada como evidencia sobre un fenómeno económico?</strong></p>
-</blockquote>
-<p>Tu respuesta debe apoyarse en lo que aprendiste del episodio
-<strong>y</strong> en las decisiones que tomaste a lo largo de esta
+<p>¿Te parece una interpretación razonable?</p>
+<p>Explica brevemente por qué.</p>
+<p>Indica además tu grado de confianza en la respuesta, utilizando una
+escala de 1 a 5, donde 1 significa <em>muy poca confianza</em> y 5
+significa <em>mucha confianza</em>.</p>
+<p>Finalmente, señala qué evidencia necesitarías para sostener o revisar
+tu interpretación.</p>
+<p>Conserva esta respuesta. Volveremos a ella al final de la
 actividad.</p>
+<hr />
 </div>
-<div id="entrega-y-evaluación" class="section level2">
-<h2>Entrega y evaluación</h2>
-<p>Entrega <strong>un solo archivo en formato PDF</strong> que contenga
-todas tus respuestas.</p>
-<p>No hay una extensión mínima o máxima. La extensión adecuada es la
-necesaria para que tu razonamiento pueda entenderse y evaluarse.</p>
-<p>La actividad será evaluada mediante la <strong>rúbrica disponible en
-Campus Digital</strong>. La evaluación considerará especialmente:</p>
+<div id="del-fenómeno-a-la-evidencia" class="section level1">
+<h1>2. Del fenómeno a la evidencia</h1>
+<p>Ahora revisa el material de <em>The Economist</em>.</p>
+<p>Uno de los ejemplos muestra que Canadá enfrentaba una tasa
+arancelaria nominal de 26%, mientras que su tasa efectiva era
+aproximadamente 8.9%.</p>
+<p>Construye un <strong>mapa de evidencia</strong> que muestre cómo
+podemos pasar del arancel anunciado a estudiar empíricamente su relación
+con los precios.</p>
+<p>Tu mapa debe distinguir entre:</p>
 <ul>
-<li>el uso de evidencia concreta del material;</li>
-<li>la calidad y coherencia del razonamiento;</li>
-<li>la capacidad para distinguir entre un fenómeno y la forma en que
-decidimos representarlo;</li>
-<li>la interpretación de relaciones cuantitativas y sus límites;</li>
-<li>la aplicación del razonamiento a situaciones nuevas;</li>
-<li>la claridad con la que comunicas tus argumentos y reflexionas sobre
-ellos.</li>
+<li>observaciones;</li>
+<li>medidas construidas;</li>
+<li>supuestos;</li>
+<li>interpretaciones.</li>
 </ul>
-<p>Por ello, no se evaluará que encuentres una determinada “respuesta
-correcta”, sino <strong>la calidad del razonamiento que utilizas para
-construir y defender tus respuestas</strong>.</p>
+<p>No se trata de reproducir el artículo. Decide qué información es
+indispensable y cómo se relacionan sus distintos elementos.</p>
+<p>Utiliza el caso de Canadá como una prueba de que tu organización
+tiene sentido, no simplemente como un dato aislado.</p>
+<p>Al terminar el mapa, responde:</p>
+<p><strong>a.</strong> ¿Cuál sería la unidad de observación si
+quisiéramos estudiar la relación entre exposición arancelaria e
+inflación utilizando las categorías de consumo del material?</p>
+<p><strong>b.</strong> ¿Qué variable utilizarías para representar la
+exposición a los aranceles? Explica por qué.</p>
+<p><strong>c.</strong> ¿Qué variable utilizarías para representar el
+comportamiento de los precios?</p>
+<p><strong>d.</strong> ¿Qué aspecto relevante del fenómeno seguiría sin
+quedar completamente representado aun después de elegir estas
+variables?</p>
+<hr />
+</div>
+<div id="de-la-evidencia-al-modelo" class="section level1">
+<h1>3. De la evidencia al modelo</h1>
+<p>Supongamos que queremos representar la relación entre exposición
+arancelaria e inflación mediante un modelo de regresión lineal
+simple:</p>
+<p><span class="math display">\[
+y_i=\beta_1+\beta_2x_i+u_i
+\]</span></p>
+<p>donde <span class="math inline">\(i\)</span> representa una categoría
+de consumo.</p>
+<p>A partir del material de <em>The Economist</em>, explica qué
+representarían en este contexto:</p>
+<ul>
+<li><span class="math inline">\(y_i\)</span>;</li>
+<li><span class="math inline">\(x_i\)</span>;</li>
+<li><span class="math inline">\(\beta_1\)</span>;</li>
+<li><span class="math inline">\(\beta_2\)</span>;</li>
+<li><span class="math inline">\(u_i\)</span>.</li>
+</ul>
+<p>No te limites a traducir la notación. Explica el significado
+económico de cada elemento y, cuando corresponda, sus unidades.</p>
+<p>Después vuelve al material.</p>
+<p><em>The Economist</em> menciona distintos factores que pueden
+intervenir entre la exposición a un arancel y el precio finalmente
+observado, entre ellos los costos de insumos intermedios, los márgenes,
+el transporte, las demoras y los cambios en el comportamiento de las
+empresas.</p>
+<p>Explica por qué dos categorías con una exposición arancelaria
+semejante podrían presentar inflaciones relativas diferentes.</p>
+<p>A partir de tu respuesta, explica qué significa afirmar que la
+regresión es una <strong>representación</strong> del fenómeno y no el
+fenómeno mismo.</p>
+<hr />
+</div>
+<div id="de-la-representación-a-la-estimación" class="section level1">
+<h1>4. De la representación a la estimación</h1>
+<p>El material de <em>The Economist</em> no proporciona una regresión
+que podamos utilizar directamente para esta actividad.</p>
+<p>Por ello, considera el siguiente resultado
+<strong>hipotético</strong>, construido exclusivamente con fines
+didácticos:</p>
+<p><span class="math display">\[
+\widehat{y}_i=0.15+0.06x_i
+\]</span></p>
+<p><span class="math display">\[
+R^2=0.18
+\]</span></p>
+<p>donde <span class="math inline">\(x_i\)</span> representa la
+exposición arancelaria efectiva de la categoría <span class="math inline">\(i\)</span>, medida en puntos porcentuales, y <span class="math inline">\(y_i\)</span> su inflación relativa, también medida
+en puntos porcentuales.</p>
+<p><strong>Este resultado no fue estimado ni reportado por <em>The
+Economist</em>.</strong></p>
+<div id="qué-nos-dice-la-recta-estimada" class="section level2">
+<h2>4.1. ¿Qué nos dice la recta estimada?</h2>
+<p>Interpreta el resultado anterior.</p>
+<p>Tu explicación debe permitir que una persona que conoce el problema
+económico, pero no ha visto la regresión, comprenda:</p>
+<ul>
+<li>qué representa la pendiente;</li>
+<li>cuáles son sus unidades;</li>
+<li>qué información proporciona el intercepto y qué necesitarías saber
+antes de darle una interpretación económica;</li>
+<li>qué nos dice <span class="math inline">\(R^2=0.18\)</span> sobre la
+representación estimada.</li>
+</ul>
+<hr />
+</div>
+<div id="lo-observado-y-lo-representado" class="section level2">
+<h2>4.2. Lo observado y lo representado</h2>
+<p>Considera ahora dos categorías hipotéticas:</p>
+<table>
+<colgroup>
+<col width="15%" />
+<col width="21%" />
+<col width="21%" />
+<col width="21%" />
+<col width="21%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Categoría</th>
+<th align="right">Exposición efectiva <span class="math inline">\(x_i\)</span></th>
+<th align="right">Inflación relativa observada <span class="math inline">\(y_i\)</span></th>
+<th align="right">Valor ajustado <span class="math inline">\(\widehat{y}_i\)</span></th>
+<th align="right">Residual <span class="math inline">\(e_i=y_i-\widehat{y}_i\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>A</td>
+<td align="right">10</td>
+<td align="right">1.30</td>
+<td align="right"></td>
+<td align="right"></td>
+</tr>
+<tr class="even">
+<td>B</td>
+<td align="right">20</td>
+<td align="right">0.90</td>
+<td align="right"></td>
+<td align="right"></td>
+</tr>
+</tbody>
+</table>
+<p>Completa la tabla.</p>
+<p>Después utiliza tus resultados para explicar, en un solo argumento,
+cómo se relacionan:</p>
+<ul>
+<li>el valor observado;</li>
+<li>el valor que representa la recta estimada;</li>
+<li>el residual.</li>
+</ul>
+<p>Finalmente, explica por qué el residual que acabas de calcular no es
+exactamente lo mismo que el término de error <span class="math inline">\(u_i\)</span> del modelo poblacional.</p>
+<hr />
+</div>
+</div>
+<div id="qué-evidencia-tenemos" class="section level1">
+<h1>5. ¿Qué evidencia tenemos?</h1>
+<p>Un analista observa el resultado hipotético anterior y concluye:</p>
+<blockquote>
+<p><em>La regresión demuestra que los aranceles causan inflación. Cada
+punto adicional de exposición produce necesariamente 0.06 puntos de
+inflación en todas las categorías. Como el ajuste es bajo, la relación
+estimada no aporta evidencia útil.</em></p>
+</blockquote>
+<p>Evalúa el razonamiento del analista.</p>
+<p>No respondas únicamente indicando si es correcto o incorrecto.
+Identifica qué partes pueden sostenerse con la estimación, cuáles van
+más allá de la evidencia disponible y explica por qué.</p>
+<p>Después, sustituye la afirmación del analista por una
+<strong>declaración de evidencia</strong> que consideres defendible.</p>
+<p>Tu declaración debe conectar:</p>
+<p><strong>la pregunta económica, la evidencia observada, la relación
+estimada y aquello que la representación no permite
+concluir.</strong></p>
+<hr />
+</div>
+<div id="un-problema-diferente" class="section level1">
+<h1>6. Un problema diferente</h1>
+<p>Considera ahora otro escenario.</p>
+<p>Para varias categorías de consumo se construye una medida de
+exposición al aumento de los costos de transporte y se obtiene la
+siguiente regresión:</p>
+<p><span class="math display">\[
+\widehat{z}_i=0.10+0.04w_i,
+\qquad R^2=0.12
+\]</span></p>
+<p>donde <span class="math inline">\(w_i\)</span> mide la exposición al
+aumento de los costos de transporte y <span class="math inline">\(z_i\)</span> la inflación relativa.</p>
+<p>Imagina que debes explicar este resultado a una persona interesada en
+saber qué ocurrió con los precios.</p>
+<p>¿Qué puedes comunicar a partir de la regresión?</p>
+<p>¿Qué necesitarías saber acerca de la construcción de <span class="math inline">\(w_i\)</span> antes de interpretar el
+resultado?</p>
+<p>¿Qué evidencia adicional necesitarías para comprender qué hay detrás
+de la relación observada?</p>
+<p>No traslades automáticamente las conclusiones del caso de los
+aranceles. Utiliza lo aprendido sobre <strong>cómo interpretar una
+representación cuantitativa</strong>.</p>
+<hr />
+</div>
+<div id="volvamos-al-principio" class="section level1">
+<h1>7. Volvamos al principio</h1>
+<p>Regresa a la respuesta que escribiste antes de consultar el
+material.</p>
+<p>Compárala ahora con la declaración de evidencia que construiste en la
+sección 5.</p>
+<p>Identifica:</p>
+<ul>
+<li>una idea de tu interpretación inicial que conservarías;</li>
+<li>una idea que modificarías;</li>
+<li>la evidencia o el razonamiento que te llevó a revisarla.</li>
+</ul>
+<p>Para cerrar, completa con tus propias palabras:</p>
+<blockquote>
+<p><strong>Una regresión lineal simple nos permite
+________________________________________, pero no debemos confundir
+________________________________________ con
+________________________________________.</strong></p>
+</blockquote>
+<hr />
+</div>
+<div id="entrega" class="section level1">
+<h1>Entrega</h1>
+<p>Entrega <strong>un solo archivo en formato PDF</strong> que contenga
+todas las actividades solicitadas.</p>
+<p>No existe una extensión mínima o máxima. La extensión adecuada es
+aquella que te permita desarrollar y justificar con claridad tu
+razonamiento.</p>
+<p>La actividad será evaluada utilizando la rúbrica disponible en Campus
+Digital.</p>
 <p>Puedes utilizar herramientas de inteligencia artificial como apoyo
-durante la actividad. Sin embargo, las respuestas entregadas deben
-representar tu propio razonamiento y mantener una línea argumental
-coherente entre las distintas secciones. Serás responsable de poder
-explicar y defender cualquiera de los argumentos incluidos en tu
-trabajo.</p>
+durante la actividad. Si lo haces, eres responsable de evaluar
+críticamente sus respuestas y de poder justificar los argumentos que
+presentes.</p>
+<p>Si una herramienta de IA modificó de manera importante alguna de tus
+respuestas, conserva un ejemplo de una sugerencia que hayas
+<strong>aceptado, rechazado o reformulado</strong> y explica brevemente
+por qué tomaste esa decisión.</p>
 </div>
 
 
