@@ -1,0 +1,319 @@
+---
+title: "Econometría I"
+subtitle: "Tarea 1: El modelo de regresión lineal simple"
+author: "Alejandro Mosiño - Universidad de Guanajuato"
+date: ""
+output:
+  pdf_document:
+    latex_engine: xelatex
+    number_sections: false
+geometry: margin=2.5cm
+fontsize: 11pt
+lang: es
+header-includes:
+  - \usepackage{amsmath,amssymb}
+  - \usepackage{enumitem}
+  - \setlist[enumerate]{itemsep=0.7em}
+  
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs")})
+    
+---
+
+**Indicaciones.** Resuelve cuidadosamente los cuatro ejercicios antes de responder el cuestionario correspondiente en Campus Digital. El cuestionario evalúa las ideas, procedimientos y resultados desarrollados en esta tarea, aunque sus preguntas no necesariamente reproducen los mismos ejercicios o datos. Trabajar y comprender previamente los ejercicios es la mejor preparación para resolverlo.
+
+## Ejercicio 1
+
+Considera el modelo de regresión lineal simple
+
+$$
+y_i=\beta_1+\beta_2x_i+u_i.
+$$
+
+Para una muestra de $n=20$ observaciones se conoce la siguiente información:
+
+$$
+\bar{x}=4,\qquad \bar{y}=11,
+$$
+
+$$
+S_{xx}=\sum_{i=1}^n(x_i-\bar{x})^2=50,
+$$
+
+$$
+S_{xy}=\sum_{i=1}^n(x_i-\bar{x})(y_i-\bar{y})=75,
+\qquad
+S_{yy}=\sum_{i=1}^n(y_i-\bar{y})^2=150.
+$$
+
+a) Utiliza únicamente la información proporcionada para obtener los estimadores de MCO $b_1$ y $b_2$, y escribe la recta estimada. Determina después el valor ajustado correspondiente a $x=\bar{x}$ y explica por qué el resultado no es una coincidencia de los datos de este ejercicio.
+
+b) A partir de
+$$
+\widehat{y}_i-\bar{y}=b_2(x_i-\bar{x}),
+$$
+muestra que
+$$
+ESS=b_2^2S_{xx}.
+$$
+Utiliza esta identidad y la descomposición $TSS=ESS+RSS$ para calcular $ESS$, $RSS$ y $R^2$, sin reconstruir las observaciones individuales.
+
+c) Considera una segunda muestra para la cual
+$$
+S_{xx}=200,\qquad S_{xy}=150,\qquad S_{yy}=150.
+$$
+Calcula $b_2$ y $R^2$. Compara estos resultados con los obtenidos en los incisos anteriores y explica por qué dos regresiones pueden tener pendientes diferentes y el mismo $R^2$. ¿Qué mide cada uno de estos objetos?
+
+d) A partir de $ESS=b_2^2S_{xx}$ y $b_2=S_{xy}/S_{xx}$, muestra que, en una regresión lineal simple con constante,
+$$
+R^2=r_{xy}^2,
+\qquad
+r_{xy}=\frac{S_{xy}}{\sqrt{S_{xx}S_{yy}}}.
+$$
+Calcula $r_{xy}$ para la muestra original. Si únicamente conocieras el valor de $R^2$, ¿podrías determinar el signo de $r_{xy}$? Explica qué información adicional permite determinarlo.
+
+e) Define $x_i^*=x_i-\bar{x}$ y considera la regresión de $y_i$ sobre $x_i^*$, con constante:
+$$
+y_i=b_1^*+b_2^*x_i^*+e_i^*.
+$$
+Sin volver a estimar la regresión desde cero, determina $b_1^*$ y $b_2^*$. Muestra que los valores ajustados de ambas regresiones son iguales para cada observación y deduce qué ocurre con los residuos, $RSS$ y $R^2$.
+
+f) Después de centrar $x$, el intercepto cambia, pero la pendiente y el ajuste permanecen iguales. Explica en qué sentido cambió la ecuación estimada y en qué sentido sigue representando la misma recta.
+
+**¿Qué has aprendido?** Una regresión lineal simple puede reconstruirse a partir de unas pocas cantidades muestrales. La pendiente, la bondad del ajuste y la correlación describen aspectos relacionados, pero distintos, de los datos. Cambiar el origen desde el cual medimos $x$ modifica el intercepto, pero no la pendiente ni el ajuste de la regresión.
+
+\newpage
+
+## Ejercicio 2
+
+Sea
+
+$$
+\widehat{y}_i=b_1+b_2x_i
+$$
+
+la recta estimada por MCO, con residuos $e_i=y_i-b_1-b_2x_i$. Considera cualquier otra recta
+
+$$
+\widetilde{y}_i=c_1+c_2x_i
+$$
+
+y define
+
+$$
+d_1=c_1-b_1,\qquad d_2=c_2-b_2.
+$$
+
+a) Muestra que el residuo producido por la recta alternativa puede escribirse como
+$$
+y_i-c_1-c_2x_i=e_i-d_1-d_2x_i.
+$$
+Desarrolla $RSS(c_1,c_2)=\sum_i(e_i-d_1-d_2x_i)^2$ y utiliza las ecuaciones normales
+$$
+\sum_i e_i=0,\qquad \sum_i x_ie_i=0
+$$
+para demostrar que
+$$
+RSS(c_1,c_2)-RSS(b_1,b_2)
+=\sum_{i=1}^n(d_1+d_2x_i)^2\geq 0.
+$$
+Explica por qué este resultado demuestra que la recta de MCO minimiza globalmente el $RSS$, y no solamente que satisface condiciones de primer orden.
+
+b) ¿Cuándo puede cumplirse
+$$
+RSS(c_1,c_2)=RSS(b_1,b_2)?
+$$
+Muestra que, si $S_{xx}>0$, la igualdad requiere $d_1=d_2=0$. Explica por qué la variación de $x$ es necesaria para identificar una pendiente única y qué ocurriría si todos los $x_i$ fueran iguales.
+
+c) Escribe cualquier recta alternativa en la forma centrada
+$$
+\widetilde{y}_i
+=\widehat{y}_i+a+h(x_i-\bar{x}),
+$$
+donde $a$ modifica el valor ajustado en $x=\bar{x}$ y $h$ modifica la pendiente. Demuestra que
+$$
+RSS(\widetilde{y})-RSS(\widehat{y})
+=na^2+h^2S_{xx}.
+$$
+Interpreta por qué el centrado permite separar exactamente el costo de modificar el nivel y el costo de modificar la pendiente.
+
+d) Considera una recta alternativa que conserva el punto $(\bar{x},\bar{y})$, pero cuya pendiente es $b_2+h$. ¿Cuánto aumenta su $RSS$? Compara dos muestras con el mismo valor de $h$, pero diferentes valores de $S_{xx}$, y explica el papel que desempeña la dispersión de $x$.
+
+e) En clase se construyó un estimador de la pendiente utilizando únicamente dos observaciones y se mostró que, bajo los supuestos correspondientes, puede ser insesgado. ¿Contradice esto la propiedad de minimización que acabas de demostrar? Distingue con precisión las siguientes afirmaciones:
+    - MCO minimiza el RSS en la muestra
+    - un estimador es insesgado,
+    - MCO es MELI bajo los supuestos de Gauss--Markov.
+
+**¿Qué has aprendido?** Las condiciones que satisfacen los residuos de MCO permiten demostrar que ninguna otra recta puede producir una suma de residuos al cuadrado menor. La variación de $x$ permite identificar una pendiente única. La minimización del $RSS$, la insesgadez y la eficiencia son propiedades diferentes que responden preguntas diferentes.
+
+\newpage
+
+## Ejercicio 3
+
+Considera nuevamente el modelo
+
+$$
+y_i=\beta_1+\beta_2x_i+u_i,
+$$
+
+donde los $x_i$ son deterministas y
+
+$$
+\mathbb{E}(u_i)=0,\qquad
+\mathbb{V}ar(u_i)=\sigma^2,\qquad
+\mathbb{C}ov(u_i,u_j)=0\quad(i\neq j).
+$$
+
+Puedes utilizar los resultados demostrados en clase:
+
+$$
+\mathbb{E}(b_2)=\beta_2,
+\qquad
+\mathbb{V}ar(b_2)=\frac{\sigma^2}{S_{xx}},
+\qquad
+S_{xx}=\sum_{i=1}^n(x_i-\bar{x})^2.
+$$
+
+a) Considera los dos diseños siguientes, ambos con $n=5$:
+$$
+x^{(A)}=(4,5,6,7,8),
+\qquad
+x^{(B)}=(0,3,6,9,12).
+$$
+Supón que $\sigma^2$ es la misma en ambos casos. Calcula $S_{xx}$ y $\mathbb{V}ar(b_2)$ para cada diseño. ¿En cuál de ellos se estima $\beta_2$ con mayor precisión y por qué?
+
+b) ¿Una muestra con más observaciones produce necesariamente una varianza menor para $b_2$? Responde utilizando la expresión de $\mathbb{V}ar(b_2)$ y explica qué característica del diseño, además del número de observaciones, determina la precisión de la pendiente.
+
+c) Utiliza
+$$
+b_1=\bar{y}-b_2\bar{x}
+=\beta_1+\bar{u}-(b_2-\beta_2)\bar{x}
+$$
+para demostrar que
+$$
+\mathbb{V}ar(b_1)
+=\sigma^2\left(\frac{1}{n}+\frac{\bar{x}^2}{S_{xx}}\right)
+=\sigma^2\left[
+\frac{\sum_i x_i^2}{nS_{xx}}
+\right]
+$$
+y
+$$
+\mathbb{C}ov(b_1,b_2)
+=-\frac{\bar{x}\sigma^2}{S_{xx}}.
+$$
+Para simplificar el desarrollo, puedes utilizar
+$$
+\mathbb{V}ar(\bar{u})=\frac{\sigma^2}{n},
+\qquad
+\mathbb{C}ov\bigl(\bar{u},b_2-\beta_2\bigr)=0,
+$$
+y
+$$
+\sum_i x_i^2=S_{xx}+n\bar{x}^2.
+$$
+d) Define nuevamente $x_i^*=x_i-\bar{x}$. Utiliza los resultados del Ejercicio 1, sin repetir la derivación de la invariancia del ajuste, para obtener
+$$
+\mathbb{V}ar(b_1)^*,\qquad
+\mathbb{V}ar(b_2)^*,\qquad
+\mathbb{C}ov(b_1^*,b_2^*).
+$$
+Interpreta por qué centrar $x$ cambia la relación entre los estimadores del intercepto y la pendiente, aunque no cambie la recta ajustada.
+
+e) Supón ahora que
+$$
+u_i\mathrel{\sim}^{iid}\mathcal{N}(0,\sigma^2).
+$$
+Explica por qué $b_1$ y $b_2$ son variables normales y escribe sus distribuciones utilizando las esperanzas y varianzas anteriores. En la regresión con $x_i^*$, ¿qué conclusión adicional permite obtener la combinación de normalidad conjunta y $\mathbb{C}ov(b_1^*,b_2^*)=0$?
+
+f) Si se elimina el supuesto de normalidad, pero se conservan los supuestos sobre la media, la varianza y la covarianza de los errores, indica cuáles de los resultados anteriores permanecen válidos y cuál deja de estar garantizado. Explica por qué incorrelación e independencia no son equivalentes en general.
+
+**¿Qué has aprendido?** La precisión con la que estimamos una pendiente no depende únicamente del número de observaciones, sino también de la variación de $x$. Centrar $x$ no cambia la pendiente ni el ajuste, pero modifica la relación entre los estimadores del intercepto y la pendiente. La normalidad no es necesaria para la insesgadez; su papel es permitirnos caracterizar exactamente la distribución de los estimadores y, en este caso, convertir incorrelación en independencia.
+
+\newpage
+
+## Ejercicio 4
+
+Considera el modelo
+
+$$
+y_i=\beta_1+\beta_2x_i+u_i,
+$$
+
+donde los $x_i$ son deterministas y
+
+$$
+\mathbb{E}(u_i)=0,\qquad
+\mathbb{V}ar(u_i)=\sigma^2,\qquad
+\mathbb{C}ov(u_i,u_j)=0\quad(i\neq j).
+$$
+
+Los residuos de MCO y su suma de cuadrados son
+
+$$
+e_i=y_i-b_1-b_2x_i,
+\qquad
+RSS=\sum_{i=1}^n e_i^2.
+$$
+
+a) Si los verdaderos errores $u_i$ fueran observables, podríamos considerar $n^{-1}\sum_i u_i^2$. Muestra que
+$$
+\mathbb{E}\left(\frac{1}{n}\sum_i u_i^2\right)=\sigma^2.
+$$
+Explica por qué este resultado no justifica sustituir directamente los errores por los residuos y utilizar $RSS/n$.
+
+b) A partir de las definiciones de $e_i$, $b_1$ y $b_2$, muestra que
+$$
+e_i
+=(u_i-\bar{u})-(b_2-\beta_2)(x_i-\bar{x}).
+$$
+¿Qué dos ajustes realizados con los datos distinguen a $e_i$ de $u_i$?
+
+c) Utiliza la identidad
+$$
+\sum_i(u_i-\bar{u})^2=\sum_i u_i^2-n\bar{u}^{,2}
+$$
+y los resultados
+$$
+\mathbb{E}\left(\sum_i u_i^2\right)=n\sigma^2,
+\qquad
+\mathbb{V}ar(\bar{u})=\frac{\sigma^2}{n}
+$$
+para demostrar que
+$$
+\mathbb{E}\left[\sum_i(u_i-\bar{u})^2\right]=(n-1)\sigma^2.
+$$
+
+d) Define $a=b_2-\beta_2$. Eleva al cuadrado y suma la expresión obtenida en el inciso b). Utiliza
+$$
+\sum_i(x_i-\bar{x})(u_i-\bar{u})
+=\sum_i(x_i-\bar{x})u_i
+=aS_{xx}
+$$
+para demostrar que
+$$
+RSS
+=\sum_i(u_i-\bar{u})^2-a^2S_{xx}.
+$$
+
+e) Toma esperanza en la expresión anterior. Utiliza la insesgadez de $b_2$ y
+$$
+\mathbb{V}ar(b_2)=\frac{\sigma^2}{S_{xx}}
+$$
+para demostrar que
+$$
+\mathbb{E}(RSS)=(n-2)\sigma^2.
+$$
+Explica cómo aparecen, paso a paso, los dos grados de libertad utilizados al estimar el intercepto y la pendiente.
+
+f) Define
+$$
+s^2=\frac{RSS}{n-2}.
+$$
+Demuestra que $s^2$ es un estimador insesgado de $\sigma^2$. Considera después el estimador
+$$
+\widetilde{\sigma}^2=\frac{RSS}{n}
+$$
+y obtén su esperanza y su sesgo. Calcula qué fracción de $\sigma^2$ estima en promedio cuando $n=10$ y cuando $n=100$. ¿El hecho de que el sesgo relativo disminuya al crecer $n$ convierte a $RSS/n$ en un estimador insesgado para una muestra finita?
+
+**¿Qué has aprendido?** Los residuos no son los errores poblacionales: se obtienen después de utilizar los datos para estimar el intercepto y la pendiente. Por ello, $RSS/n$ subestima sistemáticamente $\sigma^2$. La división entre $n-2$ no es una regla arbitraria: corrige la variación utilizada al estimar los dos parámetros de la recta.
