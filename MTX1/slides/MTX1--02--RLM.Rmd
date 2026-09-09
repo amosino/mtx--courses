@@ -1,8 +1,9 @@
 ---
 title: "Econometría"
-subtitle: "_El modelo de regresión lineal múltiple_"
-author: "Alejandro Mosiño - _Universidad de Guanajuato_"
-date: "v.2026.09.23"
+subtitle: "El modelo de regresión lineal múltiple"
+author: 
+  - "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v.2026.09.09"
 
 knit: (function(inputFile, encoding) {
   rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
@@ -15,6 +16,10 @@ output:
     slide_level: 3
     css: ../src/custom.css
 ---
+
+<a class="pdf-footer" href="MTX1--02--RLM.pdf" target="_blank">
+  PDF
+</a>
 
 ## Cuando solo un regresor no es suficiente
 
