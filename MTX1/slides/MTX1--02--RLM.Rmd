@@ -2,7 +2,7 @@
 title: "Econometría"
 subtitle: "_El modelo de regresión lineal múltiple_"
 author: "Alejandro Mosiño - _Universidad de Guanajuato_"
-date: "v.2025.09.23"
+date: "v.2026.09.23"
 
 knit: (function(inputFile, encoding) {
   rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
@@ -16,7 +16,7 @@ output:
     css: ../src/custom.css
 ---
 
-## Cuando una variable no es suficiente
+## Cuando solo un regresor no es suficiente
 
 ### ¿Qué dejamos dentro de \(u_i\)?
 
@@ -30,8 +30,7 @@ Pero \(x_i\) no es lo único que explica por qué \(y_i\) cambia. ¿O sí?
 
 > ¿Qué representa entonces \(u_i\)?
 
-
-### Precio vs. Ventas: ¿qué nos falta?
+### Precio, ventas... ¿y nada más?
 
 Supongamos que queremos estudiar la asociación entre el _precio_ de un producto y sus _ventas_:
 
@@ -39,118 +38,110 @@ $$
 ventas_i=\beta_1+\beta_2precio_i+u_i
 $$
 
+
 > ¿Qué otros factores podrían explicar que establecimientos con precios similares tengan ventas diferentes?
 
-
-### Precios vs. Ventas: algunos de esos factores son observables
-
-Entre los factores que pueden afectar las ventas se encuentra el _gasto en publicidad_. Si incorporamos este en el modelo tenemos:
+¿Qué te parece el _gasto en publicidad_? Si podemos observarlo, podemos incorporarlo explícitamente al modelo, de tal forma que, ahora:
 
 $$
 ventas_i
 =
-\beta_1
-+\beta_2precio_i
-+\beta_3publicidad_i
-+u_i
+\beta_1+\beta_2precio_i+\beta_3publicidad_i+u_i.
 $$
 
-> La incoporación de una nueva variable nos da más información sobre el fenómeno que queremos explicar, pero también hace que la pregunta que podemos responder sea diferente.
+### Entonces, ¿qué cambia?
 
+Con regresión simple preguntábamos: ¿Cómo se asocian el precio y las ventas? Pero, ahora, al incorporar la publicidad, podemos formular una pregunta diferente:
 
-### ¿Qué cambió?
-
-Con regresión simple nos preguntábamos: _¿Cómo se asocian el precio y las ventas?_
-
-Y ahora podemos preguntar:
-
-> ¿Cómo se asocian el precio y las ventas para un mismo nivel de publicidad?
-
-
-Esta no pregunta no es simplemente una regresión con una variable adicional. **Es una comparación completamente diferente.**
-
-### La pregunta
-
-En economía y otras ciencias, varios factores suelen cambiar al mismo tiempo. En nuestro ejemplo, si el precio y la publicidad influyen sobre las ventas:
-
-> ¿Cómo podemos estudiar la asociación entre el precio y las ventas manteniendo constante la publicidad?
+> ¿Cómo se asocian el precio y las ventas _manteniendo constante la publicidad_?
 
 
 ### Una nueva dimensión
 
-Con una variable explicativa representábamos la relación entre \(x\) y \(y\) mediante una recta. ¡Pero ahora tenemos tres variables!
+Con una variable explicativa representábamos la relación entre \(x\) y \(y\) mediante una recta. ¡Pero ahora tenemos una dimensión adicional! En nuestro ejemplo tenemos:
 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
+
 library(tidyverse)
 library(plotly)
+library(here)
 
-# --- Datos genéricos para ilustrar el plano ---
-set.seed(123)
-n <- 50
-x2 <- runif(n, 0, 10)
-x3 <- runif(n, 0, 10)
-y  <- 5 + 2*x2 - 1.5*x3 + rnorm(n, 0, 2)
-df <- tibble(y = y, x2 = x2, x3 = x3)
+andy <- read_csv(here("data/andy.csv"))
 
-# --- Modelo genérico: y ~ x2 + x3 ---
-modelo3d <- lm(y ~ x2 + x3, data = df)
+# --- Modelo de ventas ---
+
+modelo3d <- lm(sales ~ price + advert, data = andy)
 
 # --- Grid para dibujar el plano de regresión ---
 ng <- 40
-grid_x2 <- seq(min(df$x2), max(df$x2), length.out = ng)
-grid_x3 <- seq(min(df$x3), max(df$x3), length.out = ng)
-grid_df <- expand_grid(x2 = grid_x2, x3 = grid_x3) %>%
-  mutate(y_hat = predict(modelo3d, newdata = cur_data()))
 
-Z <- matrix(grid_df$y_hat, nrow = ng, ncol = ng, byrow = FALSE)
+grid_price <- seq(
+  min(andy$price),
+  max(andy$price),
+  length.out = ng
+)
 
-# --- Ecuación estimada ---
-coefs <- coef(modelo3d)
-eq_lab <- sprintf("ŷ = %.2f %s %.2f·x₂ %s %.2f·x₃",
-                  coefs[1],
-                  ifelse(coefs[2] >= 0, "+", "−"),
-                  abs(coefs[2]),
-                  ifelse(coefs[3] >= 0, "+", "−"),
-                  abs(coefs[3]))
+grid_advert <- seq(
+  min(andy$advert),
+  max(andy$advert),
+  length.out = ng
+)
+
+grid_df <- expand_grid(
+  price = grid_price,
+  advert = grid_advert
+) %>%
+  mutate(
+    sales_hat = predict(modelo3d, newdata = .)
+  )
+
+Z <- matrix(
+  grid_df$sales_hat,
+  nrow = ng,
+  ncol = ng,
+  byrow = FALSE
+)
 
 # --- Gráfica 3D ---
 plot_ly() %>%
   add_markers(
-    data = df,
-    x = ~x2, y = ~x3, z = ~y,
+    data = andy,
+    x = ~price,
+    y = ~advert,
+    z = ~sales,
     marker = list(size = 4),
     name = "Datos"
   ) %>%
   add_surface(
-    x = grid_x2, y = grid_x3, z = Z,
-    opacity = 0.6, showscale = FALSE,
-    name = "Plano OLS"
+    x = grid_price,
+    y = grid_advert,
+    z = Z,
+    opacity = 0.6,
+    showscale = FALSE,
+    name = "Plano MCO"
   ) %>%
   layout(
     showlegend = FALSE,
-    title = list(
-    text = "y<sub>i</sub> = \u03B2<sub>1</sub> + \u03B2<sub>2</sub> x<sub>2i</sub> + \u03B2<sub>3</sub> x<sub>3i</sub> + u<sub>i</sub>"
-  ),
     scene = list(
-      xaxis = list(title = "x<sub>2i</sub>"),
-      yaxis = list(title = "x<sub>3i</sub>"),
-      zaxis = list(title = "y<sub>i</sub>"),
+      xaxis = list(title = "Precio"),
+      yaxis = list(title = "Publicidad"),
+      zaxis = list(title = "Ventas"),
       aspectmode = "cube"
-    ),
-    legend = list(orientation = "h", x = 0, y = -0.1)
-  ) %>% layout(
-  paper_bgcolor = 'rgba(0,0,0,0)',  # fondo total transparente
-  plot_bgcolor  = 'rgba(0,0,0,0)'   # fondo de la zona de trazado transparente
-)
+    )
+  ) %>%
+  layout(
+    paper_bgcolor = "rgba(0,0,0,0)",
+    plot_bgcolor  = "rgba(0,0,0,0)"
+  )
 
 ```
 
 
 ### El plano de regresión
 
-Entonces, ahora tenemos un **plano de regresión**. En nuestro ejemplo, este se calcula como:
+Nota que ahora tenemos un **plano de regresión** (y no una "simple" línea). Para nuestro ejemplo, este plano se calcula como:
 
 $$
 E(ventas_i)
@@ -162,36 +153,24 @@ $$
 
 > ¿Qué significa ahora \(\beta_2\)? ¿Y qué significa \(\beta_3\)?
 
+### ¿Qué significa "mantener constante"?
 
-### ¿Qué significa mantener constante?
+En la pregunta:
 
-En nuestro ejemplo:
+> ¿Cómo se asocian el precio y las ventas *manteniendo constante la publicidad*?
 
-$$
-E(ventas_i)
-=
-\beta_1
-+\beta_2precio_i
-+\beta_3publicidad_i
-$$
-
-- \(\beta_2\) compara las ventas esperadas cuando cambia el **precio**,
-para un mismo nivel de **publicidad**.
-
-- \(\beta_3\) compara las ventas esperadas cuando cambia la **publicidad**,
-para un mismo **precio**.
+¿Qué significa la frase "mantener constante"? Significa estudiar cómo cambian las ventas cuando cambia uno de los factores, _sin modificar el otro_. Esta es la interpretación de los parámetros del modelo:
 
 
-### Coeficientes de regresión parcial
+- \(\beta_2\) compara las ventas esperadas cuando cambia el precio,
+  _para un mismo nivel de publicidad_.
 
-Entonces, en:
+- \(\beta_3\) compara las ventas esperadas cuando cambia la publicidad,
+  _para un mismo nivel de precio_.
+  
+Por esta razón, \(\beta_2\) y \(\beta_3\) se conocen como **coeficientes de regresión parcial** o **pendientes**.
 
-$$
-E(y_i)=\beta_1+\beta_2x_{2i}+\beta_3x_{3i},
-$$
-
-los parámetros \(\beta_2\) y \(\beta_3\) miden cambios en \(E(y_i)\) asociados con cada regresor, _manteniendo constante el otro_. Estos se conocen como **coeficientes de regresión parcial** o **pendientes**.
-
+## Mínimos cuadrados ordinarios
 
 ### Mínimos cuadrados ordinarios
 
@@ -202,7 +181,7 @@ $$
 \min_{b_1,b_2,b_3} RSS = \min_{b_1,b_2,b_3} \; \sum_{i=1}^n e_i^2 
 $$
 
-Nota que, en este caso:
+En este caso:
 
 $$
 \begin{align}
@@ -235,30 +214,11 @@ b_3 &=
 \end{align}
 $$
 
-
-## Interpretación de los coeficientes estimados
-
 ### De los parámetros a los estimadores (1/2)
 
-Ya hemos visto cómo se interpretan los parámetros del modelo:
+<span class="emphasis-blue">Ejemplo</span>
 
-$$
-y_i=\beta_1+\beta_2x_{2i}+\beta_3x_{3i}+u_i.
-$$
-
-Así que, una vez estimado el modelo:
-
-$$
-\widehat{y}_i=b_1+b_2x_{2i}+b_3x_{3i},
-$$
-
-la interpretación de \(b_2\) y \(b_3\) resulta relativamente trivial.
-
-
-
-### De los parámetros a los estimadores (2/2)
-
-<span class="emphasis-blue">Ejemplo</span>  
+Para el ejemplo de ventas en función del precio y gasto en publicidad tenemos:
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
 library(tidyverse)
@@ -304,6 +264,22 @@ kable(tabla, format = "html", escape = FALSE,
       caption = "Ventas de comida rápida (hamburguesas) en función de su precio y del gasto en publicidad",
       table.attr = 'class="clean-table"')
 ```
+
+
+### De los parámetros a los estimadores (2/2)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Interpreta los estimadores del modelo de ventas en función del precio y del gasto en publicidad.
+
+_Recuerda:_ ya hemos visto cómo se interpretan los parámetros en:
+
+$$
+y_i=\beta_1+\beta_2x_{2i}+\beta_3x_{3i}+u_i.
+$$
+
+¿Qué información nos proporcionan ahora \(b_2\) y \(b_3\) sobre la relación entre ventas, precio y publicidad?
+
 
 ## El modelo con \(k-1\) regresores
 
@@ -352,8 +328,7 @@ Nota que la regla anterior también implica que si \(A, B, C\) son tres matrices
 $$
 (ABC)^\top = C^\top B^\top A^\top
 $$
-
-Esto último también aplica para la inversa. Es decir, si \(A, B\) son dos matrices que se pueden multiplicar:
+Esto último también aplica para la inversa. Es decir, si \(A\) y \(B\) son matrices cuadradas e invertibles:
 
 $$
 (AB)^{-1} = B^{-1} A^{-1}
@@ -396,8 +371,19 @@ $$
 $$
 
 </li>
-<li> La matriz \((X^\top X)^{-1}\) existe si y solo si \((X^\top X)\) es una matrix _cuadrada definida positiva_.
+<li> Sea \(X\) una matriz de dimensión \((n\times k)\). Si \(X\) tiene rango columna completo, es decir,
 
+$$
+\operatorname{rank}(X)=k,
+$$
+
+entonces \(X^\top X\) es definida positiva y, por tanto, invertible:
+
+$$
+(X^\top X)^{-1}
+$$
+
+existe.
 </li>
 </ol>
 
@@ -427,10 +413,10 @@ $$
 o, en forma matricial:
 
 $$
-\hat{\mathbf{y}} = \mathbf{xb}
+\hat{\mathbf{y}} = \mathbf{x}\mathbf{b}
 $$
 
-donde \(b\) es el vector de estimadores MCO de \(\boldsymbol{\beta}\).  
+donde \(\mathbf{b}\) es el vector de estimadores MCO de \(\boldsymbol{\beta}\).  
 
 
 ### El modelo de regresión múltiple en forma matricial (3/3)
@@ -440,7 +426,7 @@ Además, podemos definir el vector de residuales de la regresión como:
 $$
 \begin{align}
 \mathbf{e} &= \mathbf{y} - \hat{\mathbf{y}} \\
-&= \mathbf{y} - \mathbf{xb}
+&= \mathbf{y} - \mathbf{x}\mathbf{b}
 \end{align}
 $$
 
@@ -460,7 +446,7 @@ $$
 Muestra que:
 
 $$
-RSS = \mathbf{y}^\top \mathbf{y} - 2\mathbf{b}^\top \mathbf{x}^\top \mathbf{y} + \mathbf{b}^\top \mathbf{x}^\top \mathbf{xb}
+RSS = \mathbf{y}^\top \mathbf{y} - 2\mathbf{b}^\top \mathbf{x}^\top \mathbf{y} + \mathbf{b}^\top \mathbf{x}^\top \mathbf{x}\mathbf{b}
 $$
 
 Muestra finalmente que, la minimización del RSS resulta en:
@@ -471,17 +457,15 @@ $$
 
 Este es el vector de estimadores de MCO.
 
-
-
 ## Propiedades de los estimadores de MCO
 
-### Supuestos del modelo de regresión múltiple (1/4)
+### Supuestos del modelo de regresión múltiple (1/7)
 
 Para mostrar las propiedades de los coeficientes estimados, necesitamos primero conocer cuáles son los supuestos del modelo de regresión múltiple:
 
 <ol start="1">
 
-<li> El modelo es lineal en sus parámetros y está correctamente especificado:
+<li> El modelo es _lineal en sus parámetros_ y está correctamente especificado:
 
 $$
 \mathbf{y} = \mathbf{x}\boldsymbol{\beta} + \mathbf{u}
@@ -489,32 +473,74 @@ $$
 
 </li>
 
-<li> No existe una relación lineal exacta entre los regresores (no existe **multicolinealidad**).
-
-$$
-     \lambda_1 +  \lambda_2 x_{2i} + \dots + \lambda_k x_{ki} \neq 0 \quad \forall i
-$$
-o, de manera más general:
-
-$$
-     \det(\mathbf{x}^\top\mathbf{x}) \neq 0
-$$
-</li>
 </ol>
 
-### Supuestos del modelo de regresión múltiple (2/4)
 
-Los demás supuestos (los de **Gauss-Markov**) son los mismos que para el modelo de regresión simple:
+### Supuestos del modelo de regresión múltiple (2/7)
+
+
+<ol start="2">
+
+<li> No existe **multicolinealidad perfecta**. Esto es: _ningún regresor puede escribirse como una combinación lineal exacta de los demás_. En términos matriciales, esto requiere que:
+
+$$
+\operatorname{rank}(\mathbf{x})=k
+$$
+Y, como consecuencia:
+
+$$
+\det(\mathbf{x}^\top\mathbf{x}) \neq 0
+$$
+
+¿Qué implica este resultado para la matriz \(\mathbf{x}^\top\mathbf{x}\)?
+
+</li>
+
+</ol>
+
+
+### Supuestos del modelo de regresión múltiple (3/7)
+
+Los demás supuestos (los **supuestos de Gauss-Markov sobre el error**) son los mismos que para el modelo de regresión simple, pero ahora podemos expresarlos también en lenguaje matricial:
 
 <ol start="3">
 
 <li> El valor esperado del error es igual a cero para todas las observaciones:
 
 $$
-E(u_i) = 0 \quad \forall i
+\mathbb{E}(u_i)=0 \quad \forall i.
 $$
 
+Nota que:
+
+$$
+\mathbf{u}
+=
+\begin{bmatrix}
+u_1\\
+u_2\\
+\vdots\\
+u_n
+\end{bmatrix} \quad \Rightarrow \quad
+\mathbb{E}(\mathbf{u})
+=
+\begin{bmatrix}
+\mathbb{E}(u_1)\\
+\mathbb{E}(u_2)\\
+\vdots\\
+\mathbb{E}(u_n)
+\end{bmatrix}
+=
+\mathbf{0}.
+$$
 </li>
+
+</ol>
+
+### Supuestos del modelo de regresión múltiple (4/7)
+
+<ol start="4">
+
 <li> La varianza del error es constante para todas las observaciones (**homoscedasticidad**):
 
 $$
@@ -526,65 +552,90 @@ $$
 $$
 
 </li>
-
-</ol>
-
-
-### Supuestos del modelo de regresión múltiple (3/4)
-
-<ol start="5">
-  <li>La covarianza entre los errores de cualesquiera dos observaciones es cero. Este es el supuesto de la **no autocorrelación**:
+<li>La covarianza entre los errores de cualesquiera dos observaciones es cero. Este es el supuesto de la **no autocorrelación**:
 
   $$
   \begin{align}
   \mathbb{C}ov(u_i,u_j) &= \mathbb{E}(u_i u_j) \\
-  &= 0; \ \forall \ i
+  &= 0; \ \forall \ i \neq j
   \end{align}
   $$
   
+ 
+
 </li> 
+</ol>
 
-<li> Las matrices \(\mathbf{x}\) y \(\mathbf{u}\) son _ortogonales_ (las variables \(x_i\) son **exógenas**). Esto es:
+### Supuestos del modelo de regresión múltiple (5/7)
+
+<span class="emphasis-blue">Ejercicio</span>  
+
+Si definimos como \(\boldsymbol{\Omega}=\mathbb{V}ar(\mathbf{u})\) a la **matriz de varianzas y covarianzas de los errores**, muestra que los supuestos 3, 4 y 5 del modelo de regresión lineal múltiple implican que:
 
 $$
-\mathbb{E}(\mathbf{x}^\top \mathbf{u}) = 0
+\begin{align}
+\boldsymbol{\Omega} &=\mathbb{E}\left(\mathbf{u}\mathbf{u}^\top\right) \\
+&= \sigma^2 \mathbf{I}_n
+\end{align}
 $$
 
-Este supuesto viene en dos versiones:
+### Supuestos del modelo de regresión múltiple (6/7)
 
-- Versión fuerte: Las \(x_i\) son _deterministas_.
-- Versión débil: Las \(x_i\) son estocásticas, pero siguen una distribución independiente de la distribución de las \(u_i\).
+<ol start="6">
+
+<li> Los regresores son **exógenos**: no están relacionados sistemáticamente con el término de error. Si suponemos que las \(x_i\) son _deterministas_, esto implica que:
+
+$$
+\begin{align}
+\mathbb{E}(\mathbf{x}^\top \mathbf{u}) &= \mathbf{x}^\top \mathbb{E}(\mathbf{u})\\
+&=\mathbf{0}.
+\end{align}
+$$
+
+Nota. Si los regresores fueran estocásticos (lo cual es posible), sería necesario establecer supuestos adicionales sobre su relación con los errores.
 
 </li>
+
 </ol>
 
-### Supuestos del modelo de regresión múltiple (4/4)
+### Supuestos del modelo de regresión múltiple (7/7)
 
 <ol start="7">
-  <li>(_Conveniencia_). Finalmente, se supone que el error, \(u_i\), sigue una distribución normal.
-  </li>
+
+<li> (_Conveniencia_). Finalmente, para realizar inferencia exacta en muestras finitas, suponemos que el vector de errores sigue una distribución normal:
+
+$$
+\mathbf{u}\sim
+\mathcal{N}
+\left(
+\mathbf{0},
+\sigma^2\mathbf{I}_n
+\right).
+$$
+
+Al igual que en regresión lineal simple, la normalidad no es necesaria para demostrar el teorema de Gauss-Markov.
+
+</li>
+
 </ol>
-
-Entonces, si se cumplen todos los supuestos sobre el error, tenemos:
-
-$$
-u_i \sim iid\mathcal{N}(0,\sigma^2)
-$$
 
 ### Propiedades de los estimadores de MCO
 
-Los supuestos anteriores (_específicamente los de Gauss-Markov_) nos permiten demostrar que los estimadores son:
+Los supuestos anteriores nos permiten estudiar algunas de las principales propiedades de los estimadores de MCO:
 
 - **Insesgados**:
 $$
 \mathbb{E}(\mathbf{b}) = \boldsymbol{\beta}
 $$
 
-- **Eficientes**: De toda la gama de estimadores insesgados para \(\boldsymbol{\beta}\), \(\mathbf{b}\) es el demínima varianza.
-  
-- **Consistentes**: los estimadores para\(\boldsymbol{\beta}\) convergen en probabilidad a sus verdaderos parámetros cuando \(n \to \infty\).
+- **Eficientes**: dentro de la clase de estimadores lineales e insesgados para
+  \(\boldsymbol{\beta}\), \(\mathbf{b}\) es el de mínima varianza.
 
-### Los coeficientes son insesgados
+- **Consistentes**: bajo condiciones regulares adicionales, los estimadores de
+  \(\boldsymbol{\beta}\) convergen en probabilidad a sus verdaderos parámetros cuando
+  \(n\to\infty\).
+
+### Los estimadores son insesgados
 
 <span class="emphasis-blue">Ejercicio</span>  
 
@@ -597,77 +648,58 @@ $$
 _Pista._ Primero muestra que \(\mathbf{b}\) puede escribirse de la forma:
 
 $$
-b = \boldsymbol{\beta} + \left(\mathbf{x}^\top\mathbf{x}\right)^{-1} \left(\mathbf{x}^\top\mathbf{u}\right)
+\mathbf{b} = \boldsymbol{\beta} + \left(\mathbf{x}^\top\mathbf{x}\right)^{-1} \left(\mathbf{x}^\top\mathbf{u}\right)
 $$
 
-### Los estimadores son eficientes (1/6)
+### Los estimadores son eficientes (1/5)
 
 Al igual que en el modelo de regresión simple, para saber si los estimadores de MCO son eficientes, primero tenemos que calcular su varianza:
 
 $$
 \begin{align}
 \mathbb{V}ar(\mathbf{b}) &= \mathbb{E}\left( \left[\mathbf{b} -  \mathbb{E}(\mathbf{b}) \right]\left[\mathbf{b} -  \mathbb{E}(\mathbf{b})\right]^\top \right)\\
-&=\mathbb{E}\left( \left[\mathbf{b} -  \boldsymbol{\beta} \right]\left[\mathbf{b} -  \boldsymbol{\beta})\right]^\top \right)
+&=\mathbb{E}\left( \left[\mathbf{b} -  \boldsymbol{\beta} \right]\left[\mathbf{b} -  \boldsymbol{\beta}\right]^\top \right)
 \end{align}
 $$
 
 Nota que la \(\mathbb{V}ar(\mathbf{b})\) es una matriz de dimensión \((k\times k)\).
 
-### Los estimadores son eficientes (2/6)
 
-En el cálculo de la varianza de los estimadores, también nos será de utilidad calcular la matriz de varianzas y covarianzas de los errores. Esta se calcula como:
-
-$$
-\mathbb{V}ar(\mathbf{u}) = \mathbb{E}\left( \left[\mathbf{u} -  \mathbb{E}(\mathbf{u}) \right]\left[\mathbf{u} -  \mathbb{E}(\mathbf{u})\right]^\top \right)\\
-$$
-
-Y, si se cumplen los supuestos de Gauss-Markov:
-
-$$
-\begin{align}
-\mathbb{V}ar(\mathbf{u}) &= \mathbb{E}\left( \mathbf{u} \mathbf{u}^\top \right)\\
-&=\sigma^2 \mathbf{I}_n
-\end{align}
-$$
-donde \(\mathbf{I}_n\) es una matriz identidad de tamaño \(n\).
-
-
-### Los estimadores son eficientes (3/6)
+### Los estimadores son eficientes (2/5)
 
 <span class="emphasis-blue">Ejercicio</span>  
 
-Muestra que:
+Dado que:
 
 $$
-\mathbb{V}ar(\mathbf{u}) =\sigma^2 \mathbf{I}_n
+\mathbb{V}ar(\mathbf{u}) =\sigma^2 \mathbf{I}_n,
 $$
-
-Luego muestra que:
+muestra que:
 
 $$
 \mathbb{V}ar(\mathbf{b}) =\sigma^2 \left(\mathbf{x}^\top\mathbf{x}\right)^{-1}
 $$
 
-### Los estimadores son eficientes (4/6)
+### Los estimadores son eficientes (3/5)
 
-Para mostrar que los estimadores de MCO son los de varianza mínima, definamos primero toda la gama posible de diferentes estimadores para \(\boldsymbol{\beta}\):
+Para mostrar que los estimadores de MCO son los de varianza mínima, definamos primero toda la gama posible de diferentes estimadores lineales para \(\boldsymbol{\beta}\):
 
 $$
 \begin{align}
-\tilde{\mathbf{b}} &= \mathbf{c y};\\
+\tilde{\mathbf{b}} &= \mathbf{c}\mathbf{y};\\
 \mathbf{c} &= \left(\mathbf{x}^\top\mathbf{x}\right)^{-1}\mathbf{x}^\top + \mathbf{d}
 \end{align}
 $$
-donde \(\mathbf{d}\) es una matriz de dimensión \((k \times n)\) de rango completo. Nota que esta gama incluye a los estimadores de MCO en tanto que \(\mathbf{d}\) sea una matriz nula.
+donde \(\mathbf{d}\) es una matriz de dimensión \((k \times n)\). Nota que esta gama incluye a los estimadores de MCO en tanto que \(\mathbf{d}\) sea una matriz nula.
 
-### Los estimadores son eficientes (5/6)
+### Los estimadores son eficientes (4/5)
 
 <span class="emphasis-blue">Ejercicio</span>  
 
 Muestra que la gama de estimadores que hemos definido es insesgada en tanto que:
 
 $$
-\mathbf{dx} = \mathbf{0}
+\mathbf{d}\mathbf{x} = \mathbf{0}
 $$
 
 Muestra además que, si \(\tilde{\mathbf{b}}\) es insesgado:
@@ -677,7 +709,7 @@ $$
 $$
 
 
-### Los estimadores son eficientes (6/6)
+### Los estimadores son eficientes (5/5)
 
 Nota que:
 
@@ -687,36 +719,45 @@ $$
 & = \mathbb{V}ar(\mathbf{b}) + \sigma^2 \mathbf{d} \mathbf{d}^\top \\
 \end{align}
 $$
-Dado que la matriz \(\mathbf{d} \mathbf{d}^\top\) es semidefinida positiva (esto es, para todo \(\mathbf{v}\), \(\mathbf{v}^\top \mathbf{d} \mathbf{d}^\top \mathbf{v} = \left\Vert \mathbf{d}^\top v \right \Vert^2 \leq 0 \)), se sigue que:
+Dado que la matriz \(\mathbf{d} \mathbf{d}^\top\) es semidefinida positiva (esto es, para todo \(\mathbf{v}\), \(\mathbf{v}^\top \mathbf{d} \mathbf{d}^\top \mathbf{v} = \left\Vert \mathbf{d}^\top \mathbf{v} \right \Vert^2 \geq 0 \)), se sigue que:
 
 $$
 \mathbb{V}ar(\tilde{\mathbf{b}}) \;\succeq\; \mathbb{V}ar(\mathbf{b})
 $$
-con igualdad solo si \(\mathbf{d}=\mathbf{0}\). Esto es, los estimadores de MCO son los de mínima varianza.
+con igualdad solo si \(\mathbf{d}=\mathbf{0}\). 
 
-Esto también demuestra que el **Teorema de Gauss-Markov** se satisface para el modelo de regresión múltiple.
+Por lo tanto, bajo los supuestos de Gauss-Markov, _los estimadores de MCO son los estimadores lineales e insesgados de mínima varianza_. Este resultado es el **Teorema de Gauss-Markov** para el modelo de regresión múltiple.
 
 ### Los estimadores son consistentes
 
-<span class="emphasis-blue">Ejercicio</span>  
+<span class="emphasis-blue">Ejercicio*</span>  
 
 Demuestra que los estimadores de MCO son consistentes, es decir:  
 
 $$
-\text{plim}(\mathbf{b})=\boldsymbol{\beta}
+\operatorname{plim}(\mathbf{b})=\boldsymbol{\beta}
 $$
 
 _Pista._ Demuestra primero que \(\mathbf{b}\) puede escribirse como:
 
 $$
-\mathbf{b} = \boldsymbol{\beta} + \left(\mathbf{x}^\top\mathbf{x}\right)^{-1}\left(\mathbf{x}^\top\mathbf{u}\right)
+\mathbf{b}
+=
+\boldsymbol{\beta}
++
+\left(
+\frac{\mathbf{x}^\top\mathbf{x}}{n}
+\right)^{-1}
+\left(
+\frac{\mathbf{x}^\top\mathbf{u}}{n}
+\right)
 $$
 
 ## Varianza de \(\mathbf{b}\) y su estimador
 
-### Matriz simétrica e idempotente (1/3)
+### La matriz aniquiladora (1/3)
 
-Antes de continuar, notemos que no es posible calcular la varianza de los estimadores. Esto es porque no conocemos el valor de \(\sigma^2\), el cual debe ser estimado.  
+Antes de continuar, notemos que conocemos la expresión para la varianza de los estimadores, pero no podemos calcularla porque desconocemos \(\sigma^2\). Por tanto, necesitamos estimarla.
 
 Recordemos que:
 
@@ -727,18 +768,18 @@ $$
 \end{align}
 $$
 
-
-Lo que nos permite escribir:
+Y, si \(\mathbf{b}\) es el estimador de MCO de los coeficientes del modelo:
 
 $$
 \begin{align}
-\mathbf{e}^{\top}\mathbf{e} &= \mathbf{M}_x\mathbf{y} \\
+\mathbf{e} &= \mathbf{M}_x\mathbf{y} \\
 \mathbf{M}_x &= \mathbf{I}_n -  \mathbf{x}\left(\mathbf{x}^\top\mathbf{x}\right)^{-1}\mathbf{x}^\top
 \end{align}
 $$
 
+La matriz \(\mathbf{M}_x\) se conoce como **matriz aniquiladora** o **matriz generadora de residuos**.
 
-### Matriz simétrica e idempotente (2/3)
+### La matriz aniquiladora (2/3)
 
 <span class="emphasis-blue">Ejercicio</span>  
 
@@ -762,12 +803,12 @@ $$
 </ol>
 
 
-### Matriz simétrica e idempotente (3/3)
+### La matriz aniquiladora (3/3)
 
 <span class="emphasis-blue">Ejercicio (cont’d)</span>  
 
 <ol start="3">
-<li> Es ortogonal con el vector \(\mathbf{x}\):  
+<li> Es ortogonal a las columnas de \(\mathbf{x}\):  
 $$
 \mathbf{M}_x \mathbf{x} = \mathbf{0}
 $$
@@ -775,9 +816,9 @@ $$
 </li>
 
 
-<li> Mostrar que esta última propiedad implica que el vector de residuales también es ortogonal con el vector \(\mathbf{x}\):  
+<li> Mostrar que esta última propiedad implica que el vector de residuales también es ortogonal a las columnas de \(\mathbf{x}\):
 $$
-\mathbf{e}^{\top}\mathbf{x} = \mathbf{0}
+\mathbf{x}^{\top}\mathbf{e} = \mathbf{0}
 $$
 
 </li>
@@ -789,7 +830,7 @@ También será importante recordar qué es la **traza de una matriz** y sus prop
 
 <span class="emphasis-blue">Definición</span>  
 
-Sea \(\mathbf{A}\) una matriz cuadrada de dimensión \((k \times k)\), cuyo elemento en el \(m\)-ésimo renglón y \(n\)-ésima columna es \(a_{mn}\).
+Sea \(\mathbf{A}\) una matriz cuadrada de dimensión \((k \times k)\), cuyo elemento en el \(i\)-ésimo renglón y \(j\)-ésima columna es \(a_{ij}\).
 
 La traza de una matriz es:
 
@@ -801,7 +842,7 @@ $$
 
 ### Traza de una matriz (2/2)
 
-Consideremos ahora una constante \(c\), un vector de tamaño \((n \times 1)\), \(\mathbf{b}\), y matrices \(\mathbf{A}, \mathbf{B}, \mathbf{C}, \mathbf{D} \in \mathbb{R}^{m\times n}\) de dimensiones compatibles. 
+Consideremos ahora una constante \(c\), un vector de tamaño \((n \times 1)\), \(\mathbf{b}\), y matrices \(\mathbf{A}, \mathbf{B}, \mathbf{C}, \mathbf{D}\) de dimensiones compatibles. 
 
 Entonces:
 
@@ -851,14 +892,14 @@ Demostrar que \(s^2\) es un estimador insesgado de \(\sigma^2\).
 
 _Pista._
 
-Primero demuestra que:
+Primero demuestra que \(\mathbf{e} = \mathbf{M}_x \mathbf{u}\) y luego que:
 
 $$
 \mathbb{E}\!\left(\mathbf{e}^{\top}\mathbf{e}\right) 
 = \sigma^2 \operatorname{tr}\left(\mathbf{M}_x\right)
 $$
 
-Luego utiliza la expresión de \(\mathbf{M}_x\) y las propiedades de la traza para llegar al resultado deseado.
+Finalmente, utiliza la expresión de \(\mathbf{M}_x\) y las propiedades de la traza para llegar al resultado deseado.
 
 
 ### Estimador para la varianza de \(\mathbf{b}\) (3/3)
@@ -882,7 +923,7 @@ tabla <- tidy(modelo) %>%
     statistic = round(statistic, 3),
     p.value = format.pval(p.value, digits = 3, eps = 0.001),
     std.error = sprintf("<span style='color:#F8766D; font-weight:bold;'>%s</span>",
-                   format(estimate, nsmall = 6))
+                   format(std.error, nsmall = 6))
   ) %>%
   select(
     Término = term,
@@ -898,7 +939,7 @@ kable(tabla, format = "html", escape = FALSE,
       table.attr = 'class="clean-table"')
 ```
 
-> **Nota:** La mayoría de los software de econometría calculan la desviación estándar estimada,que no es más que la raíz cuadrada de los elementos de la diagonal principal de \(\widehat{\mathbb{V}ar}(\mathbf{b})\).
+> **Nota:** La mayoría de los programas econométricos reportan los **errores estándar** de los coeficientes estimados, que corresponden a la raíz cuadrada de los elementos de la diagonal principal de \(\widehat{\operatorname{Var}}(\mathbf b)\).
 
 ## Bondad de ajuste, la \(R^2\) y la \(R^2\) ajustada
 
@@ -920,24 +961,35 @@ R^2 = 1 - \frac{\mathbf{e}^{\top}\mathbf{e}}
                {(\mathbf{y}-\bar{y}\mathbf{1})^{\top}(\mathbf{y}-\bar{y}\mathbf{1})}
 $$
 
-donde \(\mathbf{1}\) es un vector unitario de dimensión \((n\times 1)\).
-
+donde \(\mathbf{1}\) es un vector de unos de dimensión \((n\times 1)\).
 
 
 ### La \(R^2\) en el modelo de regresión múltiple (2/2)
 
-<span class="emphasis-blue">Ejercicio</span>  
+<span class="emphasis-blue">Ejercicio*</span>  
 
-Demuestra que la \(R^2\) crece conforme agregamos más variables explicativas al modelo.  
+Demuestra que la \(R^2\) nunca disminuye cuando agregamos nuevas variables explicativas al modelo.
 
 _Intuición_  
 
-Dado que el modelo de regresión tiene un sustento probabilístico,   existe la posibilidad de que una variable “inútil” explique a la variable dependiente, \(\mathbf{y}\), por “casualidad”. Esto incrementará la \(R^2\).
+Al agregar un nuevo regresor, MCO tiene una posibilidad adicional para minimizar la suma de cuadrados de los residuos. En el peor de los casos, puede asignarle un coeficiente igual a cero. Por tanto:
+
+$$
+RSS_{\text{ampliado}}\leq RSS_{\text{original}}
+$$
+
+y, dado que \(TSS\) no cambia:
+
+$$
+R^2_{\text{ampliado}}\geq R^2_{\text{original}}.
+$$
+
+¿Significa esto que debemos agregar tantas variables como sea posible?
 
 
 ### La \(R^2\) ajustada (1/3)
 
-En el modelo de regresión múltiple, es preferible calcular la \(R^2\) ajustada, \(\bar{R}^2\). Esta es:
+Para tomar en cuenta el número de regresores incluidos en el modelo, podemos utilizar la \(R^2\) ajustada, \(\bar R^2\):
 
 $$
 \begin{align}
@@ -949,13 +1001,22 @@ $$
 Nota que, conforme \(k\) se incrementa, el efecto final sobre la \(\bar{R}^2\) es ambiguo.
 
 
-
 ### La \(R^2\) ajustada (2/3)
 
 <span class="emphasis-blue">Teorema</span>
 
-La inclusión de una nueva variable incrementará la \(R^2\) ajustada si el valor absoluto de su estadístico \(t\) es mayor que 1.
+Consideremos dos modelos que difieren únicamente en la inclusión de un regresor adicional.
 
+La inclusión del nuevo regresor:
+
+- siempre incrementa o mantiene constante la \(R^2\);
+- incrementa la \(\bar{R}^2\) únicamente si el valor absoluto del estadístico \(t\) asociado al nuevo coeficiente es mayor que 1:
+
+$$
+|t|>1.
+$$
+
+Por tanto, a diferencia de la \(R^2\), la \(\bar{R}^2\) puede disminuir cuando agregamos una nueva variable explicativa.
 
 
 ### La \(R^2\) ajustada (3/3)
@@ -1044,3 +1105,24 @@ kable(tabla, format = "html", escape = FALSE,
 if (._tmp_modelo_created) rm(modelo, df_tmp)
 
 ```
+
+
+## Resumen
+
+### ¿Qué hemos aprendido?
+
+> Cuando varios factores cambian al mismo tiempo, ¿cómo podemos estudiar la relación entre \(y\) y uno de ellos manteniendo constantes los demás?
+
+Para responderla aprendimos a:
+
+- Extender el modelo de regresión para incorporar múltiples variables explicativas;
+- Interpretar los coeficientes como relaciones parciales, manteniendo constantes los demás regresores;
+- Estimar los parámetros mediante mínimos cuadrados ordinarios;
+- Representar el modelo y sus supuestos utilizando álgebra matricial;
+- Demostrar las propiedades de los estimadores de MCO;
+- Estimar la matriz de varianzas y covarianzas de los estimadores;
+- Evaluar la bondad de ajuste mediante la \(R^2\) y la \(R^2\) ajustada.
+
+### ¿Qué sigue?
+
+Hasta ahora, hemos aprendido a estimar las relaciones entre múltiples variables y a estudiar las propiedades de los estimadores de MCO. Pero nuestras estimaciones provienen de una muestra y, por tanto, están sujetas a incertidumbre. En el siguiente capítulo aprenderemos a utilizar esa información para realizar **inferencia estadística** sobre los parámetros del modelo.
