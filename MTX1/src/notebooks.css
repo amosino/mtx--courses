@@ -1,0 +1,406 @@
+/*
+CSS para notebooks de Econometría
+Basado en la identidad visual del sitio del curso
+*/
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap");
+
+:root {
+  --notebook-bg: #f8fafc;
+  --notebook-surface: #ffffff;
+  --notebook-surface-muted: #f1f5f9;
+  --notebook-text: #334155;
+  --notebook-heading: #0f172a;
+  --notebook-muted: #64748b;
+  --notebook-accent: #0f766e;
+  --notebook-accent-hover: #0d9488;
+  --notebook-accent-light: #f0fdfa;
+  --notebook-border: #e2e8f0;
+  --notebook-code: #f8fafc;
+  --notebook-warning: #b45309;
+  --notebook-warning-light: #fffbeb;
+  --notebook-font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --notebook-font-serif: "Lora", Georgia, Cambria, "Times New Roman", serif;
+  --notebook-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --notebook-shadow: 0 10px 30px rgba(15, 23, 42, 0.07);
+}
+
+html {
+  background: var(--notebook-bg);
+}
+
+body.fullcontent {
+  color: var(--notebook-text);
+  background:
+    linear-gradient(180deg, var(--notebook-accent-light) 0, var(--notebook-bg) 260px);
+  font-family: var(--notebook-font-sans);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.fullcontent #quarto-content {
+  display: block;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+main#quarto-document-content {
+  width: min(100%, 940px);
+  max-width: none;
+  margin: 0 auto;
+  padding: 3.5rem 4.25rem 4.5rem;
+  background: var(--notebook-surface);
+  border: 1px solid var(--notebook-border);
+  border-top: 4px solid var(--notebook-accent);
+  border-radius: 12px;
+  box-shadow: var(--notebook-shadow);
+}
+
+/* Título y encabezados */
+
+#title-block-header {
+  margin: 0 0 2rem;
+  padding: 0 0 1.75rem;
+  border-bottom: 1px solid var(--notebook-border);
+}
+
+#title-block-header .quarto-title-meta {
+  display: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--notebook-heading);
+  font-family: var(--notebook-font-serif);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+h1.title {
+  margin: 0;
+  color: var(--notebook-heading);
+  font-size: clamp(2.15rem, 5vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+main h2 {
+  margin-top: 2.75rem;
+  margin-bottom: 1.15rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid var(--notebook-border);
+  font-size: 1.65rem;
+}
+
+main h2::before {
+  content: "";
+  display: inline-block;
+  width: 0.42rem;
+  height: 0.42rem;
+  margin-right: 0.65rem;
+  vertical-align: 0.18em;
+  background: var(--notebook-accent);
+  border-radius: 50%;
+}
+
+main h3 {
+  margin-top: 2rem;
+  font-size: 1.28rem;
+}
+
+p {
+  margin-bottom: 1.15rem;
+}
+
+strong,
+b {
+  color: var(--notebook-heading);
+  font-weight: 600;
+}
+
+/* Enlaces y botón de descarga */
+
+a {
+  color: var(--notebook-accent);
+  text-decoration-color: rgba(15, 118, 110, 0.35);
+  text-underline-offset: 0.16em;
+}
+
+a:hover {
+  color: var(--notebook-accent-hover);
+  text-decoration-color: currentColor;
+}
+
+main a[href$=".ipynb"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.25rem 0 0.75rem;
+  padding: 0.58rem 0.9rem;
+  color: var(--notebook-accent);
+  background: var(--notebook-accent-light);
+  border: 1px solid rgba(15, 118, 110, 0.22);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+main a[href$=".ipynb"]::before {
+  content: "↓";
+  font-size: 1rem;
+}
+
+main a[href$=".ipynb"]:hover {
+  color: var(--notebook-accent-hover);
+  background: #ccfbf1;
+  border-color: rgba(15, 118, 110, 0.38);
+  transform: translateY(-1px);
+}
+
+/* Listas, citas y ecuaciones */
+
+ul,
+ol {
+  margin-bottom: 1.3rem;
+  padding-left: 1.4rem;
+}
+
+li {
+  margin-bottom: 0.35rem;
+}
+
+blockquote {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  color: var(--notebook-accent);
+  background: var(--notebook-accent-light);
+  border-left: 4px solid var(--notebook-accent);
+  border-radius: 0 8px 8px 0;
+}
+
+blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.math.display,
+mjx-container[display="true"] {
+  margin: 1.5rem 0 !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* Código */
+
+code {
+  font-family: var(--notebook-font-mono);
+  font-size: 0.88em;
+}
+
+p code,
+li code {
+  padding: 0.13em 0.34em;
+  color: #115e59;
+  background: var(--notebook-accent-light);
+  border: 1px solid rgba(15, 118, 110, 0.14);
+  border-radius: 4px;
+}
+
+.cell {
+  margin: 1.6rem 0 2.1rem;
+}
+
+div.sourceCode {
+  margin: 0;
+  overflow: hidden;
+  background: var(--notebook-code);
+  border: 1px solid var(--notebook-border);
+  border-left: 4px solid var(--notebook-accent);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+pre.sourceCode {
+  margin: 0;
+  padding: 1rem 1.15rem;
+  overflow-x: auto;
+  background: transparent;
+  border: 0;
+}
+
+pre > code.sourceCode > span {
+  line-height: 1.55;
+}
+
+.code-copy-button {
+  color: var(--notebook-muted);
+  border-color: transparent;
+}
+
+.code-copy-button:hover {
+  color: var(--notebook-accent);
+  background: var(--notebook-accent-light);
+}
+
+/* Resultados */
+
+.cell-output {
+  margin-top: 0.7rem;
+  padding: 0.7rem 0.9rem;
+  color: var(--notebook-text);
+  background: var(--notebook-surface-muted);
+  border-left: 3px solid #94a3b8;
+  border-radius: 0 6px 6px 0;
+  overflow-x: auto;
+}
+
+.cell-output pre {
+  margin: 0;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+}
+
+.cell-output-stderr {
+  color: #78350f;
+  background: var(--notebook-warning-light);
+  border-left-color: var(--notebook-warning);
+}
+
+.cell-output:has(.figure),
+.cell-output:has(table) {
+  padding: 0;
+  background: transparent;
+  border-left: 0;
+  overflow: visible;
+}
+
+.cell-output .figure {
+  margin: 0;
+}
+
+.cell-output img.figure-img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  padding: 0.5rem;
+  background: #ffffff;
+  border: 1px solid var(--notebook-border);
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
+}
+
+/* Tablas */
+
+.content table {
+  width: 100%;
+  margin: 1.25rem 0;
+  overflow: hidden;
+  color: var(--notebook-text);
+  font-family: var(--notebook-font-sans);
+  font-size: 0.9rem;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--notebook-border);
+  border-radius: 8px;
+}
+
+.content table thead th {
+  padding: 0.65rem 0.75rem;
+  color: #ffffff;
+  background: var(--notebook-accent);
+  border: 0;
+  font-weight: 600;
+  text-align: left;
+}
+
+.content table tbody th,
+.content table tbody td {
+  padding: 0.58rem 0.75rem;
+  border: 0;
+  border-bottom: 1px solid var(--notebook-border);
+}
+
+.content table tbody tr:nth-child(even) > * {
+  background: var(--notebook-bg);
+}
+
+.content table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.content table tbody tr:hover > * {
+  background: var(--notebook-accent-light);
+}
+
+/* Pantallas pequeñas */
+
+@media (max-width: 720px) {
+  body.fullcontent #quarto-content {
+    padding: 0;
+  }
+
+  main#quarto-document-content {
+    padding: 2.25rem 1.25rem 3rem;
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  h1.title {
+    font-size: 2rem;
+  }
+
+  main h2 {
+    font-size: 1.4rem;
+  }
+
+  .content table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
+/* Impresión */
+
+@media print {
+  html,
+  body.fullcontent {
+    background: #ffffff !important;
+  }
+
+  body.fullcontent #quarto-content {
+    padding: 0;
+  }
+
+  main#quarto-document-content {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .code-copy-button {
+    display: none !important;
+  }
+
+  .cell,
+  blockquote,
+  table,
+  figure {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
