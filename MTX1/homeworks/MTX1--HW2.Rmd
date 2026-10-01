@@ -1,0 +1,901 @@
+---
+title: "Econometría I"
+subtitle: "Tarea 2: El modelo de regresión lineal múltiple"
+author: "Alejandro Mosiño - Universidad de Guanajuato"
+date: ""
+output:
+  pdf_document:
+    latex_engine: xelatex
+    number_sections: false
+geometry: margin=2.5cm
+fontsize: 11pt
+lang: es
+header-includes:
+  - \usepackage{amsmath,amssymb}
+  - \usepackage{enumitem}
+  - \setlist[enumerate]{itemsep=0.7em}
+  
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs")})
+    
+---
+
+**Indicaciones.** Resuelve cuidadosamente los cinco ejercicios antes de responder el cuestionario correspondiente en Campus Digital. El cuestionario evalúa las ideas, procedimientos y resultados desarrollados en esta tarea, aunque sus preguntas no necesariamente reproducen los mismos ejercicios o datos. Trabajar y comprender previamente los ejercicios es la mejor preparación para resolverlo.
+
+## Ejercicio 1
+
+Considera el modelo de regresión lineal múltiple
+
+$$
+\mathbf{y}=\mathbf{x}\boldsymbol{\beta}+\mathbf{u},
+$$
+
+donde $\mathbf{x}$ es una matriz de dimensión $n\times k$ y tiene rango columna completo.
+
+Sabemos que el vector de estimadores de MCO es
+
+$$
+\mathbf{b}
+=
+\left(\mathbf{x}^{\top}\mathbf{x}\right)^{-1}
+\mathbf{x}^{\top}\mathbf{y},
+$$
+
+y que los residuos
+
+$$
+\mathbf{e}
+=
+\mathbf{y}-\mathbf{x}\mathbf{b}
+$$
+
+satisfacen las ecuaciones normales
+
+$$
+\mathbf{x}^{\top}\mathbf{e}=\mathbf{0}.
+$$
+
+Deseamos mostrar que $\mathbf{b}$ es el único vector de coeficientes que minimiza globalmente la suma de residuos al cuadrado.
+
+a) Sea $\mathbf{c}$ cualquier otro vector de coeficientes y define
+
+$$
+\mathbf{d}=\mathbf{c}-\mathbf{b}.
+$$
+
+Muestra que
+
+$$
+\mathbf{y}-\mathbf{x}\mathbf{c}
+=
+\mathbf{e}-\mathbf{x}\mathbf{d}.
+$$
+
+Desarrolla
+
+$$
+RSS(\mathbf{c})
+=
+(\mathbf{y}-\mathbf{x}\mathbf{c})^{\top}
+(\mathbf{y}-\mathbf{x}\mathbf{c})
+$$
+
+y utiliza las ecuaciones normales para demostrar que
+
+$$
+RSS(\mathbf{c})-RSS(\mathbf{b})
+=
+\mathbf{d}^{\top}\mathbf{x}^{\top}\mathbf{x}\mathbf{d}.
+$$
+
+b) Muestra que
+
+$$
+\mathbf{d}^{\top}\mathbf{x}^{\top}\mathbf{x}\mathbf{d}
+=
+(\mathbf{x}\mathbf{d})^{\top}(\mathbf{x}\mathbf{d})
+\geq 0.
+$$
+
+Deduce que
+
+$$
+RSS(\mathbf{c})\geq RSS(\mathbf{b})
+$$
+
+para cualquier vector $\mathbf{c}$ y explica por qué este resultado muestra que MCO produce un mínimo global del $RSS$.
+
+c) Utiliza el supuesto
+
+$$
+\operatorname{rank}(\mathbf{x})=k
+$$
+
+para mostrar que, si $\mathbf{d}\neq\mathbf{0}$, entonces
+
+$$
+\mathbf{x}\mathbf{d}\neq\mathbf{0}.
+$$
+
+Deduce que
+
+$$
+RSS(\mathbf{c})>RSS(\mathbf{b})
+$$
+
+para cualquier $\mathbf{c}\neq\mathbf{b}$ y, por tanto,
+
+$$
+RSS(\mathbf{c})=RSS(\mathbf{b})
+\quad\Longleftrightarrow\quad
+\mathbf{c}=\mathbf{b}.
+$$
+
+d) Supón ahora que $\mathbf{x}$ no tiene rango columna completo. Sea $\mathbf{b}^{*}$ una solución que minimiza el $RSS$. En este caso existe algún vector $\mathbf{d}\neq\mathbf{0}$ tal que
+
+$$
+\mathbf{x}\mathbf{d}=\mathbf{0}.
+$$
+
+Define
+
+$$
+\mathbf{c}=\mathbf{b}^{*}+\mathbf{d}.
+$$
+
+Muestra que
+
+$$
+\mathbf{x}\mathbf{c}=\mathbf{x}\mathbf{b}^{*}
+$$
+
+y que
+
+$$
+RSS(\mathbf{c})=RSS(\mathbf{b}^{*}).
+$$
+
+Explica qué implica este resultado para la unicidad de los coeficientes estimados cuando existe multicolinealidad perfecta.
+
+**¿Qué has aprendido?** Las ecuaciones normales permiten demostrar que ningún otro vector de coeficientes puede producir una suma de residuos al cuadrado menor que la obtenida por MCO. Cuando $\mathbf{x}$ tiene rango columna completo, el mínimo es único. La ausencia de multicolinealidad perfecta no solo permite calcular $\left(\mathbf{x}^{\top}\mathbf{x}\right)^{-1}$: también garantiza que los coeficientes de MCO están identificados de manera única.
+
+\newpage
+
+## Ejercicio 2
+
+Sabemos que el vector de residuos de MCO puede escribirse como
+
+$$
+\mathbf{e}=\mathbf{M}_x\mathbf{y},
+$$
+
+donde
+
+$$
+\mathbf{M}_x
+=
+\mathbf{I}_n-
+\mathbf{x}
+\left(\mathbf{x}^{\top}\mathbf{x}\right)^{-1}
+\mathbf{x}^{\top}.
+$$
+
+Define ahora la **matriz de proyección**
+
+$$
+\mathbf{P}_x
+=
+\mathbf{x}
+\left(\mathbf{x}^{\top}\mathbf{x}\right)^{-1}
+\mathbf{x}^{\top}.
+$$
+
+a) Muestra que
+
+$$
+\mathbf{P}_x+\mathbf{M}_x=\mathbf{I}_n
+$$
+
+y que el vector de valores ajustados puede escribirse como
+
+$$
+\widehat{\mathbf{y}}
+=
+\mathbf{P}_x\mathbf{y}.
+$$
+
+Utiliza las propiedades conocidas de $\mathbf{M}_x$ para mostrar que
+
+$$
+\mathbf{P}_x^{\top}=\mathbf{P}_x
+$$
+
+y
+
+$$
+\mathbf{P}_x^2=\mathbf{P}_x.
+$$
+
+Muestra además que
+
+$$
+\mathbf{P}_x\mathbf{M}_x
+=
+\mathbf{M}_x\mathbf{P}_x
+=
+\mathbf{0}.
+$$
+
+b) Muestra que
+
+$$
+\mathbf{P}_x\mathbf{x}=\mathbf{x}.
+$$
+
+Utiliza este resultado y las propiedades anteriores para escribir
+
+$$
+\mathbf{y}
+=
+\mathbf{P}_x\mathbf{y}+\mathbf{M}_x\mathbf{y}
+=
+\widehat{\mathbf{y}}+\mathbf{e}
+$$
+
+y demostrar que
+
+$$
+\widehat{\mathbf{y}}^{\top}\mathbf{e}=0.
+$$
+
+Como el modelo contiene una constante, $\mathbf{1}$ pertenece al espacio generado por las columnas de $\mathbf{x}$. Muestra que
+
+$$
+\mathbf{y}-\bar{y}\mathbf{1}
+=
+(\widehat{\mathbf{y}}-\bar{y}\mathbf{1})+\mathbf{e}
+$$
+
+y que
+
+$$
+(\widehat{\mathbf{y}}-\bar{y}\mathbf{1})^{\top}\mathbf{e}=0.
+$$
+
+Deduce la descomposición
+
+$$
+TSS=ESS+RSS.
+$$
+
+c) Considera ahora el modelo
+
+$$
+\mathbf{y}
+=
+\mathbf{x}\boldsymbol{\beta}+\mathbf{u},
+$$
+
+donde
+
+$$
+\mathbb{E}(\mathbf{u})=\mathbf{0},
+\qquad
+\mathbb{V}ar(\mathbf{u})=\sigma^2\mathbf{I}_n.
+$$
+
+Utiliza
+
+$$
+\widehat{\mathbf{y}}
+=
+\mathbf{P}_x\mathbf{y}
+$$
+
+para demostrar que
+
+$$
+\mathbb{E}(\widehat{\mathbf{y}})
+=
+\mathbf{x}\boldsymbol{\beta}
+$$
+
+y
+
+$$
+\mathbb{V}ar(\widehat{\mathbf{y}})
+=
+\sigma^2\mathbf{P}_x.
+$$
+
+d) Utiliza
+
+$$
+\mathbf{e}=\mathbf{M}_x\mathbf{y}
+$$
+
+para demostrar que
+
+$$
+\mathbb{E}(\mathbf{e})=\mathbf{0}
+$$
+
+y
+
+$$
+\mathbb{V}ar(\mathbf{e})
+=
+\sigma^2\mathbf{M}_x.
+$$
+
+Muestra además que
+
+$$
+\mathbb{C}ov(\widehat{\mathbf{y}},\mathbf{e})
+=
+\mathbf{0}.
+$$
+
+e) Denota por $p_{ii}$ al $i$-ésimo elemento de la diagonal de $\mathbf{P}_x$. Utiliza el resultado del inciso anterior y la identidad
+
+$$
+\mathbf{M}_x=\mathbf{I}_n-\mathbf{P}_x
+$$
+
+para mostrar que
+
+$$
+\mathbb{V}ar(e_i)
+=
+\sigma^2(1-p_{ii}).
+$$
+
+Muestra también que
+
+$$
+\operatorname{tr}(\mathbf{P}_x)=k
+$$
+
+y, por tanto,
+
+$$
+\sum_{i=1}^{n}p_{ii}=k.
+$$
+
+Obtén el valor promedio de los elementos diagonales de $\mathbf{P}_x$ y explica por qué, aun cuando los errores $u_i$ tienen todos la misma varianza, los residuos $e_i$ no tienen necesariamente la misma varianza.
+
+**¿Qué has aprendido?** MCO descompone el vector $\mathbf{y}$ en dos componentes ortogonales: los valores ajustados y los residuos. La matriz $\mathbf{P}_x$ genera la parte de $\mathbf{y}$ explicada por las columnas de $\mathbf{x}$, mientras que $\mathbf{M}_x$ genera la parte residual. Esta descomposición también determina las varianzas y covarianzas de los valores ajustados y de los residuos.
+
+\newpage
+
+## Ejercicio 3
+
+Considera el modelo de regresión lineal múltiple
+
+$$
+\mathbf{y}
+=
+\mathbf{x}_1\boldsymbol{\beta}_1
++
+\mathbf{x}_2\boldsymbol{\beta}_2
++
+\mathbf{u},
+$$
+
+donde
+
+$$
+\mathbf{x}
+=
+\begin{pmatrix}
+\mathbf{x}_1 & \mathbf{x}_2
+\end{pmatrix}.
+$$
+
+Sean $\mathbf{b}_1$ y $\mathbf{b}_2$ los vectores de estimadores de MCO correspondientes a $\boldsymbol{\beta}_1$ y $\boldsymbol{\beta}_2$. Las ecuaciones normales pueden escribirse como
+
+$$
+\mathbf{x}_1^{\top}\mathbf{x}_1\mathbf{b}_1
++
+\mathbf{x}_1^{\top}\mathbf{x}_2\mathbf{b}_2
+=
+\mathbf{x}_1^{\top}\mathbf{y},
+$$
+
+$$
+\mathbf{x}_2^{\top}\mathbf{x}_1\mathbf{b}_1
++
+\mathbf{x}_2^{\top}\mathbf{x}_2\mathbf{b}_2
+=
+\mathbf{x}_2^{\top}\mathbf{y}.
+$$
+
+a) Utiliza la primera ecuación normal para mostrar que
+
+$$
+\mathbf{b}_1
+=
+(\mathbf{x}_1^{\top}\mathbf{x}_1)^{-1}
+\mathbf{x}_1^{\top}
+(\mathbf{y}-\mathbf{x}_2\mathbf{b}_2).
+$$
+
+b) Sustituye este resultado en la segunda ecuación normal y demuestra que
+
+$$
+\mathbf{b}_2
+=
+\left(
+\mathbf{x}_2^{\top}\mathbf{M}_1\mathbf{x}_2
+\right)^{-1}
+\mathbf{x}_2^{\top}\mathbf{M}_1\mathbf{y},
+$$
+
+donde
+
+$$
+\mathbf{M}_1
+=
+\mathbf{I}_n-
+\mathbf{x}_1
+(\mathbf{x}_1^{\top}\mathbf{x}_1)^{-1}
+\mathbf{x}_1^{\top}.
+$$
+
+c) Define
+
+$$
+\mathbf{y}^{*}
+=
+\mathbf{M}_1\mathbf{y},
+\qquad
+\mathbf{x}_2^{*}
+=
+\mathbf{M}_1\mathbf{x}_2.
+$$
+
+Utiliza que $\mathbf{M}_1$ es simétrica e idempotente para mostrar que
+
+$$
+\mathbf{x}_2^{*\top}\mathbf{x}_2^{*}
+=
+\mathbf{x}_2^{\top}\mathbf{M}_1\mathbf{x}_2
+$$
+
+y
+
+$$
+\mathbf{x}_2^{*\top}\mathbf{y}^{*}
+=
+\mathbf{x}_2^{\top}\mathbf{M}_1\mathbf{y}.
+$$
+
+Deduce que
+
+$$
+\mathbf{b}_2
+=
+\left(
+\mathbf{x}_2^{*\top}\mathbf{x}_2^{*}
+\right)^{-1}
+\mathbf{x}_2^{*\top}\mathbf{y}^{*}.
+$$
+
+Este resultado se conoce como **teorema de Frisch-Waugh-Lovell**.
+
+d) Considera ahora el caso en el que $\mathbf{x}_2$ contiene un solo regresor, $\mathbf{z}$, mientras que $\mathbf{x}_1$ contiene el resto de las variables explicativas. Define
+
+$$
+\mathbf{z}^{*}
+=
+\mathbf{M}_1\mathbf{z},
+\qquad
+\mathbf{y}^{*}
+=
+\mathbf{M}_1\mathbf{y}.
+$$
+
+Muestra que el coeficiente correspondiente a $\mathbf{z}$ puede escribirse como
+
+$$
+b_z
+=
+\frac{\mathbf{z}^{*\top}\mathbf{y}^{*}}
+{\mathbf{z}^{*\top}\mathbf{z}^{*}}.
+$$
+
+Explica por qué este resultado permite interpretar $b_z$ como la pendiente obtenida al relacionar las partes de $\mathbf{y}$ y $\mathbf{z}$ que no pueden ser explicadas linealmente por las variables contenidas en $\mathbf{x}_1$.
+
+e) Supón que
+
+$$
+\mathbf{x}_1^{\top}\mathbf{x}_2
+=
+\mathbf{0}.
+$$
+
+Muestra que
+
+$$
+\mathbf{M}_1\mathbf{x}_2
+=
+\mathbf{x}_2
+$$
+
+y deduce que
+
+$$
+\mathbf{b}_2
+=
+(\mathbf{x}_2^{\top}\mathbf{x}_2)^{-1}
+\mathbf{x}_2^{\top}\mathbf{y}.
+$$
+
+Explica qué ocurre con los coeficientes asociados a $\mathbf{x}_2$ cuando los regresores contenidos en $\mathbf{x}_1$ son ortogonales a los contenidos en $\mathbf{x}_2$.
+
+f) Supón finalmente que $\mathbf{x}_1$ contiene únicamente una constante, es decir,
+
+$$
+\mathbf{x}_1=\mathbf{1},
+$$
+
+donde $\mathbf{1}$ es un vector de unos. Muestra que
+
+$$
+\mathbf{M}_1
+=
+\mathbf{I}_n-
+\frac{1}{n}\mathbf{1}\mathbf{1}^{\top}
+$$
+
+y que, para cualquier vector $\mathbf{z}$,
+
+$$
+\mathbf{M}_1\mathbf{z}
+=
+\mathbf{z}-\bar{z}\mathbf{1}.
+$$
+
+Deduce que estimar una regresión con constante es equivalente, para obtener las pendientes, a trabajar con las variables expresadas como desviaciones respecto de sus medias.
+
+**¿Qué has aprendido?** Un coeficiente de regresión múltiple puede obtenerse eliminando primero de la variable explicativa y de la variable dependiente la parte asociada linealmente con los demás regresores. El teorema de Frisch-Waugh-Lovell muestra algebraicamente qué significa estimar una relación parcial y explica por qué los coeficientes de una regresión múltiple se interpretan manteniendo constantes las demás variables.
+
+\newpage
+
+## Ejercicio 4
+
+Considera el modelo
+
+$$
+y_i
+=
+\beta_1+\beta_2x_{2i}+\beta_3x_{3i}+u_i,
+$$
+
+donde los regresores están expresados como desviaciones respecto de sus medias:
+
+$$
+\sum_{i=1}^n x_{2i}=0,
+\qquad
+\sum_{i=1}^n x_{3i}=0.
+$$
+
+Define
+
+$$
+S_{22}=\sum_{i=1}^n x_{2i}^2,
+\qquad
+S_{33}=\sum_{i=1}^n x_{3i}^2,
+\qquad
+S_{23}=\sum_{i=1}^n x_{2i}x_{3i}.
+$$
+
+Sabemos que
+
+$$
+\mathbb{V}ar(\mathbf{b})
+=
+\sigma^2
+(\mathbf{x}^{\top}\mathbf{x})^{-1}.
+$$
+
+a) Muestra que, debido al centrado de los regresores,
+
+$$
+\mathbf{x}^{\top}\mathbf{x}
+=
+\begin{pmatrix}
+n&0&0\\
+0&S_{22}&S_{23}\\
+0&S_{23}&S_{33}
+\end{pmatrix}.
+$$
+
+Obtén la inversa del bloque correspondiente a las pendientes y demuestra que
+
+$$
+\mathbb{V}ar(b_2)
+=
+\sigma^2
+\frac{S_{33}}
+{S_{22}S_{33}-S_{23}^2}
+$$
+
+y
+
+$$
+\mathbb{V}ar(b_3)
+=
+\sigma^2
+\frac{S_{22}}
+{S_{22}S_{33}-S_{23}^2}.
+$$
+
+b) Define la correlación muestral entre ambos regresores como
+
+$$
+r_{23}
+=
+\frac{S_{23}}
+{\sqrt{S_{22}S_{33}}}.
+$$
+
+Utiliza esta expresión para mostrar que
+
+$$
+\mathbb{V}ar(b_2)
+=
+\frac{\sigma^2}
+{S_{22}(1-r_{23}^2)}
+$$
+
+y
+
+$$
+\mathbb{V}ar(b_3)
+=
+\frac{\sigma^2}
+{S_{33}(1-r_{23}^2)}.
+$$
+
+Analiza qué ocurre con estas varianzas cuando $r_{23}=0$ y cuando $|r_{23}|$ se aproxima a uno. Explica qué sucede exactamente cuando $|r_{23}|=1$ y su relación con el supuesto de ausencia de multicolinealidad perfecta.
+
+c) Considera ahora el modelo general
+
+$$
+\mathbf{y}
+=
+\mathbf{x}_1\boldsymbol{\beta}_1
++
+\mathbf{z}\beta_z
++
+\mathbf{u},
+$$
+
+donde $\mathbf{x}_1$ contiene el resto de los regresores, incluida la constante. Del Ejercicio 3 sabemos que
+
+$$
+\mathbf{z}^{*}
+=
+\mathbf{M}_1\mathbf{z},
+$$
+
+donde $\mathbf{z}^{*}$ contiene los residuos de la regresión de $\mathbf{z}$ sobre las variables de $\mathbf{x}_1$.
+
+Utiliza el resultado de Frisch-Waugh-Lovell para mostrar que
+
+$$
+b_z-\beta_z
+=
+\frac{\mathbf{z}^{*\top}\mathbf{u}}
+{\mathbf{z}^{*\top}\mathbf{z}^{*}}.
+$$
+
+A partir de
+
+$$
+\mathbb{V}ar(\mathbf{u})
+=
+\sigma^2\mathbf{I}_n,
+$$
+
+demuestra que
+
+$$
+\mathbb{V}ar(b_z)
+=
+\frac{\sigma^2}
+{\mathbf{z}^{*\top}\mathbf{z}^{*}}.
+$$
+
+d) Sea $R_z^2$ el coeficiente de determinación de la regresión de $\mathbf{z}$ sobre las variables contenidas en $\mathbf{x}_1$. Como $\mathbf{x}_1$ contiene una constante, define
+
+$$
+S_{zz}
+=
+\sum_{i=1}^n(z_i-\bar{z})^2.
+$$
+
+Muestra que
+
+$$
+\mathbf{z}^{*\top}\mathbf{z}^{*}
+=
+(1-R_z^2)S_{zz}.
+$$
+
+Utiliza este resultado para obtener
+
+$$
+\mathbb{V}ar(b_z)
+=
+\frac{\sigma^2}
+{(1-R_z^2)S_{zz}}.
+$$
+
+e) Considera dos muestras con el mismo valor de $\sigma^2$ y
+
+$$
+S_{zz}=200.
+$$
+
+En la primera,
+
+$$
+R_z^2=0.20,
+$$
+
+mientras que en la segunda,
+
+$$
+R_z^2=0.80.
+$$
+
+Calcula $\mathbb{V}ar(b_z)$ en ambos casos como múltiplo de $\sigma^2$. Calcula también
+
+$$
+\frac{1}{1-R_z^2},
+$$
+
+cantidad conocida como **factor de inflación de la varianza**. Compara los resultados y explica por qué una misma cantidad de variación total en $z$ puede producir precisiones muy diferentes para su coeficiente.
+
+**¿Qué has aprendido?** La precisión de un coeficiente de regresión múltiple depende de la variación de su regresor que no puede ser explicada por los demás regresores. Una relación lineal fuerte entre variables explicativas reduce esa variación independiente y aumenta la varianza de los estimadores. La multicolinealidad perfecta es el caso límite en el que esa variación desaparece y el coeficiente deja de estar identificado.
+
+\newpage
+
+## Ejercicio 5
+
+Considera el modelo
+
+$$
+y_i
+=
+\beta_1+\beta_2x_{2i}+\beta_3x_{3i}+u_i,
+$$
+
+estimado con $n=23$ observaciones. Las variables $x_2$ y $x_3$ están expresadas como desviaciones respecto de sus medias.
+
+Se conoce la siguiente información:
+
+$$
+\mathbf{x}^{\top}\mathbf{x}
+=
+\begin{pmatrix}
+23&0&0\\
+0&40&10\\
+0&10&25
+\end{pmatrix},
+\qquad
+\mathbf{x}^{\top}\mathbf{y}
+=
+\begin{pmatrix}
+115\\
+82\\
+25
+\end{pmatrix},
+$$
+
+y
+
+$$
+\mathbf{y}^{\top}\mathbf{y}=844.
+$$
+
+a) Utiliza
+
+$$
+\mathbf{b}
+=
+(\mathbf{x}^{\top}\mathbf{x})^{-1}
+\mathbf{x}^{\top}\mathbf{y}
+$$
+
+para obtener los estimadores $b_1$, $b_2$ y $b_3$. Escribe la ecuación estimada.
+
+b) Sabemos que
+
+$$
+RSS
+=
+(\mathbf{y}-\mathbf{x}\mathbf{b})^{\top}
+(\mathbf{y}-\mathbf{x}\mathbf{b}).
+$$
+
+Utiliza las ecuaciones normales para mostrar que esta expresión puede escribirse como
+
+$$
+RSS
+=
+\mathbf{y}^{\top}\mathbf{y}
+-
+\mathbf{b}^{\top}\mathbf{x}^{\top}\mathbf{y}.
+$$
+
+Calcula el $RSS$ utilizando únicamente la información proporcionada.
+
+c) Obtén
+
+$$
+s^2
+=
+\frac{RSS}{n-k}
+$$
+
+y calcula la matriz estimada de varianzas y covarianzas
+
+$$
+\widehat{\mathbb{V}ar}(\mathbf{b})
+=
+s^2
+(\mathbf{x}^{\top}\mathbf{x})^{-1}.
+$$
+
+A partir de ella, obtén los errores estándar de $b_1$, $b_2$ y $b_3$.
+
+d) Dado que el modelo contiene una constante,
+
+$$
+TSS
+=
+\sum_{i=1}^n(y_i-\bar{y})^2.
+$$
+
+Utiliza la información contenida en $\mathbf{x}^{\top}\mathbf{y}$ para obtener $\bar{y}$ y muestra que
+
+$$
+TSS
+=
+\mathbf{y}^{\top}\mathbf{y}-n\bar{y}^2.
+$$
+
+Calcula $TSS$, $R^2$ y $\bar{R}^2$.
+
+e) Considera ahora el modelo reducido
+
+$$
+y_i
+=
+\alpha_1+\alpha_2x_{2i}+v_i,
+$$
+
+obtenido al excluir $x_3$. Construye $\mathbf{x}_R^{\top}\mathbf{x}_R$ y $\mathbf{x}_R^{\top}\mathbf{y}$ utilizando las matrices proporcionadas al inicio del ejercicio. Obtén los estimadores de MCO del modelo reducido y calcula su $RSS$, $R^2$ y $\bar{R}^2$.
+
+Compara ambos modelos. Verifica que al incluir $x_3$,
+
+$$
+RSS_{\text{completo}}
+\leq
+RSS_{\text{reducido}}
+$$
+
+y
+
+$$
+R^2_{\text{completo}}
+\geq
+R^2_{\text{reducido}}.
+$$
+
+Compara ahora las dos $\bar{R}^2$ y explica por qué la inclusión de un regresor puede mejorar el ajuste medido por $R^2$ y, al mismo tiempo, reducir $\bar{R}^2$.
+
+**¿Qué has aprendido?** Una regresión lineal múltiple puede reconstruirse a partir de matrices de productos cruzados sin disponer de las observaciones individuales. Los mismos resultados permiten obtener los coeficientes, el $RSS$, la varianza residual, la matriz de varianzas y covarianzas y las medidas de bondad de ajuste. La $R^2$ siempre favorece la inclusión de regresores adicionales, mientras que la $R^2$ ajustada también toma en cuenta los grados de libertad utilizados al estimarlos.
