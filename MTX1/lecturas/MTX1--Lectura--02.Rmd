@@ -1,0 +1,212 @@
+---
+title: "Lectura 02"
+subtitle: "Una relación, distintas comparaciones"
+
+output:
+  html_document:
+    css: ../src/lecturas.css
+    self_contained: true
+    toc: false
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs")})
+
+---
+
+# Una relación, distintas comparaciones
+
+Hasta ahora hemos aprendido a representar relaciones entre variables y a interpretar los coeficientes de una regresión.
+
+Pero una relación no existe aislada del modelo en el que la representamos.
+
+Cuando incorporamos información adicional, no solamente agregamos variables a una ecuación. También podemos cambiar la comparación que estamos construyendo y, con ello, el significado de lo que interpretamos.
+
+En esta lectura trabajarás con dos materiales sobre diferencias de remuneración y después trasladarás ese razonamiento a una decisión comercial.
+
+La pregunta que guiará el trabajo es:
+
+> **¿Qué ocurre con la interpretación de una relación cuando decidimos representar explícitamente otros factores?**
+
+---
+
+## Materiales
+
+Esta lectura se basa en los siguientes materiales:
+
+**The Economist — *The gender pay gap persists almost everywhere***  
+[https://www.economist.com/graphic-detail/2016/05/13/the-gender-pay-gap-persists-almost-everywhere](https://www.economist.com/graphic-detail/2016/05/13/the-gender-pay-gap-persists-almost-everywhere)
+
+**Freakonomics Radio — *What Can Uber Teach Us About the Gender Pay Gap?***  
+[https://freakonomics.com/podcast/what-can-uber-teach-us-about-the-gender-pay-gap/](https://freakonomics.com/podcast/what-can-uber-teach-us-about-the-gender-pay-gap/)
+
+No necesitas trabajar con los materiales completos. En cada sección se indica qué parte debes revisar.
+
+---
+
+# 1. Antes de comenzar
+
+Imagina que encuentras una noticia que afirma:
+
+> *Las mujeres ganan, en promedio, un porcentaje menor que los hombres.*
+
+Antes de consultar los materiales, escribe una nota breve.
+
+¿Qué pregunta económica crees que responde realmente una cifra de este tipo?
+
+¿Cómo la interpretarías?
+
+¿Qué necesitarías conocer antes de decidir qué significa?
+
+Conserva tu respuesta. Volveremos a ella al final de la actividad.
+
+---
+
+# 2. Una relación, dos comparaciones
+
+Lee el **primer párrafo** de *The gender pay gap persists almost everywhere*.
+
+El artículo presenta dos cifras construidas a partir de información sobre millones de trabajadores en distintos países. Una corresponde a una diferencia agregada de remuneraciones. La otra compara trabajadores considerando también su nivel, función y empresa.
+
+A partir del material original, construye un argumento que responda:
+
+> **¿Qué pregunta podría responder cada una de esas comparaciones?**
+
+Explica qué cambia entre ellas y por qué la información sobre nivel, función y empresa modifica la interpretación de la diferencia observada.
+
+Después regresa a la pregunta que escribiste al inicio. Decide cuál de las dos comparaciones utilizarías para responderla y justifica tu decisión.
+
+No necesitas concluir que una comparación es siempre mejor que la otra. Lo importante es explicar **para qué pregunta** resulta pertinente cada una.
+
+---
+
+# 3. ¿Qué significa mantener constante?
+
+Ahora trabaja con la transcripción de *What Can Uber Teach Us About the Gender Pay Gap?*
+
+Localiza el bloque inicial en el que Rebecca Diamond presenta la diferencia de ingresos por hora entre hombres y mujeres que conducen para Uber. Después revisa los fragmentos en los que se discuten la ubicación y el horario de los viajes, la experiencia acumulada y la velocidad de conducción.
+
+La fuente reporta resultados sobre estos factores. Tu tarea no consiste en reconstruir exactamente los modelos estimados por los investigadores.
+
+Utiliza la evidencia para construir **dos comparaciones distintas** sobre la relación entre género e ingresos por hora en Uber.
+
+En ambas debe mantenerse la misma relación que quieres estudiar, pero debes decidir qué otros factores representar explícitamente en cada caso.
+
+Puedes organizar tu razonamiento mediante un diagrama, una tabla diseñada por ti o una explicación estructurada.
+
+Para cada comparación, explica qué personas estarías comparando, qué factores mantendrías constantes, qué significa concretamente *mantenerlos constantes* en este contexto y qué aspectos seguirían quedando fuera de tu representación.
+
+Justifica tus decisiones utilizando pasajes específicos del material.
+
+Distingue con claridad entre los resultados que la fuente realmente reporta y las comparaciones que tú estás proponiendo.
+
+---
+
+# 4. De la comparación al modelo
+
+Podemos representar de manera general dos preguntas mediante:
+
+$$
+y_i=\alpha_0+\alpha_1x_i+u_i
+$$
+
+y
+
+$$
+y_i=\beta_0+\beta_1x_i+\beta_2z_i+u_i.
+$$
+
+Supón que \(x_i\) representa la variable cuya relación con \(y_i\) queremos estudiar y que \(z_i\) representa información adicional que decidimos incorporar.
+
+> **¿Describen \(\alpha_1\) y \(\beta_1\) exactamente la misma comparación?**
+
+Explica qué significa cada coeficiente y qué cambia cuando \(z_i\) pasa de quedar fuera de la ecuación a aparecer explícitamente en el modelo.
+
+Relaciona tu respuesta con las comparaciones que construiste en la sección anterior.
+
+La pregunta central no es si agregar una variable hace automáticamente mejor al modelo. La pregunta es:
+
+> **¿Qué comparación representa ahora el coeficiente que estamos interpretando?**
+
+---
+
+# 5. ¿Qué evidencia podemos defender?
+
+Regresa a *The gender pay gap persists almost everywhere* y lee únicamente el **último párrafo**, donde se comenta el caso de Emiratos Árabes Unidos junto con información sobre participación laboral femenina y educación.
+
+Ahora elige **una comparación efectivamente reportada** en alguno de los dos materiales.
+
+Redacta una declaración de evidencia que conecte claramente:
+
+**la pregunta que quieres responder, la comparación utilizada, el resultado reportado y el alcance de tu interpretación.**
+
+Tu afirmación debe sostenerse en la fuente elegida.
+
+El otro material puede ayudarte a pensar por qué la información considerada importa o por qué una comparación tiene un alcance determinado, pero no combines porcentajes de ambas fuentes como si provinieran de la misma población o de distintas versiones de un mismo modelo.
+
+Incluye únicamente los límites que sean relevantes para lo que afirmas.
+
+---
+
+# 6. Cuando cambian dos cosas al mismo tiempo
+
+Considera ahora una situación diferente.
+
+Un negocio dispone de un informe que encuentra una asociación negativa entre precio y ventas **para un mismo nivel de gasto en publicidad**.
+
+La gerencia está considerando una campaña que aumentaría simultáneamente el precio y el gasto en publicidad. Quiere utilizar el informe para anticipar qué ocurrirá con las ventas.
+
+Podemos representar dos relaciones mediante:
+
+$$
+\text{I:}\qquad
+ventas_i=\alpha_0+\alpha_1precio_i+u_i
+$$
+
+y
+
+$$
+\text{II:}\qquad
+ventas_i=\beta_0+\beta_1precio_i+\beta_2publicidad_i+u_i.
+$$
+
+Redacta una respuesta para la gerencia.
+
+Explica qué comparación representa \(\alpha_1\) en el primer modelo y qué comparación representa \(\beta_1\) en el segundo.
+
+¿Cuál de las dos representaciones se aproxima mejor a la información descrita por el informe?
+
+¿Es suficiente conocer esa relación para anticipar lo que ocurrirá cuando aumenten simultáneamente el precio y la publicidad?
+
+Justifica tu respuesta y señala qué información adicional necesitarías para analizar la decisión de la empresa.
+
+Conecta tu razonamiento con alguna decisión que hayas tomado al construir las comparaciones salariales, pero no traslades resultados numéricos entre ambos contextos.
+
+---
+
+# 7. Volvamos al principio
+
+Recupera la nota que escribiste antes de comenzar.
+
+Elige una idea de esa respuesta que ahora conservarías, modificarías o precisarías.
+
+Escribe tu formulación final y explica qué parte de la evidencia o del razonamiento desarrollado durante la lectura justifica tu decisión.
+
+Para cerrar, responde:
+
+> **Frente a una nueva cifra que describe la relación entre dos variables, ¿qué revisarías antes de decidir qué significa?**
+
+---
+
+# Entrega
+
+Entrega **un solo archivo en formato PDF** que contenga todas las actividades solicitadas.
+
+No existe una extensión mínima o máxima. La extensión adecuada es aquella que te permita desarrollar y justificar con claridad tu razonamiento.
+
+La actividad será evaluada utilizando la rúbrica disponible en Campus Digital.
+
+Puedes utilizar herramientas de inteligencia artificial como apoyo durante la actividad. Si lo haces, eres responsable de evaluar críticamente sus respuestas y de poder justificar los argumentos que presentes.
+
+La IA no sustituye la lectura de los materiales originales.
+
+Si una herramienta de IA modificó de manera importante alguna de tus respuestas, conserva un ejemplo de una sugerencia que hayas **aceptado, rechazado o reformulado** y explica brevemente por qué tomaste esa decisión.
