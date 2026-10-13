@@ -5,10 +5,13 @@ author: "Alejandro Mosiño - _Universidad de Guanajuato_"
 date: "v.2026.09.26"
 
 knit: (function(inputFile, encoding) {
-  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs");
+  base <- tools::file_path_sans_ext(basename(inputFile));
+  unlink(file.path("../docs", paste0(base, "_files")), recursive = TRUE) })
 
 output:
   ioslides_presentation:
+    self_contained: true
     widescreen: true
     smaller: true
     transition: 0
@@ -23,10 +26,9 @@ output:
 
 ## De la estimación a la inferencia
 
+### Una estimación no es el parámetro
 
-### ¿Qué podemos sostener a partir de una muestra?
-
-En el capítulo anterior obtuvimos:
+Recordemos que el vector de estimadores de MCO se encuentra como:
 
 $$
 \mathbf{b}
@@ -35,40 +37,27 @@ $$
 \mathbf{x}^{\top}\mathbf{y},
 $$
 
-y demostramos que:
+Sin embargo, a pesar que:
 
 $$
-\begin{align}
-\mathbb{E}(\mathbf{b}) &= \boldsymbol{\beta},\\
-\mathbb{V}ar(\mathbf{b}) &=
-\sigma^2
-\left(\mathbf{x}^{\top}\mathbf{x}\right)^{-1}.
-\end{align}
+\mathbb{E}(\mathbf{b}) = \boldsymbol{\beta},
 $$
 
-Pero \(\mathbf{b}\) proviene de una muestra.  
-_Otra muestra produciría, en general, otra estimación._
+por lo general \(\boldsymbol{\beta} \neq \mathbf{b}\). Esto es, _una estimación no es el parámetro y, si cambia la muestra, cambia la estimación_. 
 
-> ¿Qué podemos sostener acerca de \(\boldsymbol{\beta}\) a partir de la \(\mathbf{b}\) que observamos?
-
-Responder esta pregunta es el objetivo de la **inferencia estadística**.
+> ¿Qué podemos decir realmente sobre \(\boldsymbol{\beta}\) a partir de su estimador \(\mathbf{b}\)?
 
 
 ### Distribución de los estimadores de MCO (1/2)
 
-En RLM introdujimos un último supuesto para realizar inferencia exacta en muestras finitas:
+
+Recordemos que, _bajo el supuesto de normalidad_ de los errores:
 
 $$
-\mathbf{u}
-\sim
-\mathcal{N}
-\left(
-\mathbf{0},
-\sigma^2\mathbf{I}_n
-\right).
+\mathbf{u} \sim \mathcal{N}\left(\mathbf{0}, \left(\mathbf{x}^{\top}\mathbf{x}\right)^{-1}\right)
 $$
 
-Como \(\mathbf{b}\) es una transformación lineal de \(\mathbf{u}\), se sigue que:
+Como \(\mathbf{b}\) es una transformación lineal de \(\mathbf{u}\), es fácil deducir que:
 
 $$
 \mathbf{b}
@@ -80,11 +69,22 @@ $$
 \left(\mathbf{x}^{\top}\mathbf{x}\right)^{-1}
 \right).
 $$
+O bien:
 
+$$
+\mathbf{b}-\boldsymbol{\beta}
+\sim
+\mathcal{N}
+\left(
+\mathbf{0},
+\sigma^2
+\left(\mathbf{x}^{\top}\mathbf{x}\right)^{-1}
+\right).
+$$
 
 ### Distribución de los estimadores de MCO (2/2)
 
-Para cualquier coeficiente \(j=1,\ldots,k\):
+Si nos enfocamos en cualquier coeficiente \(j=1,\ldots,k\) tenemos que:
 
 $$
 b_j
@@ -119,37 +119,26 @@ La distribución de \(b_j\) nos indica tanto su centro como la incertidumbre aso
 
 ## Inferencia sobre un parámetro
 
-
 ### Una afirmación sobre un parámetro
 
 Supongamos que queremos evaluar una afirmación acerca de \(\beta_j\):
 
 $$
-H_0:\beta_j=\beta_j^0.
+H_0:\beta_j=\beta_j^0,
 $$
+donde $\beta_j^0$ es cualquier valor. Esta es nuestra **hipótesis nula**. 
 
-Esta es nuestra **hipótesis nula**.
-
-Por ejemplo, podemos considerar como alternativa:
+Al mismo tiempo, consideramos una **hipótesis alternativa**. Por ejemplo:
 
 $$
 H_1:\beta_j\neq\beta_j^0.
 $$
 
-La pregunta es:
-
 > ¿Qué tan compatible es la estimación \(b_j\) con el valor propuesto por \(H_0\)?
-
 
 ### Un caso sencillo: \(\sigma^2\) conocida
 
-Bajo:
-
-$$
-H_0:\beta_j=\beta_j^0,
-$$
-
-tenemos:
+Si \(H_0\) es verdadera: \(H_0:\beta_j=\beta_j^0\). En este caso tenemos:
 
 $$
 b_j-\beta_j^0
@@ -164,7 +153,7 @@ b_j-\beta_j^0
 \right).
 $$
 
-Si \(\sigma^2\) fuera conocida, podríamos estandarizar:
+Si \(\sigma^2\) fuera conocida podríamos _estandarizar_. Esto es:
 
 $$
 z_j=
@@ -186,48 +175,200 @@ El cociente \(z_j\) se conoce como **estadístico \(z\)**.
 
 ### ¿Qué tan lejos es demasiado lejos?
 
-Si \(H_0\) es verdadera:
+Si \(H_0\) es verdadera: \(z_j\sim\mathcal{N}(0,1)\). Entonces, _valores de \(z_j\) muy alejados de cero serían poco compatibles con \(H_0\)_.
+
+<div style="display:flex; align-items:flex-start; gap:24px;">
+
+<div style="flex:1;">
+
+Pero, ¿qué significa que  \(z_j\) esté muy alejado de cero? Para responder, elegimos un **nivel de significancia**, \(\alpha\). Este indica la probabilidad total de caer en las **regiones de rechazo**.
+
+Si el \(z_j\) observado cae en una de las regiones de rechazo, consideramos que la evidencia es suficientemente incompatible con \(H_0\).
+
+</div>
+
+<div style="flex:1;">
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
+
+# ============================================================
+#  Distribución N(0,1) con regiones de rechazo (prueba dos colas)
+# ============================================================
+
+library(ggplot2)
+
+# ── Parámetros ───────────────────────────────────────────────
+alpha  <- 0.05                      # nivel de significancia
+z_crit <- qnorm(1 - alpha / 2)      # valor crítico ≈ 1.96
+
+# ── Datos base ───────────────────────────────────────────────
+x      <- seq(-4, 4, length.out = 1000)
+y      <- dnorm(x)
+df     <- data.frame(x = x, y = y)
+
+# Segmentos para rellenar las colas
+cola_izq <- subset(df, x <= -z_crit)
+cola_der <- subset(df, x >=  z_crit)
+
+# ── Paleta de colores ────────────────────────────────────────
+col_curva   <- "#2C6E9C"   # azul acero
+col_relleno <- "#E8635A"   # rojo ladrillo suave
+col_lineas  <- "#555555"   # gris oscuro para líneas punteadas
+col_texto   <- "#222222"
+
+# ── Gráfica ──────────────────────────────────────────────────
+p <- ggplot(df, aes(x, y)) +
+
+  # Área de rechazo izquierda
+  geom_ribbon(
+    data = cola_izq,
+    aes(ymin = 0, ymax = y),
+    fill  = col_relleno,
+    alpha = 0.55
+  ) +
+
+  # Área de rechazo derecha
+  geom_ribbon(
+    data = cola_der,
+    aes(ymin = 0, ymax = y),
+    fill  = col_relleno,
+    alpha = 0.55
+  ) +
+
+  # Curva de densidad
+  geom_line(color = col_curva, linewidth = 0.9) +
+
+  # Línea vertical en 0
+  geom_segment(
+    aes(x = 0, xend = 0, y = 0, yend = dnorm(0)),
+    linetype = "dashed", color = col_lineas, linewidth = 0.45
+  ) +
+
+  # Líneas verticales en los valores críticos
+  geom_segment(
+    aes(x = -z_crit, xend = -z_crit, y = 0, yend = dnorm(z_crit)),
+    linetype = "dashed", color = col_lineas, linewidth = 0.45
+  ) +
+  geom_segment(
+    aes(x =  z_crit, xend =  z_crit, y = 0, yend = dnorm(z_crit)),
+    linetype = "dashed", color = col_lineas, linewidth = 0.45
+  ) +
+
+  # Etiquetas de área de rechazo (colas)
+  annotate(
+    "text", x = -z_crit - 0.85, y = 0.075,
+    label = "Área de\nrechazo",
+    size = 3.5, color = col_texto, hjust = 0.5
+  ) +
+  annotate(
+    "text", x =  z_crit + 0.85, y = 0.075,
+    label = "Área de\nrechazo",
+    size = 3.5, color = col_texto, hjust = 0.5
+  ) +
+
+  # Etiqueta α/2 en cola izquierda
+  annotate(
+    "text", x = -z_crit - 0.3, y = 0.014,
+    label = "alpha/2",
+    size = 3.4, color = col_texto, parse = TRUE
+  ) +
+
+  # Etiqueta α/2 en cola derecha
+  annotate(
+    "text", x =  z_crit + 0.3, y = 0.014,
+    label = "alpha/2",
+    size = 3.4, color = col_texto, parse = TRUE
+  ) +
+
+  # Etiqueta área de no rechazo
+  annotate(
+    "text", x = 0.6, y = 0.22,
+    label = "Área de no rechazo",
+    size = 3.5, color = col_texto, hjust = 0.5
+  ) +
+  annotate(
+    "text", x = 0.6, y = 0.18,
+    label = "1 - alpha",
+    size = 3.6, color = col_texto, parse = TRUE
+  ) +
+
+  # Etiquetas en el eje x: 0 y valores críticos
+  annotate(
+    "text", x = 0, y = -0.012,
+    label = "0", size = 3.5, color = col_texto
+  ) +
+  annotate(
+    "text", x = -z_crit, y = -0.012,
+    label = "-z[alpha/2]",
+    size = 3.5, color = col_texto, parse = TRUE
+  ) +
+  annotate(
+    "text", x =  z_crit, y = -0.012,
+    label = "z[alpha/2]",
+    size = 3.5, color = col_texto, parse = TRUE
+  ) +
+
+  # Eje horizontal explícito (línea en y = 0)
+  geom_hline(yintercept = 0, color = col_lineas, linewidth = 0.4) +
+
+  # Títulos y tema
+  labs(
+    title    = expression("Distribución de " * z[k] * " bajo " * H[0]),
+    subtitle = expression("Prueba de dos colas al nivel " * alpha),
+    x        = expression(z[k]),
+    y        = "Densidad"
+  ) +
+
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title       = element_text(face = "bold", size = 14, hjust = 0.5),
+    plot.subtitle    = element_text(size = 11, hjust = 0.5, color = "#444444"),
+    axis.title.x     = element_text(size = 12, margin = margin(t = 8)),
+    axis.title.y     = element_text(size = 12, margin = margin(r = 8)),
+    axis.text.x      = element_blank(),   # usamos anotaciones manuales
+    axis.ticks.x     = element_blank(),
+    axis.line.x      = element_blank(),
+    panel.grid       = element_blank(),
+    plot.margin      = margin(15, 20, 15, 15)
+  ) +
+
+  # Rango del eje y sin espacio inferior
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+  scale_x_continuous(limits = c(-4, 4))
+
+# ── Mostrar ──────────────────────────────────────────────────
+print(p)
+
+# ── Guardar (opcional) ───────────────────────────────────────
+# ggsave("slide7_dist_normal.png", plot = p,
+#         width = 7, height = 4.5, dpi = 300)
+
+
+```
+
+
+</div>
+</div>
+
+Nota que, como la hipótesis lternativa considera desviaciones en ambas direcciones, tenemos una **prueba de dos colas**. Esto es, tenemos dos regiones de rechazo, una a cada extremo de la distribución normal.
+
+
+### Pero \(\sigma^2\) es desconocida
+
+En la práctica _no conocemos \(\sigma^2\)_. Sin embargo, sabemos que un estimador insesgado de esta es:
 
 $$
-z_j\sim\mathcal{N}(0,1).
+s^2=\frac{RSS}{n-k}. 
 $$
 
-Por tanto, valores de \(z_j\) muy alejados de cero serían poco compatibles con \(H_0\).
-
-Elegimos un **nivel de significancia**, \(\alpha\), y reservamos una probabilidad total \(\alpha\) para las regiones de rechazo.
-
-<!--
-ADAPTAR AQUÍ LA GRÁFICA ACTUAL DE LA N(0,1):
-- cambiar k por j;
-- mantener las dos regiones de rechazo;
-- mantener alpha/2 en cada cola.
--->
-
-Si el \(z_j\) observado cae en una de estas regiones, consideramos que la evidencia es suficientemente incompatible con \(H_0\) para rechazarla.
-
-
-### El problema real: \(\sigma^2\) es desconocida
-
-En la práctica no conocemos \(\sigma^2\).
-
-En RLM aprendimos a estimarla mediante:
+Si utilizamos \(s^2\) en lugar de \(\sigma^2\) en nuestros cálculos, obtenemos el **estadístico \(t\)**:  
 
 $$
-s^2=\frac{RSS}{n-k},
-$$
-
-de modo que:
-
-$$
-\widehat{\mathbb{V}ar}(\mathbf b)
-=
-s^2
-(\mathbf{x}^{\top}\mathbf{x})^{-1}.
-$$
-
-Para \(b_j\), definimos su **error estándar**:
-
-$$
+t_j=
+\frac{b_j-\beta_j^0}
+{\operatorname{s.e.}(b_j)}; \quad
 \operatorname{s.e.}(b_j)
 =
 \sqrt{
@@ -238,124 +379,63 @@ s^2
 }.
 $$
 
-Entonces:
+> Pero, ¿qué distribución sigue \(t_j\)?
+
+### La distribución del estadístico \(t\) (1/3)
+
+<span class="emphasis-blue">Ejercicio </span>
+
+Demuestra que el estadístico $t$ sigue una distribución _t de Student_:
 
 $$
-t_j=
-\frac{b_j-\beta_j^0}
-{\operatorname{s.e.}(b_j)}.
+t_k \sim t_{n-k}
 $$
 
-> ¿Qué distribución sigue ahora \(t_j\)?
+donde $n-k$ son los **grados de libertad**.
 
 
-### Estimar \(\sigma^2\) también introduce incertidumbre
+### La distribución del estadístico \(t\) (2/3)
 
-Recordemos que:
-
-$$
-\mathbf e=\mathbf M_x\mathbf u,
-$$
-
-donde \(\mathbf M_x\) es simétrica e idempotente y:
+_Pista_: Para conocer la distribución del estadístico $t$, reescribe este como:
 
 $$
-\operatorname{rank}(\mathbf M_x)=n-k.
+t_k = \frac{z_k}{\sqrt{q/(n-k)}}.
 $$
+Luego, utiliza los siguientes resultados:
 
-Bajo normalidad:
-
-$$
-\frac{\mathbf u}{\sigma}
-\sim
-\mathcal N(\mathbf 0,\mathbf I_n).
-$$
-
-Por tanto:
+<ol start="1">
+  <li>Si $x \sim N(0,1)$, $y \sim \chi^2(m)$, y si $x$ e $y$ son independientes:
 
 $$
-\frac{\mathbf e^\top\mathbf e}{\sigma^2}
-=
-\frac{\mathbf u^\top\mathbf M_x\mathbf u}{\sigma^2}
-\sim
-\chi^2_{n-k}.
+\frac{x}{\sqrt{y/m}} \sim t_{(m)}
 $$
-
-Como:
-
-$$
-s^2=\frac{\mathbf e^\top\mathbf e}{n-k},
-$$
-
-se sigue que:
-
-$$
-\frac{(n-k)s^2}{\sigma^2}
-\sim
-\chi^2_{n-k}.
-$$
+  </li>
+  
+ 
+</ol>
 
 
-### Dos fuentes de variación
+### La distribución del estadístico \(t\) (3/3)
 
-Bajo \(H_0\):
+<ol start="2">
+
+ <li> $\mathbf{x} \sim N(\mathbf{0}, \mathbf{I}_n)$ y $\mathbf{A}$ es una matriz idempotente, entonces:
 
 $$
-z_j=
-\frac{
-b_j-\beta_j^0
-}{
-\sqrt{
-\sigma^2
-[(\mathbf{x}^{\top}\mathbf{x})^{-1}]_{jj}
-}
-}
-\sim\mathcal N(0,1),
+\mathbf{x}'\mathbf{A}\mathbf{x} \sim \chi^2_{\text{Rango}(\mathbf{A})}
 $$
-
-y:
+</li>
+  <li> Si $\mathbf{A}$ es una matriz idempotente, entonces:
 
 $$
-q=
-\frac{(n-k)s^2}{\sigma^2}
-\sim\chi^2_{n-k}.
+\text{Rango}(\mathbf{A}) = \text{Traza}(\mathbf{A})
 $$
 
-Además, bajo normalidad, \(b_j\) y \(s^2\) son independientes.
+</li>
 
-Por tanto:
-
-$$
-t_j
-=
-\frac{z_j}{\sqrt{q/(n-k)}}
-\sim t_{n-k}.
-$$
-
-
-### ¿Por qué son independientes?
-
-<span class="emphasis-blue">Ejercicio</span>
-
-Muestra que:
-
-$$
-\mathbb{C}ov(\mathbf b,\mathbf e)
-=
-\sigma^2
-(\mathbf x^\top\mathbf x)^{-1}
-\mathbf x^\top\mathbf M_x
-=
-\mathbf0.
-$$
-
-Utiliza que:
-
-$$
-\mathbf x^\top\mathbf M_x=\mathbf0^\top.
-$$
-
-Bajo normalidad conjunta, este resultado implica la independencia necesaria para obtener la distribución \(t\).
+  <li> Si $\mathbf{x}$ e $\mathbf{y}$ son independientes, entonces $f(\mathbf{x})$ y $g(\mathbf{y})$ también lo son.
+</li>
+</ol>
 
 
 ### ¿Qué tan compatible es \(b_j\) con \(H_0\)?
@@ -377,8 +457,7 @@ t_j=
 \sim t_{n-k}.
 $$
 
-Para un nivel de significancia \(\alpha\), elegimos el valor crítico
-\(t_{\alpha/2,(n-k)}\) de forma que:
+Para un nivel de significancia \(\alpha\), elegimos el **valor crítico** \(t_{\alpha/2,(n-k)}\), de forma que:
 
 $$
 \mathbb{P}
@@ -397,31 +476,160 @@ $$
 
 ### La regla de decisión
 
-Rechazamos \(H_0\) si el valor observado de \(t_j\) cae en alguna de las regiones de rechazo:
+_Rechazamos_ \(H_0\) si el valor observado de \(t_j\) cae en alguna de las regiones de rechazo: $|t_j|>t_{\alpha/2,(n-k)}$. _No rechazamos_ en caso contrario. 
 
-$$
-|t_j|
->
-t_{\alpha/2,(n-k)}.
-$$
+<div style="display:flex; align-items:flex-start; gap:24px;">
 
-En caso contrario, _no rechazamos_ \(H_0\).
+<div style="flex:1;">
 
-Bajo \(H_0\):
-
-$$
-t_j\sim t_{n-k},
-$$
-
-por lo que la probabilidad de rechazar una hipótesis nula verdadera es \(\alpha\).
-
-<!--
-ADAPTAR AQUÍ LA GRÁFICA ACTUAL DE LA DISTRIBUCIÓN t:
-- cambiar k por j;
-- mantener alpha/2 en cada cola.
--->
+Nota que, dado que $t_k \sim t_{\alpha/2,(n-k)}$ si $H_0$ es verdadera, la probabilidad de rechazar $H_0$ cuando esta es verdadera es $\alpha$.
 
 > No rechazar \(H_0\) no significa demostrar que \(H_0\) es verdadera.
+
+</div>
+
+<div style="flex:1;">
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
+
+# ============================================================
+#  Distribución t con regiones de rechazo (prueba de dos colas)
+# ============================================================
+
+library(ggplot2)
+
+# ── Parámetros ───────────────────────────────────────────────
+alpha <- 0.05
+gl    <- 20                         # grados de libertad
+t_crit <- qt(1 - alpha / 2, df = gl)
+
+# ── Datos base ───────────────────────────────────────────────
+x  <- seq(-4, 4, length.out = 1000)
+y  <- dt(x, df = gl)
+df <- data.frame(x = x, y = y)
+
+cola_izq <- subset(df, x <= -t_crit)
+cola_der <- subset(df, x >=  t_crit)
+
+# ── Paleta de colores ────────────────────────────────────────
+col_curva   <- "#2C6E9C"
+col_relleno <- "#E8635A"
+col_lineas  <- "#555555"
+col_texto   <- "#222222"
+
+# ── Gráfica ──────────────────────────────────────────────────
+p <- ggplot(df, aes(x, y)) +
+
+  geom_ribbon(
+    data = cola_izq,
+    aes(ymin = 0, ymax = y),
+    fill = col_relleno,
+    alpha = 0.55
+  ) +
+
+  geom_ribbon(
+    data = cola_der,
+    aes(ymin = 0, ymax = y),
+    fill = col_relleno,
+    alpha = 0.55
+  ) +
+
+  geom_line(color = col_curva, linewidth = 0.9) +
+
+  geom_segment(
+    aes(x = 0, xend = 0, y = 0, yend = dt(0, df = gl)),
+    linetype = "dashed", color = col_lineas, linewidth = 0.45
+  ) +
+
+  geom_segment(
+    aes(x = -t_crit, xend = -t_crit, y = 0, yend = dt(t_crit, df = gl)),
+    linetype = "dashed", color = col_lineas, linewidth = 0.45
+  ) +
+  geom_segment(
+    aes(x = t_crit, xend = t_crit, y = 0, yend = dt(t_crit, df = gl)),
+    linetype = "dashed", color = col_lineas, linewidth = 0.45
+  ) +
+
+  annotate(
+    "text", x = -t_crit - 0.85, y = 0.075,
+    label = "Área de\nrechazo",
+    size = 3.5, color = col_texto, hjust = 0.5
+  ) +
+  annotate(
+    "text", x = t_crit + 0.85, y = 0.075,
+    label = "Área de\nrechazo",
+    size = 3.5, color = col_texto, hjust = 0.5
+  ) +
+
+  annotate(
+    "text", x = -t_crit - 0.3, y = 0.014,
+    label = "alpha/2",
+    size = 3.4, color = col_texto, parse = TRUE
+  ) +
+  annotate(
+    "text", x = t_crit + 0.3, y = 0.014,
+    label = "alpha/2",
+    size = 3.4, color = col_texto, parse = TRUE
+  ) +
+
+  annotate(
+    "text", x = 0.6, y = 0.22,
+    label = "Área de no rechazo",
+    size = 3.5, color = col_texto, hjust = 0.5
+  ) +
+  annotate(
+    "text", x = 0.6, y = 0.18,
+    label = "1 - alpha",
+    size = 3.6, color = col_texto, parse = TRUE
+  ) +
+
+  annotate(
+    "text", x = 0, y = -0.012,
+    label = "0", size = 3.5, color = col_texto
+  ) +
+  annotate(
+    "text", x = -t_crit, y = -0.012,
+    label = "-t[alpha/2]",
+    size = 3.5, color = col_texto, parse = TRUE
+  ) +
+  annotate(
+    "text", x = t_crit, y = -0.012,
+    label = "t[alpha/2]",
+    size = 3.5, color = col_texto, parse = TRUE
+  ) +
+
+  geom_hline(yintercept = 0, color = col_lineas, linewidth = 0.4) +
+
+  labs(
+    title    = expression("Distribución de " * t[k] * " bajo " * H[0]),
+    subtitle = expression("Prueba de dos colas al nivel " * alpha),
+    x        = expression(t[k]),
+    y        = "Densidad"
+  ) +
+
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title    = element_text(face = "bold", size = 14, hjust = 0.5),
+    plot.subtitle = element_text(size = 11, hjust = 0.5, color = "#444444"),
+    axis.title.x  = element_text(size = 12, margin = margin(t = 8)),
+    axis.title.y  = element_text(size = 12, margin = margin(r = 8)),
+    axis.text.x   = element_blank(),
+    axis.ticks.x  = element_blank(),
+    axis.line.x   = element_blank(),
+    panel.grid    = element_blank(),
+    plot.margin   = margin(15, 20, 15, 15)
+  ) +
+
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+  scale_x_continuous(limits = c(-4, 4))
+
+print(p)
+
+
+```
+
+</div>
+</div>
 
 
 ### ¿Qué significa elegir \(\alpha\)?
@@ -447,9 +655,9 @@ Para un tamaño de muestra dado, reducir \(\alpha\) disminuye el riesgo de error
 ## Intervalos de confianza
 
 
-### ¿Qué valores de \(\beta_j\) son compatibles con los datos?
+### De la región de no rechazo al intervalo de confianza
 
-Sabemos que:
+De nuestra discusión anterior, podemos deducir que la probabilidad de que el estadístico \(t\) no caiga en las regiones de rechazo es:
 
 $$
 \mathbb{P}
@@ -465,11 +673,9 @@ t_{\alpha/2,(n-k)}
 1-\alpha.
 $$
 
-Reordenando:
+Como \(\operatorname{s.e.}(b_j)>0\), podemos reordenar la desigualdad, de tal forma que:
 
 $$
-\mathbb{P}
-\left(
 b_j-
 t_{\alpha/2,(n-k)}\operatorname{s.e.}(b_j)
 <
@@ -477,24 +683,71 @@ t_{\alpha/2,(n-k)}\operatorname{s.e.}(b_j)
 <
 b_j+
 t_{\alpha/2,(n-k)}\operatorname{s.e.}(b_j)
-\right)
+
+$$
+### Intervalo de confianza
+
+El intervalo:
+
+$$
+IC_{1-\alpha}(\beta_j)= \left[
+b_j-
+t_{\alpha/2,(n-k)}
+\operatorname{s.e.}(b_j),
+\;
+b_j+
+t_{\alpha/2,(n-k)}
+\operatorname{s.e.}(b_j)
+\right]
+$$
+
+se denomina **intervalo de confianza al nivel \(1-\alpha\)** para \(\beta_j\).
+
+### ¿Qué significa un intervalo de confianza?
+
+Un intervalo de confianza al nivel \(1-\alpha\) se construye mediante un procedimiento que, en muestras repetidas, contiene al verdadero parámetro una proporción \(1-\alpha\) de las veces.
+
+Por ejemplo, para un nivel de confianza de 95%:
+
+$$
+1-\alpha=0.95.
+$$
+
+El parámetro \(\beta_j\) es fijo. Por tanto, una vez calculado el intervalo, no interpretamos 0.95 como la probabilidad de que \(\beta_j\) se encuentre dentro de ese intervalo particular.
+
+
+### ¿Qué significa un intervalo de confianza?
+
+El intervalo:
+
+$$
+IC_{1-\alpha}(\beta_j)
 =
-1-\alpha.
+[L_j,U_j]
 $$
 
-Esto da lugar al **intervalo de confianza**:
+se construye mediante un procedimiento que, en muestras repetidas, contiene al verdadero parámetro una proporción \(1-\alpha\) de las veces.
+
+> Un intervalo de confianza al 95% proviene de un procedimiento que cubriría al verdadero \(\beta_j\) en el 95% de las muestras.
+
+Una vez observada la muestra, \(\beta_j\) es fijo y el intervalo ya está calculado.
+
+Por ello, no interpretamos el 95% como la probabilidad de que \(\beta_j\) se encuentre dentro de este intervalo particular.
+
+### ¿Qué determina la precisión del intervalo?
+
+Recordemos:
 
 $$
+IC_{1-\alpha}(\beta_j)
+=
 b_j
 \pm
 t_{\alpha/2,(n-k)}
 \operatorname{s.e.}(b_j).
 $$
 
-
-### Precisión e intervalo de confianza
-
-El ancho del intervalo depende de:
+Su amplitud depende de:
 
 $$
 t_{\alpha/2,(n-k)}
@@ -502,13 +755,51 @@ t_{\alpha/2,(n-k)}
 \operatorname{s.e.}(b_j).
 $$
 
-Para un mismo nivel de confianza:
+Por tanto:
 
-> un menor error estándar produce un intervalo más estrecho.
+$$
+\operatorname{s.e.}(b_j)\downarrow
+\quad\Longrightarrow\quad
+\text{intervalo más estrecho}
+\quad\Longrightarrow\quad
+\text{mayor precisión}.
+$$
 
-Por tanto, una estimación más precisa permite acotar con mayor precisión los valores de
-\(\beta_j\) compatibles con la evidencia.
+En cambio:
 
+$$
+1-\alpha\uparrow
+\quad\Longrightarrow\quad
+\text{intervalo más amplio}.
+$$
+
+### Intervalos de confianza y pruebas de hipótesis
+
+Consideremos:
+
+$$
+H_0:\beta_j=\beta_j^0,
+\qquad
+H_1:\beta_j\neq\beta_j^0.
+$$
+
+Para una prueba bilateral al nivel \(\alpha\):
+
+$$
+\beta_j^0\in IC_{1-\alpha}(\beta_j)
+\quad\Longleftrightarrow\quad
+\text{no rechazamos }H_0,
+$$
+
+mientras que:
+
+$$
+\beta_j^0\notin IC_{1-\alpha}(\beta_j)
+\quad\Longleftrightarrow\quad
+\text{rechazamos }H_0.
+$$
+
+Prueba e intervalo son dos formas de utilizar la misma información sobre la incertidumbre de \(b_j\).
 
 ### Intervalos de confianza y pruebas de hipótesis
 
