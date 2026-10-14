@@ -2,7 +2,10 @@
 title: "Econometría"
 subtitle: "Inferencia"
 author: "Alejandro Mosiño - _Universidad de Guanajuato_"
-date: "v.2026.09.26"
+date: "v.2026.10.13"
+
+params:
+  material_completo: false
 
 knit: (function(inputFile, encoding) {
   rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs");
@@ -23,27 +26,67 @@ output:
   PDF
 </a>
 
+```{r andy-inferencia, include=FALSE}
+# Resultados del modelo lineal original de Andy; sin término cuadrático.
+# Los cálculos conservan toda la precisión. Solo redondeamos al mostrarlos.
+andy_inferencia <- read.csv("../data/andy.csv", fileEncoding = "UTF-8-BOM")
+stopifnot(all(c("sales", "price", "advert") %in% names(andy_inferencia)),
+          all(complete.cases(andy_inferencia[c("sales", "price", "advert")])))
+modelo_andy_inferencia <- lm(sales ~ price + advert, data = andy_inferencia)
+resultados_andy <- coef(summary(modelo_andy_inferencia))
+n_andy <- nobs(modelo_andy_inferencia)
+k_andy <- length(coef(modelo_andy_inferencia))
+gl_andy <- df.residual(modelo_andy_inferencia)
+alpha_andy <- c(0.10, 0.05, 0.01)
+criticos_andy <- qt(1 - alpha_andy / 2, df = gl_andy)
+
+# Resultados para el profesor: contraste del precio, IC y publicidad distinta de 1.
+t_andy_precio <- resultados_andy["price", "Estimate"] /
+  resultados_andy["price", "Std. Error"]
+p_andy_precio <- 2 * pt(abs(t_andy_precio), df = gl_andy, lower.tail = FALSE)
+ic_andy_precio <- confint(modelo_andy_inferencia, parm = "price", level = 0.95)
+t_andy_publicidad_1 <- (resultados_andy["advert", "Estimate"] - 1) /
+  resultados_andy["advert", "Std. Error"]
+p_andy_publicidad_1 <- 2 * pt(abs(t_andy_publicidad_1), df = gl_andy,
+                            lower.tail = FALSE)
+fmt_andy <- function(x, digits = 4) {
+  formatC(x, format = "f", digits = digits, decimal.mark = ".")
+}
+```
+
 
 ## De la estimación a la inferencia
 
+### Andy: precio y ventas
+
+En el capítulo anterior estimamos un modelo que estudia la relación que existe entre las ventas y el precio, manteniendo el gasto en publicidad constante:
+
+$$
+sales_i=\beta_1+\beta_2price_i+\beta_3advert_i+u_i.
+$$
+
+Pero:
+
+> ¿Basta con obtener una pendiente estimada distinta de cero para afirmar que esa relación existe a nivel poblacional?
+
+
 ### Una estimación no es el parámetro
 
-Recordemos que el vector de estimadores de MCO se encuentra como:
+La dificultad es que nuestro estimador depende de la muestra observada:
 
 $$
 \mathbf{b}
 =
 \left(\mathbf{x}^{\top}\mathbf{x}\right)^{-1}
-\mathbf{x}^{\top}\mathbf{y},
+\mathbf{x}^{\top}\mathbf{y}.
 $$
 
-Sin embargo, a pesar que:
+Aunque sabemos que:
 
 $$
 \mathbb{E}(\mathbf{b}) = \boldsymbol{\beta},
 $$
-
-por lo general \(\boldsymbol{\beta} \neq \mathbf{b}\). Esto es, _una estimación no es el parámetro y, si cambia la muestra, cambia la estimación_. 
+el valor obtenido en una muestra no necesariamente coincide con el verdadero parámetro. _Si cambia la muestra, generalmente cambia la estimación._
 
 > ¿Qué podemos decir realmente sobre \(\boldsymbol{\beta}\) a partir de su estimador \(\mathbf{b}\)?
 
@@ -54,10 +97,10 @@ por lo general \(\boldsymbol{\beta} \neq \mathbf{b}\). Esto es, _una estimación
 Recordemos que, _bajo el supuesto de normalidad_ de los errores:
 
 $$
-\mathbf{u} \sim \mathcal{N}\left(\mathbf{0}, \left(\mathbf{x}^{\top}\mathbf{x}\right)^{-1}\right)
+\mathbf{u} \sim \mathcal{N}\left(\mathbf{0}, \sigma^2\mathbf{I}_n\right)
 $$
 
-Como \(\mathbf{b}\) es una transformación lineal de \(\mathbf{u}\), es fácil deducir que:
+Nota que \(\mathbf{b}-\boldsymbol{\beta}=(\mathbf{x}^{\top}\mathbf{x})^{-1}\mathbf{x}^{\top}\mathbf{u}\) es una transformación lineal de \(\mathbf{u}\). Por tanto:
 
 $$
 \mathbf{b}
@@ -67,9 +110,9 @@ $$
 \boldsymbol{\beta},
 \sigma^2
 \left(\mathbf{x}^{\top}\mathbf{x}\right)^{-1}
-\right).
+\right);
 $$
-O bien:
+o bien:
 
 $$
 \mathbf{b}-\boldsymbol{\beta}
@@ -183,7 +226,7 @@ Si \(H_0\) es verdadera: \(z_j\sim\mathcal{N}(0,1)\). Entonces, _valores de \(z_
 
 Pero, ¿qué significa que  \(z_j\) esté muy alejado de cero? Para responder, elegimos un **nivel de significancia**, \(\alpha\). Este indica la probabilidad total de caer en las **regiones de rechazo**.
 
-Si el \(z_j\) observado cae en una de las regiones de rechazo, consideramos que la evidencia es suficientemente incompatible con \(H_0\).
+Si el \(z_j\) observado cae en una de las regiones de rechazo, consideramos que _la evidencia es suficientemente incompatible con \(H_0\)_.
 
 </div>
 
@@ -192,11 +235,9 @@ Si el \(z_j\) observado cae en una de las regiones de rechazo, consideramos que 
 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
-
 # ============================================================
 #  Distribución N(0,1) con regiones de rechazo (prueba dos colas)
 # ============================================================
-
 library(ggplot2)
 
 # ── Parámetros ───────────────────────────────────────────────
@@ -204,156 +245,77 @@ alpha  <- 0.05                      # nivel de significancia
 z_crit <- qnorm(1 - alpha / 2)      # valor crítico ≈ 1.96
 
 # ── Datos base ───────────────────────────────────────────────
-x      <- seq(-4, 4, length.out = 1000)
-y      <- dnorm(x)
-df     <- data.frame(x = x, y = y)
-
-# Segmentos para rellenar las colas
+x  <- seq(-4, 4, length.out = 1000)
+df <- data.frame(x = x, y = dnorm(x))
 cola_izq <- subset(df, x <= -z_crit)
 cola_der <- subset(df, x >=  z_crit)
 
-# ── Paleta de colores ────────────────────────────────────────
-col_curva   <- "#2C6E9C"   # azul acero
-col_relleno <- "#E8635A"   # rojo ladrillo suave
-col_lineas  <- "#555555"   # gris oscuro para líneas punteadas
+# ── Paleta ───────────────────────────────────────────────────
+col_curva   <- "#2C6E9C"
+col_relleno <- "#E8635A"
+col_lineas  <- "#555555"
 col_texto   <- "#222222"
 
 # ── Gráfica ──────────────────────────────────────────────────
+# Las etiquetas del eje x son ahora marcas NATIVAS del eje (scale_x_continuous),
+# no anotaciones por debajo del panel; así ya no se recortan.
 p <- ggplot(df, aes(x, y)) +
-
-  # Área de rechazo izquierda
-  geom_ribbon(
-    data = cola_izq,
-    aes(ymin = 0, ymax = y),
-    fill  = col_relleno,
-    alpha = 0.55
-  ) +
-
-  # Área de rechazo derecha
-  geom_ribbon(
-    data = cola_der,
-    aes(ymin = 0, ymax = y),
-    fill  = col_relleno,
-    alpha = 0.55
-  ) +
-
-  # Curva de densidad
+  geom_ribbon(data = cola_izq, aes(ymin = 0, ymax = y), fill = col_relleno, alpha = 0.55) +
+  geom_ribbon(data = cola_der, aes(ymin = 0, ymax = y), fill = col_relleno, alpha = 0.55) +
   geom_line(color = col_curva, linewidth = 0.9) +
 
-  # Línea vertical en 0
-  geom_segment(
-    aes(x = 0, xend = 0, y = 0, yend = dnorm(0)),
-    linetype = "dashed", color = col_lineas, linewidth = 0.45
-  ) +
+  # Valores críticos (se omite la línea en 0: pasaba por encima del texto central)
+  annotate("segment", x = -z_crit, xend = -z_crit, y = 0, yend = dnorm(z_crit),
+           linetype = "dashed", color = col_lineas, linewidth = 0.45) +
+  annotate("segment", x =  z_crit, xend =  z_crit, y = 0, yend = dnorm(z_crit),
+           linetype = "dashed", color = col_lineas, linewidth = 0.45) +
 
-  # Líneas verticales en los valores críticos
-  geom_segment(
-    aes(x = -z_crit, xend = -z_crit, y = 0, yend = dnorm(z_crit)),
-    linetype = "dashed", color = col_lineas, linewidth = 0.45
-  ) +
-  geom_segment(
-    aes(x =  z_crit, xend =  z_crit, y = 0, yend = dnorm(z_crit)),
-    linetype = "dashed", color = col_lineas, linewidth = 0.45
-  ) +
+  # Etiquetas de las regiones
+  annotate("text", x = -z_crit - 0.85, y = 0.075, label = "Área de\nrechazo",
+           size = 3.5, color = col_texto, hjust = 0.5) +
+  annotate("text", x =  z_crit + 0.85, y = 0.075, label = "Área de\nrechazo",
+           size = 3.5, color = col_texto, hjust = 0.5) +
+  annotate("text", x = -z_crit - 0.3, y = 0.014, label = "alpha/2",
+           size = 3.4, color = col_texto, parse = TRUE) +
+  annotate("text", x =  z_crit + 0.3, y = 0.014, label = "alpha/2",
+           size = 3.4, color = col_texto, parse = TRUE) +
+  annotate("text", x = 0, y = 0.22, label = "Área de no rechazo",
+           size = 3.5, color = col_texto) +
+  annotate("text", x = 0, y = 0.18, label = "1 - alpha",
+           size = 3.6, color = col_texto, parse = TRUE) +
 
-  # Etiquetas de área de rechazo (colas)
-  annotate(
-    "text", x = -z_crit - 0.85, y = 0.075,
-    label = "Área de\nrechazo",
-    size = 3.5, color = col_texto, hjust = 0.5
+  scale_x_continuous(
+    limits = c(-4, 4),
+    breaks = c(-z_crit, 0, z_crit),
+    labels = expression(-z[alpha/2], 0, z[alpha/2])
   ) +
-  annotate(
-    "text", x =  z_crit + 0.85, y = 0.075,
-    label = "Área de\nrechazo",
-    size = 3.5, color = col_texto, hjust = 0.5
-  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
 
-  # Etiqueta α/2 en cola izquierda
-  annotate(
-    "text", x = -z_crit - 0.3, y = 0.014,
-    label = "alpha/2",
-    size = 3.4, color = col_texto, parse = TRUE
-  ) +
-
-  # Etiqueta α/2 en cola derecha
-  annotate(
-    "text", x =  z_crit + 0.3, y = 0.014,
-    label = "alpha/2",
-    size = 3.4, color = col_texto, parse = TRUE
-  ) +
-
-  # Etiqueta área de no rechazo
-  annotate(
-    "text", x = 0.6, y = 0.22,
-    label = "Área de no rechazo",
-    size = 3.5, color = col_texto, hjust = 0.5
-  ) +
-  annotate(
-    "text", x = 0.6, y = 0.18,
-    label = "1 - alpha",
-    size = 3.6, color = col_texto, parse = TRUE
-  ) +
-
-  # Etiquetas en el eje x: 0 y valores críticos
-  annotate(
-    "text", x = 0, y = -0.012,
-    label = "0", size = 3.5, color = col_texto
-  ) +
-  annotate(
-    "text", x = -z_crit, y = -0.012,
-    label = "-z[alpha/2]",
-    size = 3.5, color = col_texto, parse = TRUE
-  ) +
-  annotate(
-    "text", x =  z_crit, y = -0.012,
-    label = "z[alpha/2]",
-    size = 3.5, color = col_texto, parse = TRUE
-  ) +
-
-  # Eje horizontal explícito (línea en y = 0)
-  geom_hline(yintercept = 0, color = col_lineas, linewidth = 0.4) +
-
-  # Títulos y tema
   labs(
-    title    = expression("Distribución de " * z[k] * " bajo " * H[0]),
+    title    = expression("Distribución de " * z[j] * " bajo " * H[0]),
     subtitle = expression("Prueba de dos colas al nivel " * alpha),
-    x        = expression(z[k]),
+    x        = expression(z[j]),
     y        = "Densidad"
   ) +
-
   theme_classic(base_size = 13) +
   theme(
-    plot.title       = element_text(face = "bold", size = 14, hjust = 0.5),
-    plot.subtitle    = element_text(size = 11, hjust = 0.5, color = "#444444"),
-    axis.title.x     = element_text(size = 12, margin = margin(t = 8)),
-    axis.title.y     = element_text(size = 12, margin = margin(r = 8)),
-    axis.text.x      = element_blank(),   # usamos anotaciones manuales
-    axis.ticks.x     = element_blank(),
-    axis.line.x      = element_blank(),
-    panel.grid       = element_blank(),
-    plot.margin      = margin(15, 20, 15, 15)
-  ) +
+    plot.title    = element_text(face = "bold", size = 14, hjust = 0.5),
+    plot.subtitle = element_text(size = 11, hjust = 0.5, color = "#444444"),
+    axis.title.x  = element_text(size = 12, margin = margin(t = 6)),
+    axis.title.y  = element_text(size = 12, margin = margin(r = 8)),
+    axis.text.x   = element_text(size = 12, color = col_texto),
+    panel.grid    = element_blank(),
+    plot.margin   = margin(15, 20, 15, 15)
+  )
 
-  # Rango del eje y sin espacio inferior
-  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
-  scale_x_continuous(limits = c(-4, 4))
-
-# ── Mostrar ──────────────────────────────────────────────────
 print(p)
-
-# ── Guardar (opcional) ───────────────────────────────────────
-# ggsave("slide7_dist_normal.png", plot = p,
-#         width = 7, height = 4.5, dpi = 300)
-
-
 ```
 
 
 </div>
 </div>
 
-Nota que, como la hipótesis lternativa considera desviaciones en ambas direcciones, tenemos una **prueba de dos colas**. Esto es, tenemos dos regiones de rechazo, una a cada extremo de la distribución normal.
-
+_Como la hipótesis alternativa considera desviaciones en ambas direcciones_, tenemos una **prueba de dos colas**, con una región de rechazo en cada extremo de la distribución.
 
 ### Pero \(\sigma^2\) es desconocida
 
@@ -383,15 +345,15 @@ $$
 
 ### La distribución del estadístico \(t\) (1/3)
 
-<span class="emphasis-blue">Ejercicio </span>
+<span class="emphasis-blue">Ejercicio* </span>
 
-Demuestra que el estadístico $t$ sigue una distribución _t de Student_:
+Demuestra que, bajo \(H_0\), el estadístico \(t_j\) sigue una distribución _t de Student_:
 
 $$
-t_k \sim t_{n-k}
+t_j \sim t_{n-k}
 $$
 
-donde $n-k$ son los **grados de libertad**.
+donde \(n-k\) son los **grados de libertad**: \(n\) observaciones y \(k\) parámetros, incluida la constante.
 
 
 ### La distribución del estadístico \(t\) (2/3)
@@ -399,15 +361,18 @@ donde $n-k$ son los **grados de libertad**.
 _Pista_: Para conocer la distribución del estadístico $t$, reescribe este como:
 
 $$
-t_k = \frac{z_k}{\sqrt{q/(n-k)}}.
+t_j = \frac{z_j}{\sqrt{q/(n-k)}},
+\qquad q=\frac{RSS}{\sigma^2}.
 $$
-Luego, utiliza los siguientes resultados:
+Recuerda que \(\mathbf{e}=\mathbf{M}_x\mathbf{u}\), \(\mathbf{M}_x\) es simétrica e idempotente y \(\operatorname{tr}(\mathbf{M}_x)=n-k\). Bajo normalidad, \(\mathbf{b}\) y \(\mathbf{e}\) son independientes: son conjuntamente normales y \(\operatorname{Cov}(\mathbf{b},\mathbf{e})=\mathbf{0}\).
+
+Utiliza las reglas 1–4:
 
 <ol start="1">
-  <li>Si $x \sim N(0,1)$, $y \sim \chi^2(m)$, y si $x$ e $y$ son independientes:
+  <li>Si \(v\sim N(0,1)\), \(w\sim\chi^2(m)\), y \(v\) y \(w\) son independientes:
 
 $$
-\frac{x}{\sqrt{y/m}} \sim t_{(m)}
+\frac{v}{\sqrt{w/m}} \sim t_{(m)}
 $$
   </li>
   
@@ -419,24 +384,56 @@ $$
 
 <ol start="2">
 
- <li> $\mathbf{x} \sim N(\mathbf{0}, \mathbf{I}_n)$ y $\mathbf{A}$ es una matriz idempotente, entonces:
+ <li> Si \(\mathbf{v}\sim N(\mathbf{0},\mathbf{I}_n)\) y \(\mathbf{A}\) es simétrica e idempotente, entonces:
 
 $$
-\mathbf{x}'\mathbf{A}\mathbf{x} \sim \chi^2_{\text{Rango}(\mathbf{A})}
+\mathbf{v}^{\top}\mathbf{A}\mathbf{v} \sim \chi^2_{\operatorname{rank}(\mathbf{A})}
 $$
 </li>
   <li> Si $\mathbf{A}$ es una matriz idempotente, entonces:
 
 $$
-\text{Rango}(\mathbf{A}) = \text{Traza}(\mathbf{A})
+\operatorname{rank}(\mathbf{A}) = \operatorname{tr}(\mathbf{A})
 $$
 
 </li>
 
-  <li> Si $\mathbf{x}$ e $\mathbf{y}$ son independientes, entonces $f(\mathbf{x})$ y $g(\mathbf{y})$ también lo son.
+  <li> Si \(\mathbf{v}\) y \(\mathbf{w}\) son independientes, entonces \(f(\mathbf{v})\) y \(g(\mathbf{w})\) también lo son.
 </li>
 </ol>
 
+
+### Andy: calcular el estadístico \(t\)
+
+<span class="emphasis-blue">Ejercicio</span>
+
+La estimación del modelo de Andy Burger resulta en:
+
+<style>
+/* Espaciado local para incluir las unidades junto a los resultados. */
+#andy-calcular-el-estadístico-t p { margin-bottom: 18px !important; }
+</style>
+
+```{r andy-coeficientes, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+tabla_andy_coeficientes <- data.frame(
+  Término = c("Constante", "Precio", "Publicidad"),
+  Estimación = fmt_andy(resultados_andy[, "Estimate"]),
+  `Error estándar` = fmt_andy(resultados_andy[, "Std. Error"]),
+  check.names = FALSE
+)
+knitr::kable(tabla_andy_coeficientes, format = "html",
+             row.names = FALSE, align = c("l", "r", "r"),
+             table.attr = 'class="clean-table" style="font-size:1.2em !important;"')
+```
+
+
+Consideremos las hipótesis:
+
+$$
+H_0:\beta_2=0,\qquad H_1:\beta_2\neq0.
+$$
+
+Con \(n=`r n_andy`\), \(k=`r k_andy`\) y \(n-k=`r gl_andy`\), calcula el estadístico \(t_2\).
 
 ### ¿Qué tan compatible es \(b_j\) con \(H_0\)?
 
@@ -482,7 +479,7 @@ _Rechazamos_ \(H_0\) si el valor observado de \(t_j\) cae en alguna de las regio
 
 <div style="flex:1;">
 
-Nota que, dado que $t_k \sim t_{\alpha/2,(n-k)}$ si $H_0$ es verdadera, la probabilidad de rechazar $H_0$ cuando esta es verdadera es $\alpha$.
+Nota que, dado que \(t_j\sim t_{n-k}\) si \(H_0\) es verdadera, la probabilidad de rechazar \(H_0\) cuando esta es verdadera es \(\alpha\).
 
 > No rechazar \(H_0\) no significa demostrar que \(H_0\) es verdadera.
 
@@ -491,27 +488,23 @@ Nota que, dado que $t_k \sim t_{\alpha/2,(n-k)}$ si $H_0$ es verdadera, la proba
 <div style="flex:1;">
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
-
 # ============================================================
 #  Distribución t con regiones de rechazo (prueba de dos colas)
 # ============================================================
-
 library(ggplot2)
 
 # ── Parámetros ───────────────────────────────────────────────
-alpha <- 0.05
-gl    <- 20                         # grados de libertad
+alpha  <- 0.05
+gl     <- 20                         # n-k, ilustrativo
 t_crit <- qt(1 - alpha / 2, df = gl)
 
 # ── Datos base ───────────────────────────────────────────────
 x  <- seq(-4, 4, length.out = 1000)
-y  <- dt(x, df = gl)
-df <- data.frame(x = x, y = y)
-
+df <- data.frame(x = x, y = dt(x, df = gl))
 cola_izq <- subset(df, x <= -t_crit)
 cola_der <- subset(df, x >=  t_crit)
 
-# ── Paleta de colores ────────────────────────────────────────
+# ── Paleta ───────────────────────────────────────────────────
 col_curva   <- "#2C6E9C"
 col_relleno <- "#E8635A"
 col_lineas  <- "#555555"
@@ -519,118 +512,83 @@ col_texto   <- "#222222"
 
 # ── Gráfica ──────────────────────────────────────────────────
 p <- ggplot(df, aes(x, y)) +
-
-  geom_ribbon(
-    data = cola_izq,
-    aes(ymin = 0, ymax = y),
-    fill = col_relleno,
-    alpha = 0.55
-  ) +
-
-  geom_ribbon(
-    data = cola_der,
-    aes(ymin = 0, ymax = y),
-    fill = col_relleno,
-    alpha = 0.55
-  ) +
-
+  geom_ribbon(data = cola_izq, aes(ymin = 0, ymax = y), fill = col_relleno, alpha = 0.55) +
+  geom_ribbon(data = cola_der, aes(ymin = 0, ymax = y), fill = col_relleno, alpha = 0.55) +
   geom_line(color = col_curva, linewidth = 0.9) +
 
-  geom_segment(
-    aes(x = 0, xend = 0, y = 0, yend = dt(0, df = gl)),
-    linetype = "dashed", color = col_lineas, linewidth = 0.45
-  ) +
+  annotate("segment", x = -t_crit, xend = -t_crit, y = 0, yend = dt(t_crit, df = gl),
+           linetype = "dashed", color = col_lineas, linewidth = 0.45) +
+  annotate("segment", x =  t_crit, xend =  t_crit, y = 0, yend = dt(t_crit, df = gl),
+           linetype = "dashed", color = col_lineas, linewidth = 0.45) +
 
-  geom_segment(
-    aes(x = -t_crit, xend = -t_crit, y = 0, yend = dt(t_crit, df = gl)),
-    linetype = "dashed", color = col_lineas, linewidth = 0.45
-  ) +
-  geom_segment(
-    aes(x = t_crit, xend = t_crit, y = 0, yend = dt(t_crit, df = gl)),
-    linetype = "dashed", color = col_lineas, linewidth = 0.45
-  ) +
+  annotate("text", x = -t_crit - 0.85, y = 0.075, label = "Área de\nrechazo",
+           size = 3.5, color = col_texto, hjust = 0.5) +
+  annotate("text", x =  t_crit + 0.85, y = 0.075, label = "Área de\nrechazo",
+           size = 3.5, color = col_texto, hjust = 0.5) +
+  annotate("text", x = -t_crit - 0.3, y = 0.014, label = "alpha/2",
+           size = 3.4, color = col_texto, parse = TRUE) +
+  annotate("text", x =  t_crit + 0.3, y = 0.014, label = "alpha/2",
+           size = 3.4, color = col_texto, parse = TRUE) +
+  annotate("text", x = 0, y = 0.22, label = "Área de no rechazo",
+           size = 3.5, color = col_texto) +
+  annotate("text", x = 0, y = 0.18, label = "1 - alpha",
+           size = 3.6, color = col_texto, parse = TRUE) +
 
-  annotate(
-    "text", x = -t_crit - 0.85, y = 0.075,
-    label = "Área de\nrechazo",
-    size = 3.5, color = col_texto, hjust = 0.5
+  scale_x_continuous(
+    limits = c(-4, 4),
+    breaks = c(-t_crit, 0, t_crit),
+    labels = expression(-t[alpha/2*","*(n-k)], 0, t[alpha/2*","*(n-k)])
   ) +
-  annotate(
-    "text", x = t_crit + 0.85, y = 0.075,
-    label = "Área de\nrechazo",
-    size = 3.5, color = col_texto, hjust = 0.5
-  ) +
-
-  annotate(
-    "text", x = -t_crit - 0.3, y = 0.014,
-    label = "alpha/2",
-    size = 3.4, color = col_texto, parse = TRUE
-  ) +
-  annotate(
-    "text", x = t_crit + 0.3, y = 0.014,
-    label = "alpha/2",
-    size = 3.4, color = col_texto, parse = TRUE
-  ) +
-
-  annotate(
-    "text", x = 0.6, y = 0.22,
-    label = "Área de no rechazo",
-    size = 3.5, color = col_texto, hjust = 0.5
-  ) +
-  annotate(
-    "text", x = 0.6, y = 0.18,
-    label = "1 - alpha",
-    size = 3.6, color = col_texto, parse = TRUE
-  ) +
-
-  annotate(
-    "text", x = 0, y = -0.012,
-    label = "0", size = 3.5, color = col_texto
-  ) +
-  annotate(
-    "text", x = -t_crit, y = -0.012,
-    label = "-t[alpha/2]",
-    size = 3.5, color = col_texto, parse = TRUE
-  ) +
-  annotate(
-    "text", x = t_crit, y = -0.012,
-    label = "t[alpha/2]",
-    size = 3.5, color = col_texto, parse = TRUE
-  ) +
-
-  geom_hline(yintercept = 0, color = col_lineas, linewidth = 0.4) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
 
   labs(
-    title    = expression("Distribución de " * t[k] * " bajo " * H[0]),
-    subtitle = expression("Prueba de dos colas al nivel " * alpha),
-    x        = expression(t[k]),
+    title    = expression("Distribución de " * t[j] * " bajo " * H[0]),
+    subtitle = expression("Prueba de dos colas al nivel " * alpha * ";  " * (n-k) == 20),
+    x        = expression(t[j]),
     y        = "Densidad"
   ) +
-
   theme_classic(base_size = 13) +
   theme(
     plot.title    = element_text(face = "bold", size = 14, hjust = 0.5),
     plot.subtitle = element_text(size = 11, hjust = 0.5, color = "#444444"),
-    axis.title.x  = element_text(size = 12, margin = margin(t = 8)),
+    axis.title.x  = element_text(size = 12, margin = margin(t = 6)),
     axis.title.y  = element_text(size = 12, margin = margin(r = 8)),
-    axis.text.x   = element_blank(),
-    axis.ticks.x  = element_blank(),
-    axis.line.x   = element_blank(),
+    axis.text.x   = element_text(size = 12, color = col_texto),
     panel.grid    = element_blank(),
     plot.margin   = margin(15, 20, 15, 15)
-  ) +
-
-  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
-  scale_x_continuous(limits = c(-4, 4))
+  )
 
 print(p)
-
-
 ```
 
 </div>
 </div>
 
+
+### Andy: tomar una decisión
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Planteamos que:
+
+$$
+H_0:\beta_2=0, \qquad H_1:\beta_2\neq0
+$$
+
+Los valores críticos en la distribución \(t\) con \(n-k=`r gl_andy`\) grados de libertad son:
+
+```{r andy-valores-criticos, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+tabla_andy_criticos <- data.frame(
+  `Significancia` = paste0(fmt_andy(100 * alpha_andy, digits = 0), "%"),
+  `Valor crítico positivo` = fmt_andy(criticos_andy, digits = 3),
+  check.names = FALSE
+)
+knitr::kable(tabla_andy_criticos, format = "html",
+             row.names = FALSE, align = c("c", "r"),
+             table.attr = 'class="clean-table" style="font-size:1.2em !important;"')
+```
+
+¿Rechazamos \(H_0\) al 10%, al 5% y al 1%?
 
 ### ¿Qué significa elegir \(\alpha\)?
 
@@ -649,7 +607,7 @@ $$
 \alpha.
 $$
 
-Para un tamaño de muestra dado, reducir \(\alpha\) disminuye el riesgo de error tipo I, pero hace más difícil rechazar \(H_0\) cuando es falsa.
+Para un tamaño de muestra dado, reducir \(\alpha\) disminuye el riesgo de error tipo I, pero hace más difícil rechazar \(H_0\) cuando es falsa (error tipo II).
 
 
 ## Intervalos de confianza
@@ -683,11 +641,12 @@ t_{\alpha/2,(n-k)}\operatorname{s.e.}(b_j)
 <
 b_j+
 t_{\alpha/2,(n-k)}\operatorname{s.e.}(b_j)
-
 $$
+
 ### Intervalo de confianza
 
-El intervalo:
+
+El **intervalo de confianza al nivel \(1-\alpha\)** para \(\beta_j\) es:
 
 $$
 IC_{1-\alpha}(\beta_j)= \left[
@@ -701,81 +660,25 @@ t_{\alpha/2,(n-k)}
 \right]
 $$
 
-se denomina **intervalo de confianza al nivel \(1-\alpha\)** para \(\beta_j\).
+### ¿Qué nos dice un intervalo de confianza?
 
-### ¿Qué significa un intervalo de confianza?
+El intervalo de confianza al nivel \(1-\alpha\) contiene los valores de \(\beta_j\) que no serían rechazados en una prueba de dos colas al nivel \(\alpha\). Esto es:
 
-Un intervalo de confianza al nivel \(1-\alpha\) se construye mediante un procedimiento que, en muestras repetidas, contiene al verdadero parámetro una proporción \(1-\alpha\) de las veces.
+> Un intervalo de confianza _contiene los valores del parámetro compatibles con la evidencia disponible._
 
-Por ejemplo, para un nivel de confianza de 95%:
+<span class="emphasis-blue">Ejemplo: Andy</span>
 
-$$
-1-\alpha=0.95.
-$$
-
-El parámetro \(\beta_j\) es fijo. Por tanto, una vez calculado el intervalo, no interpretamos 0.95 como la probabilidad de que \(\beta_j\) se encuentre dentro de ese intervalo particular.
-
-
-### ¿Qué significa un intervalo de confianza?
-
-El intervalo:
+Para el coeficiente del precio obtenemos:
 
 $$
-IC_{1-\alpha}(\beta_j)
-=
-[L_j,U_j]
+IC_{95\%}(\beta_2)=[-10.093,-5.723].
 $$
 
-se construye mediante un procedimiento que, en muestras repetidas, contiene al verdadero parámetro una proporción \(1-\alpha\) de las veces.
-
-> Un intervalo de confianza al 95% proviene de un procedimiento que cubriría al verdadero \(\beta_j\) en el 95% de las muestras.
-
-Una vez observada la muestra, \(\beta_j\) es fijo y el intervalo ya está calculado.
-
-Por ello, no interpretamos el 95% como la probabilidad de que \(\beta_j\) se encuentre dentro de este intervalo particular.
-
-### ¿Qué determina la precisión del intervalo?
-
-Recordemos:
-
-$$
-IC_{1-\alpha}(\beta_j)
-=
-b_j
-\pm
-t_{\alpha/2,(n-k)}
-\operatorname{s.e.}(b_j).
-$$
-
-Su amplitud depende de:
-
-$$
-t_{\alpha/2,(n-k)}
-\qquad\text{y}\qquad
-\operatorname{s.e.}(b_j).
-$$
-
-Por tanto:
-
-$$
-\operatorname{s.e.}(b_j)\downarrow
-\quad\Longrightarrow\quad
-\text{intervalo más estrecho}
-\quad\Longrightarrow\quad
-\text{mayor precisión}.
-$$
-
-En cambio:
-
-$$
-1-\alpha\uparrow
-\quad\Longrightarrow\quad
-\text{intervalo más amplio}.
-$$
+¿Qué nos dice este intervalo sobre la relación entre precio y ventas?
 
 ### Intervalos de confianza y pruebas de hipótesis
 
-Consideremos:
+Consideremos la siguiente prueba de dos colas:
 
 $$
 H_0:\beta_j=\beta_j^0,
@@ -783,110 +686,256 @@ H_0:\beta_j=\beta_j^0,
 H_1:\beta_j\neq\beta_j^0.
 $$
 
-Para una prueba bilateral al nivel \(\alpha\):
+Nuestra discusión anterior implica que, para un nivel de significancia \(\alpha\), _no rechazamos \(H_0\)_ en tanto que:
 
 $$
 \beta_j^0\in IC_{1-\alpha}(\beta_j)
-\quad\Longleftrightarrow\quad
-\text{no rechazamos }H_0,
 $$
 
-mientras que:
+Naturalmente, _rechazamos \(H_0\)_ si \(\beta_j^0\notin IC_{1-\alpha}(\beta_j)\)
 
-$$
-\beta_j^0\notin IC_{1-\alpha}(\beta_j)
-\quad\Longleftrightarrow\quad
-\text{rechazamos }H_0.
-$$
+_Ejemplo._ Regresando a Andy, ¿qué concluimos sobre \(H_0:\beta_2=0\)?
 
-Prueba e intervalo son dos formas de utilizar la misma información sobre la incertidumbre de \(b_j\).
-
-### Intervalos de confianza y pruebas de hipótesis
-
-Para una prueba bilateral:
-
-$$
-H_0:\beta_j=\beta_j^0,
-$$
-
-al nivel de significancia \(\alpha\):
-
-$$
-\text{no rechazamos }H_0
-$$
-
-si y solo si:
-
-$$
-\beta_j^0
-$$
-
-pertenece al intervalo de confianza \(1-\alpha\).
-
+```{r corte-temporal, echo=FALSE, results='asis'}
+# Ocultación temporal: cambiar material_completo a true en el YAML y recompilar
+# para reactivar TODO el contenido posterior y retirar la diapositiva de aviso.
+if (!isTRUE(params$material_completo)) {
+  cat("\n\n### Material en preparación\n\n",
+      "Las siguientes secciones de este capítulo aún están en revisión ",
+      "y se incorporarán próximamente.\n\n", sep = "")
+  knitr::knit_exit(append = "")
+}
+```
 
 ## Pruebas de una sola cola
 
 
-### ¿Cuándo tiene sentido una prueba de una sola cola?
+### ¿Por qué una sola cola?
 
-Hasta ahora hemos considerado:
-
-$$
-H_0:\beta_j=\beta_j^0,
-\qquad
-H_1:\beta_j\neq\beta_j^0.
-$$
-
-Pero algunas preguntas económicas tienen una dirección específica.
-
-Por ejemplo:
+Supongamos:
 
 $$
-H_1:\beta_j>\beta_j^0
+H_0:\beta_j=\beta_j^0
 $$
 
-o:
+y una alternativa:
 
 $$
-H_1:\beta_j<\beta_j^0.
+H_1:\beta_j=\beta_j^1,
 $$
 
-En estos casos, la evidencia relevante se encuentra únicamente en una de las colas de la distribución.
-
-> La dirección de la alternativa debe establecerse antes de observar los resultados.
-
-
-### ¿Por qué cambia la región de rechazo?
-
-Supongamos que:
+donde:
 
 $$
-H_1:\beta_j>\beta_j^0.
+\beta_j^1>\beta_j^0.
 $$
 
-Valores suficientemente grandes de \(b_j\) son evidencia a favor de esta alternativa.
+¿Qué valores de \(b_j\) constituyen evidencia a favor de \(H_1\)?
 
-En cambio, valores muy pequeños de \(b_j\) pueden ser incompatibles con \(H_0\),
-pero no constituyen evidencia a favor de:
+### ¿Qué valores favorecen a \(H_1\)?
+
+Si \(\beta_j^1>\beta_j^0\):
+
+- valores suficientemente grandes de \(b_j\) son más compatibles con \(H_1\) que con \(H_0\);
+
+- valores muy pequeños de \(b_j\) pueden ser poco compatibles con \(H_0\), pero no constituyen evidencia a favor de \(H_1\).
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="50%", fig.height=4}
+# ============================================================
+#  Distribuciones de b_j bajo H0 y H1 (varianza conocida)
+#  Regiones de rechazo bilaterales, límites A y B y b_obs
+# ============================================================
+library(ggplot2)
+
+# ── Parámetros ───────────────────────────────────────────────
+alpha   <- 0.05
+mu0     <- 0               # beta_j^0 (escala ilustrativa)
+mu1     <- 2.8             # beta_j^1 > beta_j^0
+sd_b    <- 1               # desviación estándar conocida de b_j
+z_crit  <- qnorm(1 - alpha / 2)
+
+A     <- mu0 - z_crit * sd_b
+B     <- mu0 + z_crit * sd_b
+# Elegido entre el crítico de una cola (1.645) y el de dos colas (1.96):
+# la prueba de dos colas NO rechaza, pero la de cola derecha SÍ (ver siguiente figura).
+b_obs <- mu0 + 1.85 * sd_b
+
+# ── Grilla ───────────────────────────────────────────────────
+x  <- seq(mu0 - 4.5, mu1 + 4.5, length.out = 2000)
+df <- data.frame(x = x, y0 = dnorm(x, mu0, sd_b), y1 = dnorm(x, mu1, sd_b))
+rej_izq <- subset(df, x <= A)
+rej_der <- subset(df, x >= B)
+
+# ── Paleta ───────────────────────────────────────────────────
+col_h0 <- "#2C6E9C"; col_h1 <- "#C0392B"; col_relleno <- "#E8635A"
+col_lineas <- "#555555"; col_texto <- "#222222"
+
+# ── Gráfica ──────────────────────────────────────────────────
+p <- ggplot(df, aes(x = x)) +
+  geom_ribbon(data = rej_izq, aes(ymin = 0, ymax = y0), fill = col_relleno, alpha = 0.55) +
+  geom_ribbon(data = rej_der, aes(ymin = 0, ymax = y0), fill = col_relleno, alpha = 0.55) +
+  geom_line(aes(y = y0), color = col_h0, linewidth = 0.9) +
+  geom_line(aes(y = y1), color = col_h1, linewidth = 0.9) +
+
+  # Líneas punteadas
+  annotate("segment", x = mu0, xend = mu0, y = 0, yend = dnorm(mu0, mu0, sd_b),
+           linetype = "dashed", color = col_lineas, linewidth = 0.4) +
+  annotate("segment", x = mu1, xend = mu1, y = 0, yend = dnorm(mu1, mu1, sd_b),
+           linetype = "dashed", color = col_lineas, linewidth = 0.4) +
+  annotate("segment", x = A, xend = A, y = 0, yend = dnorm(A, mu0, sd_b),
+           linetype = "dashed", color = col_lineas, linewidth = 0.4) +
+  annotate("segment", x = B, xend = B, y = 0, yend = dnorm(B, mu0, sd_b),
+           linetype = "dashed", color = col_lineas, linewidth = 0.4) +
+  # b_obs: línea hasta una zona libre, donde se coloca su etiqueta
+  annotate("segment", x = b_obs, xend = b_obs, y = 0, yend = 0.29,
+           linetype = "dotted", color = col_lineas, linewidth = 0.5) +
+
+  # alpha/2 (fuera de las curvas, con flechita al área)
+  annotate("text", x = A - 0.55, y = 0.030, label = "alpha/2", parse = TRUE,
+           size = 3.4, color = col_texto) +
+  annotate("text", x = B + 0.30, y = 0.115, label = "alpha/2", parse = TRUE,
+           size = 3.4, color = col_texto) +
+  annotate("segment", x = B + 0.28, xend = B + 0.22, y = 0.098, yend = 0.014,
+           color = col_lineas, linewidth = 0.3,
+           arrow = arrow(length = unit(0.12, "cm"))) +
+
+  annotate("text", x = b_obs - 0.06, y = 0.315, label = "b[j]^obs", parse = TRUE,
+           hjust = 1, size = 3.8, color = col_texto) +
+
+  # Etiquetas de las curvas
+  annotate("text", x = mu0 - 1.5, y = dnorm(0) * 0.65, label = "H[0]", parse = TRUE,
+           size = 4.2, color = col_h0, fontface = "bold") +
+  annotate("text", x = mu1 + 1.5, y = dnorm(0) * 0.65, label = "H[1]", parse = TRUE,
+           size = 4.2, color = col_h1, fontface = "bold") +
+
+  # Eje x nativo (ya no se recorta)
+  scale_x_continuous(
+    breaks = c(A, mu0, B, mu1),
+    labels = expression("A", beta[j]^0, "B", beta[j]^1),
+    expand = c(0, 0)
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+  coord_cartesian(xlim = c(mu0 - 4.2, mu1 + 4.2)) +
+
+  labs(
+    title    = expression("Distribución de " * b[j] * " bajo " * H[0] * " y " * H[1]),
+    subtitle = expression("Dos colas, " * sigma^2 * " conocida"),
+    x        = expression(b[j]),
+    y        = "Densidad"
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title    = element_text(face = "bold", size = 13, hjust = 0.5),
+    plot.subtitle = element_text(size = 10, hjust = 0.5, color = "#555555"),
+    axis.title.x  = element_text(size = 12, margin = margin(t = 6)),
+    axis.title.y  = element_text(size = 12, margin = margin(r = 8)),
+    axis.text.x   = element_text(size = 11, color = col_texto),
+    panel.grid    = element_blank(),
+    plot.margin   = margin(15, 20, 15, 15)
+  )
+
+print(p)
+```
+
+### Prueba de cola derecha
+
+Si la evidencia a favor de \(H_1\) se encuentra únicamente a la derecha de la distribución, concentramos ahí toda el área de rechazo:
 
 $$
-H_1:\beta_j>\beta_j^0.
+\mathbb{P}
+\left(
+T_{n-k}>t_{\alpha,(n-k)}
+\right)
+=
+\alpha.
 $$
 
-Por ello concentramos todo el nivel de significancia \(\alpha\) en la cola derecha.
+Por tanto, rechazamos \(H_0\) si \(t_j>t_{\alpha,(n-k)}\).
 
-<!--
-CONSERVAR Y ADAPTAR UNA DE LAS FIGURAS ACTUALES DE PRUEBA UNILATERAL:
-- simplificar;
-- escala coherente;
-- beta_j^0 y alternativa a la derecha;
-- alpha en una sola cola.
--->
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="50%", fig.height=4}
+# ============================================================
+#  Distribución de t_j: central bajo H0 y no central bajo H1
+#  Región de rechazo de cola derecha, calibrada bajo H0
+# ============================================================
+library(ggplot2)
 
+# ── Parámetros ───────────────────────────────────────────────
+alpha  <- 0.05
+gl     <- 20                       # n-k
+delta  <- 2.8                      # (beta_j^1 - beta_j^0) / (sigma * sqrt(C_jj))
+t_crit <- qt(1 - alpha, df = gl)   # ≈ 1.725
+t_obs  <- 1.85                     # mismo valor que b_obs en la figura anterior:
+                                   # cae en la región de rechazo de UNA cola
+
+# ── Grilla ───────────────────────────────────────────────────
+x  <- seq(-4.5, delta + 4.5, length.out = 2000)
+df <- data.frame(x = x, y0 = dt(x, df = gl), y1 = dt(x, df = gl, ncp = delta))
+rej_der <- subset(df, x >= t_crit)
+
+# ── Paleta ───────────────────────────────────────────────────
+col_h0 <- "#2C6E9C"; col_h1 <- "#C0392B"; col_relleno <- "#E8635A"
+col_lineas <- "#555555"; col_texto <- "#222222"
+
+# ── Gráfica ──────────────────────────────────────────────────
+p <- ggplot(df, aes(x = x)) +
+  geom_ribbon(data = rej_der, aes(ymin = 0, ymax = y0), fill = col_relleno, alpha = 0.55) +
+  geom_line(aes(y = y0), color = col_h0, linewidth = 0.9) +
+  geom_line(aes(y = y1), color = col_h1, linewidth = 0.9) +
+
+  annotate("segment", x = 0, xend = 0, y = 0, yend = dt(0, df = gl),
+           linetype = "dashed", color = col_lineas, linewidth = 0.4) +
+  annotate("segment", x = t_crit, xend = t_crit, y = 0, yend = dt(t_crit, df = gl),
+           linetype = "dashed", color = col_lineas, linewidth = 0.4) +
+  # t_obs: línea hasta una zona libre, donde se coloca su etiqueta
+  annotate("segment", x = t_obs, xend = t_obs, y = 0, yend = 0.29,
+           linetype = "dotted", color = col_lineas, linewidth = 0.5) +
+
+  # alpha (fuera de las curvas, con flechita al área)
+  annotate("text", x = t_crit + 1.2, y = 0.115, label = "alpha", parse = TRUE,
+           size = 3.6, color = col_texto) +
+  annotate("segment", x = t_crit + 1.05, xend = t_crit + 0.75, y = 0.10, yend = 0.014,
+           color = col_lineas, linewidth = 0.3,
+           arrow = arrow(length = unit(0.12, "cm"))) +
+
+  annotate("text", x = t_obs - 0.06, y = 0.315, label = "t[j]^obs", parse = TRUE,
+           hjust = 1, size = 3.8, color = col_texto) +
+
+  annotate("text", x = -1.5, y = dt(0, df = gl) * 0.65, label = "H[0]", parse = TRUE,
+           size = 4.2, color = col_h0, fontface = "bold") +
+  annotate("text", x = delta + 1.5, y = max(df$y1) * 0.65, label = "H[1]", parse = TRUE,
+           size = 4.2, color = col_h1, fontface = "bold") +
+
+  scale_x_continuous(
+    breaks = c(0, t_crit),
+    labels = expression(0, t[alpha*","*(n-k)]),
+    expand = c(0, 0)
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+  coord_cartesian(xlim = c(-4.2, delta + 4.2)) +
+
+  labs(
+    title    = expression("Distribución de " * t[j] * " bajo " * H[0] * " y " * H[1]),
+    subtitle = expression("Prueba de cola derecha;  " * (n-k) == 20),
+    x        = expression(t[j]),
+    y        = "Densidad"
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title    = element_text(face = "bold", size = 13, hjust = 0.5),
+    plot.subtitle = element_text(size = 10, hjust = 0.5, color = "#555555"),
+    axis.title.x  = element_text(size = 12, margin = margin(t = 6)),
+    axis.title.y  = element_text(size = 12, margin = margin(r = 8)),
+    axis.text.x   = element_text(size = 11, color = col_texto),
+    panel.grid    = element_blank(),
+    plot.margin   = margin(15, 20, 15, 15)
+  )
+
+print(p)
+```
 
 ### Pruebas de una sola cola
 
-Para una prueba de cola derecha:
+En general, una prueba de cola derecha plantea:
 
 $$
 H_0:\beta_j\leq\beta_j^0,
@@ -894,47 +943,32 @@ H_0:\beta_j\leq\beta_j^0,
 H_1:\beta_j>\beta_j^0,
 $$
 
-evaluamos el estadístico en el valor frontera \(\beta_j^0\):
-
-$$
-t_j=
-\frac{b_j-\beta_j^0}
-{\operatorname{s.e.}(b_j)}.
-$$
-
-Rechazamos \(H_0\) si:
-
-$$
-t_j>t_{\alpha,(n-k)}.
-$$
-
-Para una prueba de cola izquierda:
+y una prueba de cola izquierda:
 
 $$
 H_0:\beta_j\geq\beta_j^0,
 \qquad
-H_1:\beta_j<\beta_j^0,
+H_1:\beta_j<\beta_j^0.
 $$
 
-rechazamos si:
+En ambos casos, calculamos \(t_j\) y el valor crítico en la frontera \(\beta_j^0\).
+
+Para la cola izquierda rechazamos \(H_0\) si:
 
 $$
 t_j<-t_{\alpha,(n-k)}.
 $$
-
 
 ## Valores \(p\)
 
 
 ### El valor \(p\)
 
-Hasta ahora hemos comparado el estadístico observado con un valor crítico.
+Hasta ahora hemos comparado el estadístico observado con un valor crítico. Sin embargo, podemos expresar la misma evidencia mediante el **valor \(p\)**:
 
-Podemos expresar la misma evidencia mediante el **valor \(p\)**:
+> El valor \(p\) es la probabilidad, bajo \(H_0\), de observar un estadístico tan extremo como el obtenido o más, en la dirección de \(H_1\).
 
-> El valor \(p\) mide qué tan extremo sería observar un estadístico como el obtenido, o uno aún más extremo, si \(H_0\) fuera verdadera.
-
-Para una prueba bilateral:
+Para una prueba de dos colas:
 
 $$
 p=
@@ -944,84 +978,59 @@ T_{n-k}\geq |t_j|
 \right).
 $$
 
-Para una prueba de cola derecha:
+Para una sola cola, evaluando \(H_0\) en la frontera:
 
 $$
-p=
-\mathbb{P}
-\left(
-T_{n-k}\geq t_j
-\right).
+p=\begin{cases}
+\mathbb{P}(T_{n-k}\geq t_j) & \text{cola derecha},\\
+\mathbb{P}(T_{n-k}\leq t_j) & \text{cola izquierda}.
+\end{cases}
 $$
-
-Para una prueba de cola izquierda:
-
-$$
-p=
-\mathbb{P}
-\left(
-T_{n-k}\leq t_j
-\right).
-$$
-
 
 ### Valor \(p\) y nivel de significancia
 
-La regla de decisión es:
+<style>
+/* Espaciado local para conservar legible el ejercicio al reactivar la sección. */
+#valor-p-y-nivel-de-significancia p { margin-bottom: 18px !important; }
+</style>
+
+_Rechazamos_ \(H_0\) si:
 
 $$
 p<\alpha
-\quad\Longrightarrow\quad
-\text{rechazamos }H_0.
 $$
 
-$$
-p\geq\alpha
-\quad\Longrightarrow\quad
-\text{no rechazamos }H_0.
-$$
+y no rechazamos en caso contrario.
 
-El valor \(p\) no es:
+El valor \(p\) _no es_ la probabilidad de que \(H_0\) sea verdadera,
+la magnitud del efecto ni una medida de importancia económica.
 
-- la probabilidad de que \(H_0\) sea verdadera;
-- la magnitud del efecto;
-- una medida de importancia económica.
+**Andy:** retoma \(H_0:\beta_2=0\) (dos colas).
+Calcula e interpreta \(p\). ¿Confirma las decisiones obtenidas con valores críticos y con el IC95%?
 
-Es una medida de compatibilidad entre los datos observados y \(H_0\).
+Sin software, interpreta
+\(p\approx `r fmt_andy(p_andy_precio / 10^floor(log10(p_andy_precio)), digits = 3)`\times10^{`r floor(log10(p_andy_precio))`}\).
 
 
 ### Valores \(p\)
 
 <span class="emphasis-blue">Ejercicio</span>
 
-Sea:
+Para la publicidad de Andy: \(n=`r n_andy`\), \(k=`r k_andy`\),
+\(b_3=`r fmt_andy(resultados_andy["advert", "Estimate"])`\) y
+\(\operatorname{s.e.}(b_3)=`r fmt_andy(resultados_andy["advert", "Std. Error"])`\).
 
 $$
-n=40,\qquad
-k=2,\qquad
-b_2=10.21,\qquad
-\beta_2^0=5.5,
-$$
-
-y:
-
-$$
-\operatorname{s.e.}(b_2)=2.09.
-$$
-
-Considera:
-
-$$
-H_0:\beta_2\leq5.5,
+H_0:\beta_3=1,
 \qquad
-H_1:\beta_2>5.5.
+H_1:\beta_3\neq1.
 $$
 
-1. Calcula el estadístico \(t\).
+Como ventas y publicidad están en miles de dólares, \(H_0\) plantea que un dólar adicional de publicidad se asocia con un dólar adicional de ingresos esperados, manteniendo constante el precio.
 
-2. Muestra que el valor \(p\) es aproximadamente \(0.0152\).
+1. Calcula el estadístico \(t_3\) y el valor \(p\) de dos colas.
 
-3. Interpreta el resultado.
+2. Decide al 5%: ¿puedes rechazar \(H_0\)? Si no la rechazas, ¿puedes afirmar que \(\beta_3=1\)?
 
 
 ## Pruebas de hipótesis conjuntas
