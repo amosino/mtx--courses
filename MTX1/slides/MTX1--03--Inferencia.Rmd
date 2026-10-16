@@ -5,7 +5,7 @@ author: "Alejandro Mosiño - _Universidad de Guanajuato_"
 date: "v.2026.10.13"
 
 params:
-  material_completo: false
+  material_completo: true
 
 knit: (function(inputFile, encoding) {
   rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs");
@@ -696,49 +696,36 @@ Naturalmente, _rechazamos \(H_0\)_ si \(\beta_j^0\notin IC_{1-\alpha}(\beta_j)\)
 
 _Ejemplo._ Regresando a Andy, ¿qué concluimos sobre \(H_0:\beta_2=0\)?
 
-```{r corte-temporal, echo=FALSE, results='asis'}
-# Ocultación temporal: cambiar material_completo a true en el YAML y recompilar
-# para reactivar TODO el contenido posterior y retirar la diapositiva de aviso.
-if (!isTRUE(params$material_completo)) {
-  cat("\n\n### Material en preparación\n\n",
-      "Las siguientes secciones de este capítulo aún están en revisión ",
-      "y se incorporarán próximamente.\n\n", sep = "")
-  knitr::knit_exit(append = "")
-}
-```
 
 ## Pruebas de una sola cola
 
-
 ### ¿Por qué una sola cola?
 
-Supongamos:
+Supongamos que:
 
 $$
-H_0:\beta_j=\beta_j^0
+H_0:\beta_j=\beta_j^0.
 $$
 
-y una alternativa:
+Pero ahora, la alternativa es:
 
 $$
-H_1:\beta_j=\beta_j^1,
-$$
-
-donde:
-
-$$
-\beta_j^1>\beta_j^0.
+\begin{align}
+H_1:\beta_j&=\beta_j^1,\\ 
+\beta_j^1&>\beta_j^0.
+\end{align}
 $$
 
 ¿Qué valores de \(b_j\) constituyen evidencia a favor de \(H_1\)?
 
 ### ¿Qué valores favorecen a \(H_1\)?
 
-Si \(\beta_j^1>\beta_j^0\):
+Cuando \(\beta_j^1>\beta_j^0\):
 
-- valores suficientemente grandes de \(b_j\) son más compatibles con \(H_1\) que con \(H_0\);
+- Si \(b_j\) está a la derecha de \(B\), es más compatible con \(H_1\) que con \(H_0\). En este caso, rechazar \(H_0\) tiene sentido.
 
-- valores muy pequeños de \(b_j\) pueden ser poco compatibles con \(H_0\), pero no constituyen evidencia a favor de \(H_1\).
+- Si \(b_j\) está a la izquierda de \(A\), una prueba de dos colas también rechazaría \(H_0\), ¡aunque la estimación es más compatible con \(H_0\) que con \(H_1\)!
+
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="50%", fig.height=4}
 # ============================================================
@@ -839,18 +826,14 @@ print(p)
 
 ### Prueba de cola derecha
 
-Si la evidencia a favor de \(H_1\) se encuentra únicamente a la derecha de la distribución, concentramos ahí toda el área de rechazo:
+Como los valores a la izquierda de \(A\) no favorecen a \(H_1\), eliminamos esa región de rechazo y concentramos todo el nivel de significancia \(\alpha\) en la cola derecha. Esto es:
 
 $$
-\mathbb{P}
-\left(
-T_{n-k}>t_{\alpha,(n-k)}
-\right)
-=
-\alpha.
+\mathbb{P}\left(T_{n-k}>t_{\alpha,(n-k)}\right)=\alpha.
 $$
 
-Por tanto, rechazamos \(H_0\) si \(t_j>t_{\alpha,(n-k)}\).
+Por tanto, rechazamos \(H_0\) si: \(t_j>t_{\alpha,(n-k)}\).
+
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="50%", fig.height=4}
 # ============================================================
@@ -935,7 +918,7 @@ print(p)
 
 ### Pruebas de una sola cola
 
-En general, una prueba de cola derecha plantea:
+En general, una _prueba de cola derecha_ plantea:
 
 $$
 H_0:\beta_j\leq\beta_j^0,
@@ -943,7 +926,7 @@ H_0:\beta_j\leq\beta_j^0,
 H_1:\beta_j>\beta_j^0,
 $$
 
-y una prueba de cola izquierda:
+y una _prueba de cola izquierda_:
 
 $$
 H_0:\beta_j\geq\beta_j^0,
@@ -951,12 +934,10 @@ H_0:\beta_j\geq\beta_j^0,
 H_1:\beta_j<\beta_j^0.
 $$
 
-En ambos casos, calculamos \(t_j\) y el valor crítico en la frontera \(\beta_j^0\).
-
-Para la cola izquierda rechazamos \(H_0\) si:
+En ambos casos, calculamos \(t_j\) y el valor crítico en la frontera \(\beta_j^0\). Rechazamos \(H_0\) si:
 
 $$
-t_j<-t_{\alpha,(n-k)}.
+|t_j|>t_{\alpha,(n-k)}.
 $$
 
 ## Valores \(p\)
@@ -964,11 +945,11 @@ $$
 
 ### El valor \(p\)
 
-Hasta ahora hemos comparado el estadístico observado con un valor crítico. Sin embargo, podemos expresar la misma evidencia mediante el **valor \(p\)**:
+Hasta ahora hemos utilizado valores críticos. Otra forma de evaluar la evidencia es mediante el **valor \(p\)**:
 
-> El valor \(p\) es la probabilidad, bajo \(H_0\), de observar un estadístico tan extremo como el obtenido o más, en la dirección de \(H_1\).
+> El valor \(p\), o **\(p\)-value**) es la probabilidad, bajo \(H_0\), de observar un estadístico tan extremo como el obtenido o más, en la dirección de \(H_1\).
 
-Para una prueba de dos colas:
+Para una prueba de dos colas, calculamos el valor \(p\) como:
 
 $$
 p=
@@ -981,40 +962,33 @@ $$
 Para una sola cola, evaluando \(H_0\) en la frontera:
 
 $$
-p=\begin{cases}
-\mathbb{P}(T_{n-k}\geq t_j) & \text{cola derecha},\\
-\mathbb{P}(T_{n-k}\leq t_j) & \text{cola izquierda}.
+p=\begin{cases} 
+\mathbb{P}(T_{n-k}\geq t_j); & \ \text {Cola derecha}\\
+\mathbb{P}(T_{n-k}\leq t_j); & \ \text{Cola izquierda}
 \end{cases}
 $$
 
+
 ### Valor \(p\) y nivel de significancia
 
-<style>
-/* Espaciado local para conservar legible el ejercicio al reactivar la sección. */
-#valor-p-y-nivel-de-significancia p { margin-bottom: 18px !important; }
-</style>
-
-_Rechazamos_ \(H_0\) si:
+Cuando usamos el valor \(p\), _rechazamos_ \(H_0\) si:
 
 $$
 p<\alpha
 $$
 
-y no rechazamos en caso contrario.
+y no rechazamos en caso contrario. ¿Por qué?
 
-El valor \(p\) _no es_ la probabilidad de que \(H_0\) sea verdadera,
-la magnitud del efecto ni una medida de importancia económica.
+_Nota._ El valor \(p\) _no es_ la probabilidad de que \(H_0\) sea verdadera, ni la magnitud del efecto, ni una medida de importancia económica.
 
-**Andy:** retoma \(H_0:\beta_2=0\) (dos colas).
-Calcula e interpreta \(p\). ¿Confirma las decisiones obtenidas con valores críticos y con el IC95%?
+<span class="emphasis-blue">Ejemplo*: Andy</span>
 
-Sin software, interpreta
-\(p\approx `r fmt_andy(p_andy_precio / 10^floor(log10(p_andy_precio)), digits = 3)`\times10^{`r floor(log10(p_andy_precio))`}\).
+Utiliza los datos en el ejemplo de Andy Burger. Para \(H_0:\beta_2=0; \quad H_1:\beta_2\neq0\), calcula e interpreta \(p\). ¿Confirma las decisiones obtenidas con valores críticos y con el IC95%?
 
 
 ### Valores \(p\)
 
-<span class="emphasis-blue">Ejercicio</span>
+<span class="emphasis-blue">Ejercicio*</span>
 
 Para la publicidad de Andy: \(n=`r n_andy`\), \(k=`r k_andy`\),
 \(b_3=`r fmt_andy(resultados_andy["advert", "Estimate"])`\) y
@@ -1028,7 +1002,7 @@ $$
 
 Como ventas y publicidad están en miles de dólares, \(H_0\) plantea que un dólar adicional de publicidad se asocia con un dólar adicional de ingresos esperados, manteniendo constante el precio.
 
-1. Calcula el estadístico \(t_3\) y el valor \(p\) de dos colas.
+1. Calcula el estadístico \(t_3\) y el valor \(p\) de la prueba.
 
 2. Decide al 5%: ¿puedes rechazar \(H_0\)? Si no la rechazas, ¿puedes afirmar que \(\beta_3=1\)?
 
@@ -1036,24 +1010,24 @@ Como ventas y publicidad están en miles de dólares, \(H_0\) plantea que un dó
 ## Pruebas de hipótesis conjuntas
 
 
+
 ### ¿Y si la hipótesis contiene varias restricciones?
 
-Hasta ahora hemos evaluado una restricción a la vez.
+Hasta ahora hemos evaluado una restricción a la vez. Sin embargo, muchas preguntas econométricas involucran _varias afirmaciones simultáneas_.
 
-Pero muchas preguntas econométricas involucran varias afirmaciones simultáneas.
-
-Por ejemplo:
+Por ejemplo, nos interesa probar:
 
 $$
-H_0:\beta_2=0,\qquad \beta_3=0.
+H_0:\beta_2=0,\qquad \beta_3=1.
 $$
 
-La pregunta ya no es si cada restricción parece razonable por separado, sino:
+La pregunta ya no es si cada restricción parece razonable por separado. Más bien, la pregunta es ahora:
 
 > ¿Son compatibles los datos con que todas las restricciones se cumplan simultáneamente?
 
 
 ### Restricciones lineales
+
 
 Podemos escribir una hipótesis conjunta como:
 
@@ -1073,8 +1047,7 @@ Cada renglón de \(\mathbf R\) representa una restricción.
 
 ### Restricciones lineales: ejemplo
 
-Consideremos:
-
+Por ejemplo, si tenemos el modelo:
 $$
 y_i
 =
@@ -1091,16 +1064,15 @@ y_i
 u_i.
 $$
 
-Deseamos probar:
+y deseamos probar:
 
 $$
 H_0:
 \beta_2=0,
 \qquad
-\beta_3=1.
+\beta_3=1,
 $$
-
-Entonces \(m=2\) y:
+tenemos \(m=2\) y:
 
 $$
 \boldsymbol{\beta}
@@ -1133,7 +1105,7 @@ $$
 
 <span class="emphasis-blue">Ejercicio</span>
 
-Considera:
+Considera el modelo:
 
 $$
 y_i
@@ -1151,50 +1123,27 @@ y_i
 u_i.
 $$
 
-Escribe \(\mathbf R\) y \(\mathbf r\) para:
+Escribe la forma de las matrices $\mathbf{R}$ y $\mathbf{r}$ para cada uno de los siguientes casos:
 
-1.
+1. $H_0 : \beta_2 + \beta_3 = 0, \quad \beta_4 = \beta_5$
 
-$$
-H_0:
-\beta_2+\beta_3=0,
-\qquad
-\beta_4=\beta_5.
-$$
+2. $H_0 : \beta_2 = \beta_3, \quad \beta_4 = 0, \quad \beta_2 + \beta_3 = \beta_4$
 
-2.
 
-$$
-H_0:
-\beta_2=\beta_3,
-\qquad
-\beta_4=0,
-\qquad
-\beta_2+\beta_3=\beta_4.
-$$
 
 
 ### ¿Qué tan lejos estamos de satisfacer \(H_0\)?
 
-Si \(H_0\) es verdadera:
+Bajo la hipótesis nula tenemos:
 
 $$
-\mathbf R\boldsymbol\beta-\mathbf r=\mathbf0.
+H_0:\mathbf R\boldsymbol\beta=\mathbf r.
 $$
 
-En la muestra observamos:
+Sin embargo, las estimaciones muestrales \(\mathbf R\mathbf b\) no necesariamente coinciden con \(\mathbf r\). Entonces, ¿es suficientemente grande la diferencia \(\mathbf R\mathbf b-\mathbf r\) para rechazar \(H_0\)?
 
-$$
-\mathbf R\mathbf b-\mathbf r.
-$$
+Para responder, debemos considerar la incertidumbre y las covarianzas entre los estimadores.
 
-Por tanto, una prueba conjunta debe evaluar qué tan grande es:
-
-$$
-\mathbf R\mathbf b-\mathbf r,
-$$
-
-teniendo en cuenta la incertidumbre y la covarianza entre los estimadores.
 
 
 ### Distribución de las restricciones estimadas
@@ -1212,7 +1161,7 @@ $$
 \right).
 $$
 
-Por tanto:
+Por lo tanto:
 
 $$
 \mathbf R\mathbf b-\mathbf r
@@ -1228,13 +1177,7 @@ $$
 \right).
 $$
 
-Bajo:
-
-$$
-H_0:\mathbf R\boldsymbol\beta=\mathbf r,
-$$
-
-se sigue que:
+Y, si \(H_0\) es verdadera:
 
 $$
 \mathbf R\mathbf b-\mathbf r
@@ -1250,38 +1193,12 @@ $$
 \right).
 $$
 
+### El estadístico \(F\)
 
-### Una distancia conjunta
-
-Si:
-
-$$
-\mathbf v
-\sim
-\mathcal N
-(\mathbf0,\boldsymbol\Sigma),
-$$
-
-entonces:
+Para evaluar conjuntamente \(m\) restricciones, utilizamos el **estadístico \(F\)**:
 
 $$
-\mathbf v^\top
-\boldsymbol\Sigma^{-1}
-\mathbf v
-\sim
-\chi^2_m.
-$$
-
-Aplicando este resultado a:
-
-$$
-\mathbf v=\mathbf R\mathbf b-\mathbf r,
-$$
-
-obtenemos, bajo \(H_0\):
-
-$$
-w=
+F=
 \frac{
 (\mathbf R\mathbf b-\mathbf r)^\top
 \left[
@@ -1289,104 +1206,107 @@ w=
 \right]^{-1}
 (\mathbf R\mathbf b-\mathbf r)
 }{
-\sigma^2
-}
-\sim\chi^2_m.
-$$
-
-
-### El estadístico \(F\)
-
-Ya sabemos que:
-
-$$
-w\sim\chi^2_m,
-$$
-
-y:
-
-$$
-q=
-\frac{(n-k)s^2}{\sigma^2}
-\sim\chi^2_{n-k}.
-$$
-
-Bajo normalidad, \(w\) y \(q\) son independientes.
-
-Por tanto:
-
-$$
-F=
-\frac{
-w/m
-}{
-q/(n-k)
-}
-\sim
-F_{m,n-k}.
-$$
-
-
-### El estadístico \(F\)
-
-Sustituyendo \(w\) y \(q\):
-
-$$
-F=
-\frac{
-(\mathbf R\mathbf b-\mathbf r)^\top
-\left[
-\mathbf R(\mathbf x^\top\mathbf x)^{-1}\mathbf R^\top
-\right]^{-1}
-(\mathbf R\mathbf b-\mathbf r)/m
-}{
-s^2
+m\,s^2
 }.
 $$
 
-Bajo:
+Valores grandes de \(F\) indican una mayor discrepancia respecto a las restricciones planteadas en \(H_0\).
+
+> Pero ¿qué distribución sigue \(F\)?
+
+### La distribución del estadístico \(F\) (1/3)
+
+<span class="emphasis-blue">Ejercicio*</span>
+
+Demuestra que, bajo:
 
 $$
 H_0:\mathbf R\boldsymbol\beta=\mathbf r,
 $$
 
-tenemos:
+el estadístico \(F\) sigue una distribución \(F\) de Fisher:
 
 $$
 F\sim F_{m,n-k}.
 $$
 
+Donde \(m\) es el número de restricciones linealmente independientes y \(n-k\) son los grados de libertad residuales.
 
-### El estadístico \(F\)
+### La distribución del estadístico \(F\) (2/3)
 
-<span class="emphasis-blue">Ejercicio</span>
+_Pista._ Define:
 
-Demuestra que:
+$$
+\mathbf v=\mathbf R\mathbf b-\mathbf r, \qquad
+\boldsymbol\Sigma
+=\sigma^2\mathbf R(\mathbf x^\top\mathbf x)^{-1}\mathbf R^\top.
+$$
+
+Ahora escribe:
+
+$$
+w=\mathbf v^\top\boldsymbol\Sigma^{-1}\mathbf v,
+\qquad
+q=\frac{RSS}{\sigma^2}.
+$$
+
+Observa que:
+
+$$
+F=\frac{w/m}{q/(n-k)}.
+$$
+
+### La distribución del estadístico \(F\) (3/3)
+
+Recuerda que, bajo \(H_0\), \(\mathbf v\sim N(\mathbf0,\boldsymbol\Sigma)\), y que \(\mathbf b\) y \(\mathbf e\) son independientes.
+
+Utiliza las siguientes reglas:
+
+<ol start="5">
+
+<li> Si \(\mathbf v\sim N(\mathbf0,\boldsymbol\Sigma)\), con \(\boldsymbol\Sigma\) definida positiva, entonces:
+
+$$
+\mathbf v^\top\boldsymbol\Sigma^{-1}\mathbf v
+\sim\chi^2_m.
+$$
+
+</li>
+
+<li> Si \(w\sim\chi^2_m\) y \(q\sim\chi^2_{n-k}\) son independientes, entonces:
+
+$$
+\frac{w/m}{q/(n-k)}\sim F_{m,n-k}.
+$$
+
+</li>
+
+</ol>
+
+
+### Regla de decisión
+
+Bajo \(H_0\) tenemos que:
 
 $$
 F\sim F_{m,n-k}.
 $$
 
-_Pista._
-
-Escribe:
+Como \(F\geq0\), la región de rechazo se encuentra en la cola derecha. Por lo tanto, _rechazamos_ \(H_0\) si:
 
 $$
-F=
-\frac{w/m}{q/(n-k)}
+F>
+F_{\alpha,(m,n-k)}.
 $$
 
-y utiliza las distribuciones de \(w\) y \(q\).
+En caso contrario, _no rechazamos_ \(H_0\).
 
 
 ## Modelo restringido y modelo no restringido
 
-
 ### ¿Qué significa imponer \(H_0\)?
 
-El **modelo no restringido** permite que los coeficientes se estimen libremente.
-
-El **modelo restringido** obliga a que se cumpla:
+El estadístico \(F\) también puede calcularse a partir de las sumas de cuadrados residuales del **modelo no restringido** y del **modelo restringido**. El modelo no restringido permite que _los coeficientes se estimen libremente_. En cambio, el modelo restringido _obliga a que se cumpla \(H_0\)_:
 
 $$
 \mathbf R\boldsymbol\beta=\mathbf r.
@@ -1397,8 +1317,6 @@ Como el modelo restringido tiene menos libertad:
 $$
 RSS_R\geq RSS_U.
 $$
-
-La pregunta es:
 
 > ¿Cuánto empeora el ajuste cuando obligamos al modelo a satisfacer \(H_0\)?
 
@@ -1416,70 +1334,79 @@ RSS_U/(n-k)
 }.
 $$
 
-El numerador mide cuánto aumenta el \(RSS\) al imponer las \(m\) restricciones.
-
-El denominador mide la variabilidad residual del modelo no restringido.
+El numerador mide cuánto aumenta el \(RSS\) al imponer las \(m\) restricciones. El denominador mide la variabilidad residual del modelo no restringido.
 
 > Un aumento grande del \(RSS\), relativo a la variabilidad residual, constituye evidencia contra \(H_0\).
 
+### Dos formas de calcular \(F\)
 
-### Regla de decisión
-
-Bajo \(H_0\):
-
-$$
-F\sim F_{m,n-k}.
-$$
-
-Como:
+Se puede demostrar que:
 
 $$
-F\geq0,
+RSS_R-RSS_U=
+(\mathbf R\mathbf b-\mathbf r)^\top
+\left[
+\mathbf R(\mathbf x^\top\mathbf x)^{-1}\mathbf R^\top
+\right]^{-1}
+(\mathbf R\mathbf b-\mathbf r).
 $$
 
-la región de rechazo se encuentra en la cola derecha.
+Por tanto, ambas expresiones del estadístico \(F\) son algebraicamente equivalentes.
 
-Rechazamos \(H_0\) si:
+> Como se trata de la misma prueba, utilizamos la misma distribución y regla de decisión.
+
+### Equivalencia de las dos expresiones de \(F\)
+
+<span class="emphasis-blue">Ejercicio*</span>
+
+Demuestra que:
 
 $$
-F>
-F_{\alpha,(m,n-k)}.
+RSS_R-RSS_U=
+(\mathbf R\mathbf b-\mathbf r)^\top
+\left[
+\mathbf R(\mathbf x^\top\mathbf x)^{-1}\mathbf R^\top
+\right]^{-1}
+(\mathbf R\mathbf b-\mathbf r).
 $$
 
-En caso contrario, _no rechazamos_ \(H_0\).
+_Pistas._
+
+- Obtén el estimador MCO restringido mediante multiplicadores de Lagrange.
+- Utiliza las ecuaciones normales: \(\mathbf x^\top\mathbf e_U=\mathbf0\).
+
+### El estadístico \(F\) y la \(R^2\)
+
+<span class="emphasis-blue">Ejercicio*</span>
+
+A partir de:
+
+$$
+F=\frac{(RSS_R-RSS_U)/m}{RSS_U/(n-k)},
+$$
+
+demuestra que:
+
+$$
+F=
+\frac{(R_U^2-R_R^2)/m}
+{(1-R_U^2)/(n-k)},
+$$
+donde \(R_U^2\) y \(R_R^2\) son los coeficientes de determinación de los modelos no restringido y restringido, respectivamente. 
 
 
 ### Prueba \(F\) de significancia global
 
-Consideremos el modelo con \(k\) parámetros:
+<span class="emphasis-blue">Ejercicio </span>
 
-$$
-y_i=
-\beta_1+
-\beta_2x_{2i}
-+\cdots+
-\beta_kx_{ki}
-+u_i.
-$$
-
-La hipótesis de significancia global es:
+Consideremos el modelo con \(k\) parámetros, \(\beta_1, \beta_2, \dots, \beta_k\). La hipótesis de **significancia global** es:
 
 $$
 H_0:
 \beta_2=\beta_3=\cdots=\beta_k=0.
 $$
 
-Por tanto, tenemos:
-
-$$
-m=k-1
-$$
-
-restricciones.
-
-<span class="emphasis-blue">Ejercicio</span>
-
-Muestra que:
+Muestra que, en este caso:
 
 $$
 F=
@@ -1489,7 +1416,7 @@ R^2/(k-1)
 (1-R^2)/(n-k)
 }.
 $$
-
+donde \(R^2\) es el coeficiente de determinación del modelo no restringido. 
 
 ### Valor \(p\) para la prueba \(F\)
 
@@ -1505,259 +1432,356 @@ F_{\text{obs}}
 \right).
 $$
 
-La regla es la misma que antes:
+La regla es la misma que en el caso del estadístico \(t\) En particular, _rechazamos \(H_0\)_ si:
 
 $$
 p<\alpha
-\quad\Longrightarrow\quad
-\text{rechazamos }H_0.
 $$
 
-El valor \(p\) expresa qué tan extremo resulta el \(F\) observado bajo las restricciones impuestas por \(H_0\).
+> El valor \(p\) expresa qué tan extremo resulta el \(F\) observado bajo las restricciones impuestas por \(H_0\).
 
 
 ## Relación entre las pruebas \(t\) y \(F\)
 
-
-### Una sola restricción lineal
-
-Consideremos:
-
-$$
-H_0:
-\boldsymbol{\lambda}^{\top}\boldsymbol{\beta}
-=
-\theta,
-$$
-
-donde:
-
-$$
-\boldsymbol{\lambda}
-=
-\begin{pmatrix}
-\lambda_1\\
-\lambda_2\\
-\vdots\\
-\lambda_k
-\end{pmatrix}.
-$$
-
-Esta hipótesis puede escribirse como:
-
-$$
-H_0:
-\mathbf R\boldsymbol{\beta}
-=
-\mathbf r,
-$$
-
-con:
-
-$$
-\mathbf R
-=
-\boldsymbol{\lambda}^{\top},
-\qquad
-\mathbf r=\theta.
-$$
-
-Por tanto:
-
-$$
-m=1.
-$$
-
-
-### Con una restricción, \(F=t^2\)
+### Una restricción sobre un coeficiente
 
 <span class="emphasis-blue">Ejercicio</span>
 
-Muestra que, para probar:
-
+Consideremos:
 $$
-H_0:
-\boldsymbol{\lambda}^{\top}\boldsymbol{\beta}
-=
-\theta,
+H_0:\beta_j=\beta_j^0.
 $$
 
-el estadístico \(t\) puede escribirse como:
+Esta hipótesis también puede evaluarse mediante una prueba \(F\), utilizando:
+$$
+\mathbf R=
+\begin{pmatrix}
+0&\cdots&1&\cdots&0
+\end{pmatrix},
+\qquad
+\mathbf r=\beta_j^0,
+$$
+donde el \(1\) ocupa la posición \(j\).
+
+Demuestra que, para esta hipótesis, \(F=t_j^2\).¿Cuál es la implicación.
+
+### Una restricción lineal cualquiera
+
+<span class="emphasis-blue">Ejercicio*</span>
+
+Consideremos ahora:
+
+$$
+H_0:\boldsymbol\lambda^\top\boldsymbol\beta=\theta.
+$$
+
+Podemos evaluarla mediante una prueba \(F\), con \(\mathbf R=\boldsymbol\lambda^\top\) y \(\mathbf r=\theta\), o bien con el estadístico:
 
 $$
 t=
 \frac{
-\boldsymbol{\lambda}^{\top}\mathbf b-\theta
+\boldsymbol\lambda^\top\mathbf b-\theta
 }{
 \sqrt{
-s^2
-\boldsymbol{\lambda}^{\top}
-(\mathbf x^{\top}\mathbf x)^{-1}
-\boldsymbol{\lambda}
+s^2\boldsymbol\lambda^\top
+(\mathbf x^\top\mathbf x)^{-1}
+\boldsymbol\lambda
 }
 }.
 $$
 
-Muestra además que el estadístico \(F\) para la misma restricción satisface:
-
-$$
-F=t^2.
-$$
-
-Por tanto:
-
-$$
-T_{n-k}^2
-\sim
-F_{1,n-k}.
-$$
-
-
-### ¿Qué implica \(F=t^2\)?
-
-Para una sola restricción lineal bilateral, las pruebas \(t\) y \(F\) conducen a la misma decisión.
-
-En particular:
-
-$$
-H_0:\beta_j=\beta_j^0
-$$
-
-es un caso especial de:
-
-$$
-H_0:
-\boldsymbol{\lambda}^{\top}\boldsymbol{\beta}
-=
-\theta.
-$$
-
-La prueba \(t\), además, conserva información sobre la dirección de la diferencia y se relaciona directamente con los intervalos de confianza.
-
+Demuestra que, nuevamente, \(F=t_j^2\).
 
 ### ¿Y si tenemos varias restricciones?
 
-Supongamos que queremos probar simultáneamente:
+Supongamos que queremos probar:
 
 $$
-H_0:
-\beta_1=1,
+H_0:\beta_2=0,\qquad\beta_3=1.
+$$
+
+Una posibilidad sería realizar dos pruebas \(t\) separadas:
+
+$$
+H_{01}:\beta_2=0,
 \qquad
-\beta_2=0.
+H_{02}:\beta_3=1.
 $$
 
-Una posibilidad sería realizar dos pruebas \(t\):
+Podríamos rechazar \(H_0\) si al menos una de las restricciones es rechazada individualmente.
+
+Pero, ¿equivale este procedimiento a realizar una prueba \(F\) conjunta?
+
+### Dos pruebas \(t\): una región rectangular
+
+Cada prueba individual genera un intervalo de confianza:
 
 $$
-H_{01}:\beta_1=1,
+\begin{aligned}
+|\beta_2-b_2|
+&\leq t_{\alpha/2,(n-k)}\operatorname{s.e.}(b_2),\\[4pt]
+|\beta_3-b_3|
+&\leq t_{\alpha/2,(n-k)}\operatorname{s.e.}(b_3).
+\end{aligned}
 $$
 
-y:
+Los valores de \((\beta_2,\beta_3)\) que satisfacen simultáneamente ambas condiciones forman una _región
+rectangular_ en un plano cartesiano.
+
+
+### La prueba \(F\): una región elíptica
+
+En cambio, la prueba \(F\) utiliza la matriz de varianzas y covarianzas de los estimadores.
+
+Para dos restricciones, la región de confianza conjunta satisface:
 
 $$
-H_{02}:\beta_2=0.
+(\mathbf b_{23}-\boldsymbol\beta_{23})^\top
+\widehat{\mathbf V}_{23}^{-1}
+(\mathbf b_{23}-\boldsymbol\beta_{23})
+\leq 2F_{\alpha,(2,n-k)},
 $$
 
-Pero:
-
-> ¿equivale evaluar ambas restricciones por separado a evaluar correctamente la hipótesis conjunta?
-
-
-### Dos pruebas \(t\) separadas
-
-Cada prueba individual genera un intervalo:
-
-$$
-b_1-
-t_{\alpha/2,(n-k)}
-\operatorname{s.e.}(b_1)
-<
-\beta_1
-<
-b_1+
-t_{\alpha/2,(n-k)}
-\operatorname{s.e.}(b_1),
-$$
-
-y:
-
-$$
-b_2-
-t_{\alpha/2,(n-k)}
-\operatorname{s.e.}(b_2)
-<
-\beta_2
-<
-b_2+
-t_{\alpha/2,(n-k)}
-\operatorname{s.e.}(b_2).
-$$
-
-Al considerar ambos intervalos simultáneamente obtenemos una región rectangular en el plano:
-
-$$
-(\beta_1,\beta_2).
-$$
-
-
-### La región conjunta
-
-La prueba \(F\) utiliza la matriz completa de varianzas y covarianzas:
-
-$$
-\widehat{\mathbb{V}ar}(\mathbf b).
-$$
-
-Para dos restricciones, la región conjunta tiene la forma:
-
-$$
-(\mathbf b-\boldsymbol{\beta})^{\top}
-\left[
-\widehat{\mathbb{V}ar}(\mathbf b)
-\right]^{-1}
-(\mathbf b-\boldsymbol{\beta})
-<
-2F_{\alpha,(2,n-k)}.
-$$
-
-Esta región es una elipse.
+donde \(\widehat{\mathbf V}_{23}\) es la matriz de varianzas y covarianzas estimada de \((b_2,b_3)^\top\). Esta región tiene _forma de elipse_.
 
 
 ### Pruebas individuales vs. prueba conjunta
 
-<!--
-CONSERVAR Y ADAPTAR LA FIGURA ACTUAL:
-REGIÓN RECTANGULAR DE PRUEBAS t VS. ELIPSE DE PRUEBA F.
--->
+Nota la diferencia:
 
-Las pruebas \(t\) individuales consideran cada coeficiente por separado.
+```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width="50%"}
 
-La prueba \(F\) considera simultáneamente:
+# ============================================================
+#  Diapositiva 46 — Estadístico t vs. F: Pruebas conjuntas
+#  Región rectangular (dos pruebas t) vs. elipse (prueba F)
+# ============================================================
 
-- las varianzas de los estimadores;
-- sus covarianzas;
-- el número de restricciones.
+library(ggplot2)
 
+# ── Parámetros ───────────────────────────────────────────────
+# Estimaciones (centro de ambas regiones)
+b1 <- 0
+b2 <- 0
+
+# Errores estándar (controlan el tamaño de la región)
+se1 <- 1.4    # s.e.(b1)
+se2 <- 1.0    # s.e.(b2)
+
+# Correlación entre b1 y b2 (inclinar la elipse)
+rho <- 0.55
+
+# Nivel de significancia
+alpha <- 0.05
+n_k   <- 100   # grados de libertad residuales (n - k)
+m     <- 2     # número de restricciones
+
+# Valores críticos
+t_crit <- qt(1 - alpha / 2, df = n_k)          # para el rectángulo
+F_crit <- qf(1 - alpha, df1 = m, df2 = n_k)    # para la elipse
+
+# ── Rectángulo de confianza (dos t individuales) ──────────────
+rect <- data.frame(
+  xmin = b1 - t_crit * se1,
+  xmax = b1 + t_crit * se1,
+  ymin = b2 - t_crit * se2,
+  ymax = b2 + t_crit * se2
+)
+
+# ── Elipse de confianza (prueba F conjunta) ───────────────────
+# La elipse de confianza se deriva de la forma cuadrática:
+#   (b - beta)' Var(b)^{-1} (b - beta) / m <= F_crit
+# Var(b) = s^2 * (X'X)^{-1}; aproximamos con la matriz de covarianza
+# estimada directamente desde se1, se2, rho.
+
+# Matriz de covarianza estimada de (b1, b2)
+Sigma <- matrix(c(se1^2,          rho * se1 * se2,
+                  rho * se1 * se2, se2^2),
+                nrow = 2)
+
+# Descomposición espectral para dibujar la elipse
+eig   <- eigen(Sigma)
+evals <- eig$values      # eigenvalores
+evecs <- eig$vectors     # eigenvectores (columnas)
+
+# Radio de la elipse: escalar por m * F_crit
+scale <- sqrt(m * F_crit)
+
+# Parametrizar la elipse (ángulo theta)
+theta <- seq(0, 2 * pi, length.out = 500)
+circ  <- rbind(cos(theta), sin(theta))   # circulo unitario
+
+# Transformar al espacio de la elipse
+ell_pts <- t(evecs %*% diag(sqrt(evals)) %*% circ * scale)
+ell_df  <- data.frame(
+  x = ell_pts[, 1] + b1,
+  y = ell_pts[, 2] + b2
+)
+
+# ── Colores ───────────────────────────────────────────────────
+col_rect  <- "#2980B9"   # azul — región rectangular (t)
+col_ell   <- "#C0392B"   # rojo — región elíptica (F)
+col_punto <- "#27AE60"   # verde — estimador (b1, b2)
+col_lin   <- "#AAAAAA"   # gris — líneas de referencia
+
+# ── Gráfica ──────────────────────────────────────────────────
+p <- ggplot() +
+
+  # ── Región rectangular (prueba t) ────────────────────────
+  geom_rect(
+    data = rect,
+    aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+    fill  = scales::alpha(col_rect, 0.10),
+    color = col_rect,
+    linewidth = 0.7,
+    linetype  = "solid"
+  ) +
+
+  # ── Elipse de confianza (prueba F) ────────────────────────
+  geom_polygon(
+    data = ell_df,
+    aes(x = x, y = y),
+    fill  = scales::alpha(col_ell, 0.08),
+    color = col_ell,
+    linewidth = 0.7
+  ) +
+
+  # ── Líneas de referencia desde el estimador ───────────────
+  # Vertical en b1
+  geom_segment(
+    aes(x = b1, xend = b1,
+        y = b2 - t_crit * se2, yend = b2 + t_crit * se2),
+    linetype = "dashed", color = col_lin, linewidth = 0.4
+  ) +
+  # Horizontal en b2
+  geom_segment(
+    aes(x = b1 - t_crit * se1, xend = b1 + t_crit * se1,
+        y = b2, yend = b2),
+    linetype = "dashed", color = col_lin, linewidth = 0.4
+  ) +
+
+  # ── Estimador (b1, b2) ────────────────────────────────────
+  geom_point(
+    aes(x = b1, y = b2),
+    color = col_punto, size = 3.5
+  ) +
+  annotate(
+  "text",
+  x = b1 + 0.12,
+  y = b2 + 0.12,
+  label = "group('(', b[1] * ',' ~ b[2], ')')",
+  parse = TRUE
+) +
+
+  # ── Etiqueta de la elipse ─────────────────────────────────
+  annotate(
+    "text",
+    x     = max(ell_df$x) + 0.25,
+    y     = b2 + se2 * 0.85,
+    label = "paste('Región de confianza ', 1-alpha)",
+    parse = TRUE,
+    size  = 3.3, color = col_ell, hjust = 0, lineheight = 1.1
+  ) +
+  # flecha hacia la elipse
+  annotate(
+    "segment",
+    x    = max(ell_df$x) + 0.2,
+    xend = max(ell_df$x) + 0.02,
+    y    = b2 + se2 * 0.6,
+    yend = b2 + se2 * 0.25,
+    arrow = arrow(length = grid::unit(0.18, "cm"), type = "closed"),
+    color = col_ell, linewidth = 0.5
+  ) +
+  # "al nivel (1-α)" con símbolo
+  annotate(
+  "text",
+  x     = max(ell_df$x) + 0.25,
+  y     = b2 + se2 * 0.55,
+  label = "paste('al nivel ', (1-alpha))",
+  parse = TRUE,
+  size  = 3.3,
+  color = col_ell,
+  hjust = 0
+) +
+
+  # ── Etiqueta del rectángulo ───────────────────────────────
+  annotate(
+    "text",
+    x = rect$xmin + (rect$xmax - rect$xmin) / 2,
+    y = rect$ymax + 0.12,
+    label = "Región rectangular\n(dos pruebas t)",
+    size = 3.3, color = col_rect, hjust = 0.5, lineheight = 1.1
+  ) +
+
+  # ── Etiquetas de los ejes ─────────────────────────────────
+  # Eje x: b2 en el estimador
+  annotate("text", x = b1, y = rect$ymin - 0.22,
+           label = "b[1]", parse = TRUE,
+           size = 3.4, color = "#444444") +
+  # Límites del rectángulo en x
+  annotate(
+  "text", x = rect$xmin, y = rect$ymin - 0.22,
+  label = "b[1] - t[alpha/2] * SE(b[1])",
+  parse = TRUE,
+  size = 2.7, color = col_rect, hjust = 0.5
+) +
+annotate(
+  "text", x = rect$xmax, y = rect$ymin - 0.22,
+  label = "b[1] + t[alpha/2] * SE(b[1])",
+  parse = TRUE,
+  size = 2.7, color = col_rect, hjust = 0.5
+) +
+
+  # Eje y: b2 en el estimador
+  annotate("text", x = rect$xmin - 0.22, y = b2,
+           label = "b[2]", parse = TRUE,
+           size = 3.4, color = "#444444", hjust = 1) +
+
+  # ── Títulos y ejes ────────────────────────────────────────
+  labs(
+    title = expression("Región de confianza: prueba " * t * " (rectángulo) vs prueba " * F * " (elipse)"),
+    x     = expression(beta[1]),
+    y     = expression(beta[2])
+  ) +
+
+  # ── Tema ──────────────────────────────────────────────────
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title   = element_text(face = "bold", size = 12, hjust = 0.5),
+    axis.title   = element_text(size = 13, face = "italic"),
+    axis.text    = element_blank(),
+    axis.ticks   = element_blank(),
+    panel.grid   = element_blank(),
+    plot.margin  = margin(15, 80, 15, 15)
+  ) +
+
+  coord_fixed(clip = "off") +
+  scale_x_continuous(expand = expansion(mult = 0.1)) +
+  scale_y_continuous(expand = expansion(mult = 0.15))
+
+print(p)
+
+# ── Guardar (opcional) ────────────────────────────────────────
+# ggsave("slide46_regiones_confianza.png", plot = p,
+#        width = 8, height = 6, dpi = 300)
+
+```
 
 ### ¿Por qué necesitamos una prueba conjunta?
 
 No podemos sustituir una prueba conjunta por varias pruebas \(t\) separadas porque:
 
-1. Si cada prueba individual utiliza un nivel de significancia \(\alpha\), la probabilidad de cometer al menos un error tipo I en el conjunto no es, en general, \(\alpha\).
+1. Si cada prueba individual utiliza un nivel de significancia \(\alpha\), la probabilidad de rechazar al menos una restricción verdadera no es, en general, \(\alpha\).
 
-2. Las pruebas individuales ignoran la covarianza entre los estimadores.
+2. Las pruebas individuales no consideran las covarianzas entre los estimadores al evaluar el conjunto de restricciones.
 
-La prueba \(F\) evalúa las restricciones simultáneamente utilizando la distribución conjunta de los estimadores.
-
+La prueba \(F\) evalúa simultáneamente todas las restricciones, considerando la distribución conjunta de los estimadores.
 
 ## Resumen
 
 
 ### ¿Qué hemos aprendido?
 
-> ¿Qué podemos sostener acerca de los parámetros del modelo a partir de una muestra?
-
-Aprendimos a:
+En este capítulo aprendimos a:
 
 - reconocer que una estimación puntual está sujeta a incertidumbre;
 - utilizar la distribución de los estimadores para cuantificar esa incertidumbre;
@@ -1773,8 +1797,18 @@ Aprendimos a:
 
 ### ¿Qué sigue?
 
-Hasta ahora hemos estudiado cómo cuantificar la incertidumbre de nuestros estimadores y cómo utilizarla para evaluar hipótesis sobre los parámetros del modelo.
-
-Pero la precisión de esos estimadores depende también de la información contenida en los regresores.
+Hasta ahora hemos estudiado cómo cuantificar la incertidumbre de nuestros estimadores y cómo utilizarla para evaluar hipótesis sobre los parámetros del modelo. Sin embargo, la precisión de esos estimadores depende también de la información contenida en los regresores.
 
 > ¿Qué ocurre cuando distintas variables explicativas contienen información muy parecida entre sí?
+
+
+```{r corte-temporal, echo=FALSE, results='asis'}
+# Ocultación temporal: cambiar material_completo a true en el YAML y recompilar
+# para reactivar TODO el contenido posterior y retirar la diapositiva de aviso.
+if (!isTRUE(params$material_completo)) {
+  cat("\n\n### Material en preparación\n\n",
+      "Las siguientes secciones de este capítulo aún están en revisión ",
+      "y se incorporarán próximamente.\n\n", sep = "")
+  knitr::knit_exit(append = "")
+}
+```
