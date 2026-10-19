@@ -2,7 +2,7 @@
 title: "Econometría"
 subtitle: "Inferencia"
 author: "Alejandro Mosiño - _Universidad de Guanajuato_"
-date: "v.2026.10.13"
+date: "v.2026.10.19"
 
 params:
   material_completo: true
@@ -947,7 +947,7 @@ $$
 
 Hasta ahora hemos utilizado valores críticos. Otra forma de evaluar la evidencia es mediante el **valor \(p\)**:
 
-> El valor \(p\), o **\(p\)-value**) es la probabilidad, bajo \(H_0\), de observar un estadístico tan extremo como el obtenido o más, en la dirección de \(H_1\).
+> El valor \(p\), (o **\(p\)-value**) es la probabilidad, bajo \(H_0\), de observar un estadístico tan extremo como el obtenido o más, en la dirección de \(H_1\).
 
 Para una prueba de dos colas, calculamos el valor \(p\) como:
 
