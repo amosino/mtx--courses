@@ -937,7 +937,10 @@ $$
 En ambos casos, calculamos \(t_j\) y el valor crítico en la frontera \(\beta_j^0\). Rechazamos \(H_0\) si:
 
 $$
-|t_j|>t_{\alpha,(n-k)}.
+\begin{align}
+\text{Cola derecha: }& t_j>t_{\alpha,(n-k)}\\
+\text{Cola izquierda: } & t_j<-t_{\alpha,(n-k)}.
+\end{align}
 $$
 
 ## Valores \(p\)
