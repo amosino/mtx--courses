@@ -1309,7 +1309,7 @@ En caso contrario, _no rechazamos_ \(H_0\).
 
 ### ¿Qué significa imponer \(H_0\)?
 
-El estadístico \(F\) también puede calcularse a partir de las sumas de cuadrados residuales del **modelo no restringido** y del **modelo restringido**. El modelo no restringido permite que _los coeficientes se estimen libremente_. En cambio, el modelo restringido _obliga a que se cumpla \(H_0\)_:
+El estadístico \(F\) también puede calcularse a partir de las sumas de cuadrados de los residuales del **modelo no restringido** y del **modelo restringido**. El modelo no restringido permite que _los coeficientes se estimen libremente_. En cambio, el modelo restringido _obliga a que se cumpla \(H_0\)_:
 
 $$
 \mathbf R\boldsymbol\beta=\mathbf r.
