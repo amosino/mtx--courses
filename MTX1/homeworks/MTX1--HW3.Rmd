@@ -1,0 +1,426 @@
+---
+title: "Econometría I"
+subtitle: "Tarea 3: Inferencia estadística"
+author: "Alejandro Mosiño - Universidad de Guanajuato"
+date: ""
+output:
+  pdf_document:
+    latex_engine: xelatex
+    number_sections: false
+geometry: margin=2.5cm
+fontsize: 11pt
+lang: es
+header-includes:
+  - \usepackage{amsmath,amssymb}
+  - \usepackage{enumitem}
+  - \setlist[enumerate]{itemsep=0.7em}
+  
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs")})
+    
+---
+
+**Indicaciones.** Resuelve cuidadosamente los cinco ejercicios antes de responder el cuestionario correspondiente en Campus Digital. El cuestionario evalúa las ideas, procedimientos y resultados desarrollados en esta tarea, aunque sus preguntas no necesariamente reproducen los mismos ejercicios o datos. Trabajar y comprender previamente los ejercicios es la mejor preparación para resolverlo.
+
+Salvo indicación contraria, considera el modelo lineal clásico con matriz de regresores determinista y de rango columna completo, $n>k$, $\sigma^2>0$ y errores normalmente distribuidos:
+
+$$
+\mathbf{u}\sim\mathcal{N}(\mathbf{0},\sigma^2\mathbf{I}_n).
+$$
+
+Cuando se formulen restricciones conjuntas, supón que $\mathbf{R}$ tiene rango fila completo.
+
+## Ejercicio 1
+
+Considera el modelo de regresión lineal múltiple
+
+$$
+\mathbf{y}=\mathbf{x}\boldsymbol{\beta}+\mathbf{u},
+$$
+
+donde $\mathbf{x}$ es una matriz de dimensión $n\times k$ que incluye una columna de unos.
+
+Sabemos que
+
+$$
+\mathbf{b}=(\mathbf{x}^{\top}\mathbf{x})^{-1}\mathbf{x}^{\top}\mathbf{y},
+\qquad
+\mathbf{e}=\mathbf{M}_x\mathbf{y},
+$$
+
+donde
+
+$$
+\mathbf{M}_x
+=\mathbf{I}_n-\mathbf{x}(\mathbf{x}^{\top}\mathbf{x})^{-1}\mathbf{x}^{\top}.
+$$
+
+Queremos demostrar que, bajo $H_0:\beta_j=\beta_j^0$, el estadístico
+
+$$
+t_j=\frac{b_j-\beta_j^0}{\operatorname{s.e.}(b_j)}
+$$
+
+sigue una distribución $t$ de Student con $n-k$ grados de libertad.
+
+a) Utiliza la distribución de $\mathbf{b}$ para demostrar que, bajo $H_0$,
+
+$$
+z_j=
+\frac{b_j-\beta_j^0}
+{\sigma\sqrt{[(\mathbf{x}^{\top}\mathbf{x})^{-1}]_{jj}}}
+\sim N(0,1).
+$$
+
+b) Recuerda que $\mathbf{e}=\mathbf{M}_x\mathbf{u}$, que $\mathbf{M}_x$ es simétrica e idempotente y que $\operatorname{rank}(\mathbf{M}_x)=n-k$. Demuestra que
+
+$$
+q=\frac{RSS}{\sigma^2}\sim\chi^2_{n-k}.
+$$
+
+c) Demuestra que
+
+$$
+\operatorname{Cov}(\mathbf{b},\mathbf{e})=\mathbf{0}.
+$$
+
+Explica por qué, bajo normalidad conjunta, este resultado permite establecer que $\mathbf{b}$ y $\mathbf{e}$ son independientes. Deduce que $z_j$ y $q$ también lo son.
+
+d) Utiliza
+
+$$
+s^2=\frac{RSS}{n-k}
+$$
+
+para demostrar que
+
+$$
+t_j=\frac{z_j}{\sqrt{q/(n-k)}}.
+$$
+
+A partir de los resultados anteriores, demuestra que
+
+$$
+t_j\sim t_{n-k}.
+$$
+
+e) Explica qué papel desempeñan la estimación de $\sigma^2$, los grados de libertad y el supuesto de normalidad en la distribución del estadístico $t$.
+
+**¿Qué has aprendido?** La distribución $t$ se obtiene combinando la distribución normal del estimador, una distribución ji-cuadrada asociada al $RSS$ y la independencia entre ambos componentes.
+
+\newpage
+
+## Ejercicio 2
+
+Considera una muestra hipotética de $50$ viviendas en la que se estudia la relación entre el precio de venta y el número de habitaciones:
+
+$$
+Precio_i=\beta_1+\beta_2Habitaciones_i+u_i.
+$$
+
+El precio está medido en miles de pesos. La estimación mediante MCO proporciona
+
+$$
+b_2=87,\qquad \operatorname{s.e.}(b_2)=4.5.
+$$
+
+a) Construye un intervalo de confianza del $95\%$ para $\beta_2$. Interpreta sus límites considerando las unidades del modelo.
+
+b) Queremos evaluar
+
+$$
+H_0:\beta_2=80,
+\qquad
+H_1:\beta_2\neq80.
+$$
+
+Calcula el estadístico $t$ y su valor $p$. Realiza la prueba al $5\%$ utilizando tanto el valor crítico como el valor $p$. Comprueba que tu decisión es consistente con el intervalo de confianza construido en el inciso anterior.
+
+c) Un investigador afirma que una habitación adicional está asociada con un incremento en el precio *superior a 80 mil pesos*. Formula la hipótesis nula y la alternativa apropiadas para evaluar esta afirmación. Calcula el estadístico de prueba y el valor $p$. Realiza la prueba al $5\%$ y al $10\%$ de significancia. Explica por qué las decisiones pueden ser diferentes.
+
+d) Considera ahora la hipótesis alternativa
+
+$$
+H_1:\beta_2<80.
+$$
+
+Formula la hipótesis nula correspondiente, calcula el valor $p$ y realiza la prueba al $5\%$. Compara este resultado con los valores $p$ obtenidos en los incisos b) y c). Explica qué relación existe entre ellos y por qué es importante considerar el signo del estadístico.
+
+e) A partir de los resultados anteriores, explica qué afirmaciones sobre $\beta_2$ cuentan con evidencia estadística suficiente al $5\%$ y cuáles no. ¿El hecho de no rechazar $H_0:\beta_2=80$ significa que hemos demostrado que $\beta_2=80$?
+
+**¿Qué has aprendido?** La distribución del estadístico puede ser la misma, pero la hipótesis alternativa determina cómo calculamos el valor $p$ y tomamos una decisión. Los intervalos de confianza proporcionan otra forma de evaluar las hipótesis bilaterales.
+
+\newpage
+
+## Ejercicio 3
+
+Considera el modelo
+
+$$
+y_i=\beta_1+\beta_2x_{2i}+\beta_3x_{3i}+\beta_4x_{4i}+u_i,
+$$
+
+estimado mediante MCO con $n=64$ observaciones. Se obtuvieron
+
+$$
+\mathbf{b}=
+\begin{pmatrix}
+20\\
+1.6\\
+2.6\\
+0.4
+\end{pmatrix},
+\qquad s^2=4,
+$$
+
+y
+
+$$
+(\mathbf{x}^{\top}\mathbf{x})^{-1}
+=
+\begin{pmatrix}
+0.015625&0&0&0\\
+0&0.25&-0.1875&0\\
+0&-0.1875&0.25&0\\
+0&0&0&0.10
+\end{pmatrix}.
+$$
+
+Queremos evaluar conjuntamente
+
+$$
+H_0:\beta_2=0,\qquad\beta_3=1.
+$$
+
+a) Construye la matriz $\mathbf{R}$ y el vector $\mathbf{r}$ que permiten escribir la hipótesis como
+
+$$
+H_0:\mathbf{R}\boldsymbol{\beta}=\mathbf{r}.
+$$
+
+Indica las dimensiones de $\mathbf{R}$ y $\mathbf{r}$, así como el número de restricciones linealmente independientes.
+
+b) Calcula la matriz estimada de varianzas y covarianzas
+
+$$
+\widehat{\operatorname{Var}}(\mathbf{b})
+=s^2(\mathbf{x}^{\top}\mathbf{x})^{-1}.
+$$
+
+Obtén los errores estándar de $b_2$ y $b_3$, así como su covarianza estimada.
+
+c) Evalúa individualmente las dos restricciones utilizando pruebas $t$ bilaterales al $5\%$ de significancia. Calcula ambos estadísticos y sus valores $p$.
+
+d) Evalúa ahora la hipótesis conjunta mediante
+
+$$
+F=
+\frac{
+(\mathbf{R}\mathbf{b}-\mathbf{r})^{\top}
+\left[\mathbf{R}(\mathbf{x}^{\top}\mathbf{x})^{-1}\mathbf{R}^{\top}\right]^{-1}
+(\mathbf{R}\mathbf{b}-\mathbf{r})
+}{m\,s^2}.
+$$
+
+Calcula el estadístico $F$, identifica sus grados de libertad y determina su valor $p$. Realiza la prueba al $5\%$ y compara la decisión con las obtenidas en el inciso c).
+
+e) Justifica la distribución del estadístico $F$ que utilizaste. Para ello, define
+
+$$
+\mathbf{C}=(\mathbf{x}^{\top}\mathbf{x})^{-1}
+$$
+
+y considera
+
+$$
+W=
+(\mathbf{R}\mathbf{b}-\mathbf{r})^{\top}
+\left[\sigma^2\mathbf{R}\mathbf{C}\mathbf{R}^{\top}\right]^{-1}
+(\mathbf{R}\mathbf{b}-\mathbf{r}).
+$$
+
+Demuestra que, bajo $H_0$,
+
+$$
+W\sim\chi^2_m.
+$$
+
+Utiliza los resultados del Ejercicio 1 para justificar que $W$ es independiente de $q=RSS/\sigma^2$ y concluye que
+
+$$
+F=\frac{W/m}{q/(n-k)}\sim F_{m,n-k}.
+$$
+
+f) Considera ahora una hipótesis distinta, que contiene una sola restricción lineal:
+
+$$
+H_0:\beta_2+\beta_3=1,
+\qquad
+H_1:\beta_2+\beta_3\neq1.
+$$
+
+Calcula la varianza estimada de $b_2+b_3$ utilizando
+
+$$
+\begin{aligned}
+\widehat{\operatorname{Var}}(b_2+b_3)
+={}&\widehat{\operatorname{Var}}(b_2)
++\widehat{\operatorname{Var}}(b_3)\\
+&+2\widehat{\operatorname{Cov}}(b_2,b_3).
+\end{aligned}
+$$
+
+Construye el estadístico $t$ para esta restricción y realiza la prueba bilateral al $5\%$. Después, expresa la misma hipótesis mediante $\mathbf{R}$ y $\mathbf{r}$, calcula su estadístico $F$ y comprueba que
+
+$$
+F=t^2.
+$$
+
+Explica por qué esta equivalencia no permite sustituir automáticamente una prueba $t$ unilateral por una prueba $F$ con el mismo nivel de significancia.
+
+**¿Qué has aprendido?** La inferencia sobre combinaciones lineales requiere considerar las covarianzas entre estimadores. Una sola restricción puede evaluarse mediante una prueba $t$ bilateral o una prueba $F$, pero varias pruebas individuales no sustituyen una prueba conjunta.
+
+\newpage
+
+## Ejercicio 4
+
+Considera el modelo
+
+$$
+\mathbf{y}=\mathbf{x}\boldsymbol{\beta}+\mathbf{u},
+$$
+
+donde $\mathbf{x}$ tiene rango columna completo. Queremos imponer $m$ restricciones linealmente independientes:
+
+$$
+\mathbf{R}\boldsymbol{\beta}=\mathbf{r}.
+$$
+
+Sea $\mathbf{b}$ el estimador MCO no restringido y $\mathbf{b}_R$ el estimador MCO restringido. Define
+
+$$
+\mathbf{C}=(\mathbf{x}^{\top}\mathbf{x})^{-1}.
+$$
+
+El estimador restringido puede expresarse como
+
+$$
+\mathbf{b}_R
+=\mathbf{b}-
+\mathbf{C}\mathbf{R}^{\top}
+(\mathbf{R}\mathbf{C}\mathbf{R}^{\top})^{-1}
+(\mathbf{R}\mathbf{b}-\mathbf{r}).
+$$
+
+a) Demuestra que $\mathbf{b}_R$ satisface las restricciones:
+
+$$
+\mathbf{R}\mathbf{b}_R=\mathbf{r}.
+$$
+
+Para verificar que también minimiza el $RSS$ entre todos los vectores que satisfacen las restricciones, considera cualquier vector $\mathbf{h}$ tal que $\mathbf{R}\mathbf{h}=\mathbf{0}$. Demuestra que
+
+$$
+RSS(\mathbf{b}_R+\mathbf{h})-RSS(\mathbf{b}_R)
+=\mathbf{h}^{\top}\mathbf{x}^{\top}\mathbf{x}\mathbf{h}\geq0.
+$$
+
+b) En la Tarea 2 demostramos que, para cualquier vector de coeficientes $\mathbf{c}$,
+
+$$
+RSS(\mathbf{c})-RSS(\mathbf{b})
+=(\mathbf{c}-\mathbf{b})^{\top}
+\mathbf{x}^{\top}\mathbf{x}
+(\mathbf{c}-\mathbf{b}).
+$$
+
+Utiliza este resultado y la expresión de $\mathbf{b}_R$ para demostrar que
+
+$$
+RSS_R-RSS_U
+=(\mathbf{R}\mathbf{b}-\mathbf{r})^{\top}
+\left[\mathbf{R}(\mathbf{x}^{\top}\mathbf{x})^{-1}\mathbf{R}^{\top}\right]^{-1}
+(\mathbf{R}\mathbf{b}-\mathbf{r}).
+$$
+
+c) A partir de la identidad anterior, demuestra que el estadístico $F$ puede calcularse como
+
+$$
+F=\frac{(RSS_R-RSS_U)/m}{RSS_U/(n-k)}.
+$$
+
+Explica por qué $RSS_R\geq RSS_U$.
+
+d) Supongamos que el modelo contiene una constante y que los coeficientes de determinación de ambos modelos se calculan utilizando la misma variable dependiente, las mismas observaciones y el mismo $TSS$. Utiliza
+
+$$
+R^2=1-\frac{RSS}{TSS}
+$$
+
+para demostrar que
+
+$$
+F=
+\frac{(R_U^2-R_R^2)/m}{(1-R_U^2)/(n-k)},
+$$
+
+donde $R_U^2$ y $R_R^2$ corresponden al modelo no restringido y al restringido, respectivamente.
+
+e) Considera la hipótesis de significancia global
+
+$$
+H_0:\beta_2=\beta_3=\cdots=\beta_k=0.
+$$
+
+Explica por qué, cuando el modelo incluye una constante,
+
+$$
+R_R^2=0,\qquad m=k-1.
+$$
+
+Utiliza estos resultados para obtener la expresión habitual del estadístico $F$ de significancia global en términos de $R^2$.
+
+f) Indica si las equivalencias algebraicas demostradas en los incisos anteriores requieren el supuesto de normalidad de los errores. ¿En qué parte de la justificación de la prueba $F$ necesitamos ese supuesto?
+
+**¿Qué has aprendido?** Imponer restricciones modifica los coeficientes estimados y puede empeorar el ajuste. La discrepancia entre restricciones y estimaciones y el incremento del $RSS$ son dos representaciones algebraicamente equivalentes del mismo contraste.
+
+\newpage
+
+## Ejercicio 5
+
+Considera el modelo de ventas de Andy Burger:
+
+$$
+sales_i
+=\beta_1+\beta_2price_i
++\beta_3advert_i+\beta_4advert_i^2+u_i.
+$$
+
+Las ventas y el gasto en publicidad están medidos en miles de dólares. Queremos estudiar una afirmación económica sobre la relación marginal entre publicidad y ventas cuando el gasto en publicidad es de $1.9$ miles de dólares.
+
+a) Obtén la derivada $\partial\mathbb{E}(sales_i\mid\mathbf{x}_i)/\partial advert_i$. Evalúala en $advert_i=1.9$ y explica su interpretación económica, manteniendo constante el precio.
+
+b) Un investigador sostiene que, cuando el gasto en publicidad alcanza ese nivel, la relación marginal entre publicidad y ventas es igual a uno. Formula una hipótesis nula y una alternativa bilateral para evaluar esta afirmación. Expresa la hipótesis nula en la forma matricial $H_0:\mathbf{R}\boldsymbol{\beta}=\mathbf{r}$ e indica cuántas restricciones linealmente independientes contiene.
+
+c) Impón la restricción sobre el modelo original y demuestra que el modelo restringido puede escribirse como
+
+$$
+sales_i-advert_i
+=\beta_1+\beta_2price_i
++\beta_4(advert_i^2-3.8advert_i)+u_i.
+$$
+
+Explica cómo esta transformación obliga a que se cumpla la hipótesis nula.
+
+d) Supón que ambos modelos se estimaron utilizando las mismas $n=75$ observaciones y produjeron los siguientes resultados ilustrativos:
+
+| Modelo | $RSS$ |
+|:---|---:|
+| No restringido | 300 |
+| Restringido | 310 |
+
+Calcula el estadístico $F$, identifica sus grados de libertad y determina su valor $p$. Realiza la prueba al $5\%$ de significancia. Interpreta la decisión en relación con la afirmación del inciso b), distinguiendo entre no rechazar una hipótesis y demostrar que es verdadera.
+
+e) Un compañero intenta calcular la misma prueba mediante la expresión de $F$ en términos de $R_U^2$ y $R_R^2$ obtenida en el Ejercicio 4. Para ello, sustituye directamente los valores de $R^2$ reportados por el software al estimar los dos modelos. ¿Es necesariamente correcto este procedimiento? Explica por qué pueden compararse los $RSS$ de ambas estimaciones, pero no necesariamente los $R^2$ reportados automáticamente.
+
+**¿Qué has aprendido?** Una restricción lineal puede representar una afirmación económica sobre una combinación de parámetros. Su evaluación puede requerir construir un modelo restringido y comparar su ajuste con el modelo original, cuidando las condiciones de aplicación de cada estadístico.
