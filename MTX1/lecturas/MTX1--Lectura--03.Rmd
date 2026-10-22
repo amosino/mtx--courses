@@ -1,0 +1,195 @@
+---
+title: "Lectura 03"
+subtitle: "De una cifra a una conclusión económica: productividad y publicidad"
+lang: es
+
+output:
+  html_document:
+    css: ../src/lecturas.css
+    self_contained: true
+    toc: false
+    mathjax: null
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs")})
+
+---
+
+# De una cifra a una conclusión económica: productividad y publicidad
+
+En las lecturas anteriores trabajamos con las comparaciones que representa una regresión y con el alcance de sus resultados.
+
+Ahora incorporaremos la información disponible sobre la incertidumbre de las estimaciones. Una cifra puede ser informativa sin resolver por completo una decisión económica.
+
+Trabajarás primero con un registro histórico sobre productividad y trabajo remoto. Después trasladarás tu razonamiento al caso publicitario de eBay y elaborarás una recomendación empresarial.
+
+La pregunta que guiará el trabajo es:
+
+> **¿Qué podemos comunicar a partir de una estimación y de la información disponible sobre su incertidumbre?**
+
+---
+
+## Materiales
+
+Esta lectura se basa en los siguientes materiales:
+
+**The Economist — *Does working from home make employees more productive?***  
+[https://www.economist.com/graphic-detail/2020/12/27/does-working-from-home-make-employees-more-productive](https://www.economist.com/graphic-detail/2020/12/27/does-working-from-home-make-employees-more-productive)
+
+El artículo se proporcionará en PDF en Moodle. El enlace original permite consultar también el gráfico «Cottage industry».
+
+**Freakonomics Radio — *Does Advertising Actually Work? (Part 2: Digital)***  
+[https://freakonomics.com/podcast/does-advertising-actually-work-part-2-digital-ep-441/](https://freakonomics.com/podcast/does-advertising-actually-work-part-2-digital-ep-441/)
+
+No necesitas trabajar con los materiales completos. En cada sección se indica qué parte debes revisar. Para Freakonomics puedes trabajar directamente con la transcripción.
+
+Justifica tus afirmaciones utilizando pasajes específicos de los materiales. Si necesitas una versión accesible del gráfico, solicítala al profesor.
+
+---
+
+# 1. Una primera afirmación sobre productividad
+
+Lee el **segundo y tercer párrafos del cuerpo de *Does working from home make employees more productive?***, sobre comparaciones entre trabajadores y cambios de modalidad. Consultarás el gráfico en la sección siguiente.
+
+En esos párrafos se informa 12% menos productividad en una comparación entre trabajadores y aumentos del 7% y 7,6% en los cambios de modalidad descritos.
+
+El artículo reseña resultados en 2020. La investigación tuvo una revisión posterior asociada con información adicional y datos más precisos. En esta lectura trabajaremos con los fragmentos de 2020 indicados aquí.
+
+Selecciona una de las estimaciones del texto. Formula una afirmación que comunicarías a una persona responsable de las modalidades de trabajo y justifica brevemente por qué la consideras respaldada. Delimita a quiénes y a qué comparación se refiere tu afirmación.
+
+**Estimación y referencia utilizadas:**
+
+<div class="espacio-respuesta" aria-hidden="true"></div>
+
+**Afirmación inicial y justificación:**
+
+<div class="espacio-respuesta" aria-hidden="true"></div>
+
+Conserva esta respuesta. Volveremos a ella después de consultar el gráfico.
+
+---
+
+# 2. Qué cambia al incorporar la incertidumbre comunicada
+
+En el mismo artículo de The Economist, consulta el **panel derecho del gráfico «Cottage industry»**, situado antes del cuerpo del texto.
+
+El panel muestra una trayectoria de llamadas por hora y una banda rotulada como intervalo de confianza del 95%.
+
+Elige un momento o tramo que puedas señalar en el panel por su posición o por una etiqueta visible. Formula una afirmación económica sobre la productividad representada allí, utilizando conjuntamente la trayectoria y la banda.
+
+Acompáñala con un esquema cualitativo del tramo elegido, basado en lo que observas, e identifica los rasgos gráficos que sostienen tu interpretación. Explica qué aporta la banda al respaldo y al alcance de tu afirmación. Examina cómo quedaría ese argumento si se comunicara únicamente la trayectoria central.
+
+Trabaja con una lectura cualitativa del gráfico. No reconstruyas extremos numéricos ni deduzcas pruebas a partir de la superposición de bandas.
+
+**Momento o tramo elegido y esquema cualitativo:**
+
+<div class="espacio-respuesta espacio-esquema" aria-hidden="true"></div>
+
+**Afirmación sobre productividad y justificación mediante el panel:**
+
+<div class="espacio-respuesta" aria-hidden="true"></div>
+
+Ahora recupera tu nota inicial de productividad e incorpora la afirmación que construiste con el gráfico. Decide qué relación puedes sostener con la afirmación textual que escribiste al comienzo y si corresponde modificarla o conservarla. Justifica tu decisión mediante los componentes concretos que utilizaste.
+
+Incluye cómo afecta el carácter histórico del artículo a lo que comunicarías. ¿Qué relación puedes establecer entre la incertidumbre representada en el panel y la noticia de una revisión posterior? Sustenta tu respuesta con el encuadre disponible, sin reconstruir nuevos resultados ni causas específicas.
+
+**Nota de productividad después del análisis:**
+
+<div class="espacio-respuesta" aria-hidden="true"></div>
+
+**Cambio o conservación principal y respaldo:**
+
+<div class="espacio-respuesta" aria-hidden="true"></div>
+
+---
+
+# 3. De productividad a evidencia publicitaria
+
+Ahora trabaja con la transcripción de *Does Advertising Actually Work? (Part 2: Digital)*.
+
+En la **entrevista con Steve Tadelis**, localiza la explicación del experimento de **palabras no asociadas a la marca**: el pasaje sobre retirar publicidad de búsqueda en un tercio de los mercados. Consulta también los resultados inmediatamente posteriores, donde aparecen la expectativa del 5% y el resultado cercano al 0,5%. El bloque de rentabilidad se incorpora en el apartado siguiente.
+
+Tadelis describe la retirada de publicidad en un tercio de los mercados y una expectativa empresarial de caída de ventas del 5%. Reporta un resultado cercano al 0,5%, que describe como estadísticamente no diferente de cero.
+
+Construye dos afirmaciones económicas relacionadas con estos componentes del caso y utiliza la matriz para defender el alcance que les das. En cada fila explica cómo la información seleccionada respalda tu interpretación.
+
+<div class="tabla-trabajo" role="region" aria-label="Matriz de respaldo: dos afirmaciones" tabindex="0">
+
+| Información utilizada y localización | Afirmación económica que examinas | Alcance que sostienes | Justificación |
+|---|---|---|---|
+| | | | |
+| | | | |
+
+Table: Matriz de respaldo: dos afirmaciones sobre el caso publicitario.
+
+</div>
+
+Examina si estos resultados permiten descartar una caída de ventas del 5%. Especifica qué afirmación estás evaluando y con qué información justificas tu respuesta.
+
+Si para sostener una afirmación necesitas información que no está disponible, identifícala. No inventes errores estándar, intervalos, resultados o cálculos.
+
+**Defensa del alcance elegido:**
+
+<div class="espacio-respuesta" aria-hidden="true"></div>
+
+Para cerrar este apartado, identifica una decisión de razonamiento de tu análisis de productividad que hayas podido trasladar al caso publicitario y una adaptación necesaria por el cambio de información disponible. Fundamenta ambas con referencias a los dos casos.
+
+**Traslado y adaptación del razonamiento:**
+
+<div class="espacio-respuesta" aria-hidden="true"></div>
+
+---
+
+# 4. Una conclusión económica para el caso empresarial
+
+En la **misma transcripción de la entrevista con Steve Tadelis**, consulta el bloque de **cálculo de rentabilidad**, reconocible por el resultado expresado como pérdidas por dólar gastado. Trabaja con ese componente del caso, además de los pasajes ya consultados.
+
+En ese bloque, Tadelis informa pérdidas medias superiores a 60 centavos por dólar gastado.
+
+Añade una fila a tu matriz para incorporar esta información. Revisa si modifica el alcance de alguna afirmación anterior y justifica tu decisión. Mantén identificadas las medidas y las relaciones entre resultados que efectivamente puedas respaldar.
+
+<div class="tabla-trabajo" role="region" aria-label="Ampliación de la matriz: rentabilidad" tabindex="0">
+
+| Información utilizada y localización | Afirmación económica que examinas | Alcance que sostienes | Justificación |
+|---|---|---|---|
+| | | | |
+
+Table: Fila adicional de la matriz: información de rentabilidad.
+
+</div>
+
+Redacta una nota breve, de hasta 220 palabras, dirigida a una persona responsable del gasto publicitario. Abre con tu conclusión económica principal y presenta una recomendación cuyo alcance puedas defender. Selecciona la evidencia de ventas y rentabilidad que consideres más pertinente y explica cómo sustenta tu propuesta.
+
+Organiza la nota alrededor de lo que la evidencia aporta a la decisión. Integra en esa justificación la incertidumbre y las condiciones que juzgues relevantes, explicando cómo afectan el alcance de tu recomendación.
+
+**Nota empresarial:**
+
+<div class="espacio-respuesta" aria-hidden="true"></div>
+
+---
+
+# 5. Volvamos al principio
+
+Retoma tu nota inicial de productividad y la nota empresarial final. Compara la manera en que construiste sus argumentos.
+
+Identifica una decisión interpretativa que hayas modificado o conservado de forma más consciente. Muestra el pasaje concreto de tus notas donde se advierte y explica qué evidencia o límite documental intervino. Puedes sostener que tu interpretación inicial era adecuada, siempre que justifiques por qué resistió el análisis.
+
+**Huella del cambio o de la conservación razonada:**
+
+<div class="espacio-respuesta" aria-hidden="true"></div>
+
+---
+
+# Entrega
+
+Entrega **un solo archivo en formato PDF** que contenga todas las actividades solicitadas.
+
+No existe una extensión mínima o máxima. La extensión adecuada es aquella que te permita desarrollar y justificar con claridad tu razonamiento. La nota empresarial debe respetar el máximo de 220 palabras indicado en la sección 4.
+
+La actividad será evaluada utilizando la rúbrica disponible en Campus Digital.
+
+Puedes utilizar herramientas de inteligencia artificial como apoyo durante la actividad. Si lo haces, eres responsable de evaluar críticamente sus respuestas y de poder justificar los argumentos que presentes.
+
+La IA no sustituye la lectura de los materiales originales.
+
+Si una herramienta de IA modificó de manera importante alguna de tus respuestas, conserva un ejemplo de una sugerencia que hayas **aceptado, rechazado o reformulado** y explica brevemente por qué tomaste esa decisión.
