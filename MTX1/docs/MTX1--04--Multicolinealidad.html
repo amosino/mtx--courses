@@ -3700,9 +3700,567 @@ R^2=r_{23}^2
 
 <p><em>Nota:</em> recuerda el teorema de Frisch–Waugh–Lovell. ¿Cómo se relaciona este resultado con la estimación del coeficiente de regresión parcial?</p>
 
-</article></slide><slide class=""><hgroup><h2>Material en preparación</h2></hgroup><article  id="material-en-preparación" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>¿Qué ocurre cuando tenemos más regresores?</h2></hgroup><article  id="qué-ocurre-cuando-tenemos-más-regresores" class="smaller ">
 
-<p>Las siguientes secciones de este capítulo aún están en revisión y se incorporarán próximamente.</p></article></slide>
+<p>Cuando tenemos más regresores, la regresión auxiliar para \(x_j\) es:</p>
+
+<p>\[
+x_{ji}=\widehat\gamma_0+
+\sum_{\substack{\ell=2\\\ell\ne j}}^k
+\widehat\gamma_\ell x_{\ell i}+v_{ji}.
+\] En este caso, los residuales \(v_{j}\) representan la variación de \(x_j\) que no puede explicarse linealmente mediante los otros regresores:</p>
+
+<p>\[
+\sum_i v_{ji}^2=S_{jj}(1-R_j^2) \quad \Rightarrow \quad
+\operatorname{Var}(b_j)=
+\frac{\sigma^2}{S_{jj}(1-R_j^2)}.
+\]</p>
+
+<p>donde \(R_j^2\) es el coeficiente de determinación de la regresión auxiliar para la \(x_j\).</p>
+
+</article></slide><slide class=""><hgroup><h2>Regresión parcial y precisión (1/2)</h2></hgroup><article  id="regresión-parcial-y-precisión-12" class="smaller ">
+
+<p><span class="emphasis-blue">Ejercicio*</span></p>
+
+<p>Considera el modelo:</p>
+
+<p>\[
+\mathbf y=\mathbf x\boldsymbol\beta+\mathbf u.
+\]</p>
+
+<p>Sea \(\mathbf v_j\) el vector de residuales de regresar \(x_j\) sobre los demás regresores, incluida la constante.</p>
+
+<ol start="1">
+
+<li>
+
+Utilizando Frisch–Waugh–Lovell, demuestra que: \[
+b_j=\frac{\mathbf v_j^\top\mathbf y}
+{\mathbf v_j^\top\mathbf v_j}.
+\]
+
+</li>
+
+</ol>
+
+</article></slide><slide class=""><hgroup><h2>Regresión parcial y precisión (2/2)</h2></hgroup><article  id="regresión-parcial-y-precisión-22" class="smaller ">
+
+<ol start="2">
+
+<li>
+
+Bajo los supuestos clásicos, demuestra que: \[
+\operatorname{Var}(b_j)=
+\frac{\sigma^2}{\mathbf v_j^\top\mathbf v_j}.
+\]
+
+</li>
+
+<li>
+
+Utiliza el \(R_j^2\) de la regresión auxiliar para recuperar: \[
+\operatorname{Var}(b_j)=
+\frac{\sigma^2}{S_{jj}(1-R_j^2)}.
+\]
+
+</li>
+
+</ol>
+
+<blockquote>
+<p>La dependencia lineal puede involucrar varios regresores, aun sin correlaciones simples elevadas.</p>
+</blockquote>
+
+</article></slide><slide class=""><hgroup><h2>El factor de inflación de la varianza</h2></hgroup><article  id="el-factor-de-inflación-de-la-varianza" class="smaller ">
+
+<p>Definimos el <strong>factor de inflación de la varianza</strong> como:</p>
+
+<p>\[
+VIF_j=\frac{1}{1-R_j^2},
+\]</p>
+
+<p>donde \(R_j^2\) es el coeficiente de determinación de la regresión auxiliar de \(x_j\). Entonces:</p>
+
+<p>\[
+\operatorname{Var}(b_j)=
+\frac{\sigma^2}{S_{jj}}VIF_j.
+\]</p>
+
+</article></slide><slide class=""><hgroup><h2>¿Qué nos dice el VIF? (1/2)</h2></hgroup><article  id="qué-nos-dice-el-vif-12" class="smaller ">
+
+<p><span class="emphasis-blue">
+Ejercicio</span></p>
+
+<p>Nuevamente, consideremos un modelo para la presión arterial de 20 pacientes:</p>
+
+<p>\[
+\begin{aligned}
+BP_i={}&amp;\beta_1+\beta_2 Age_i+\beta_3 Weight_i
++\beta_4 BSA_i\\
+&amp;+\beta_5 Dur_i+\beta_6 Pulse_i+\beta_7 Stress_i+u_i.
+\end{aligned}
+\]</p>
+
+<p>A diferencia del ejemplo anterior, ahora:</p>
+
+<p>\[
+Weight_i=46\,BSA_i.
+\]</p>
+
+<p><em>¿Qué esperas que ocurra con el \(VIF_{Weight}\)?</em></p>
+
+</article></slide><slide class=""><hgroup><h2>¿Qué nos dice el VIF? (2/2)</h2></hgroup><article  id="qué-nos-dice-el-vif-22" class="smaller ">
+
+<p>Muestra que:</p>
+
+<table class="clean-table">
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+Regresor
+
+</th>
+
+<th style="text-align:left;">
+
+VIF
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+Age
+
+</td>
+
+<td style="text-align:left;">
+
+1.763
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Weight
+
+</td>
+
+<td style="text-align:left;">
+
+8.417
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+BSA
+
+</td>
+
+<td style="text-align:left;">
+
+5.329
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Pulse
+
+</td>
+
+<td style="text-align:left;">
+
+4.414
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+<p>Nota que \(VIF_{Weight}\approx 8.417\). Esto significa que la varianza de \(Weight\) es 8.417 veces la que tendría si esta variable fuera ortogonal a los demás regresores, manteniendo constantes \(\sigma^2\) y \(S_{jj}\).</p>
+
+<p><em>¿Podemos concluir que su error estándar es mayor que el de \(Age\)?</em></p>
+
+</article></slide><slide class="segue dark nobackground level2"><hgroup class = 'auto-fadein'><h2>Consecuencias para la inferencia</h2></hgroup><article  id="consecuencias-para-la-inferencia" class="smaller ">
+
+</article></slide><slide class=""><hgroup><h2>¿La multicolinealidad produce sesgo?</h2></hgroup><article  id="la-multicolinealidad-produce-sesgo" class="smaller ">
+
+<p>Cuando la multicolinealidad es imperfecta, la matriz de regresores conserva su rango completo. Entonces, si se cumplen los supuestos de Gauss-Markov:</p>
+
+<p>\[
+E(\mathbf b)=\boldsymbol\beta,
+\qquad
+\operatorname{Var}(\mathbf b)=\sigma^2(\mathbf{x}^{\top}\mathbf{x})^{-1}.
+\]</p>
+
+<ul>
+<li>MCO nos regresa estimadores insesgados.</li>
+<li>Los estimadores de MCO son MELI.</li>
+<li>Pero la precisión de algunos coeficientes puede reducirse.</li>
+</ul>
+
+<p><em>La multicolinealidad imperfecta no constituye, por sí misma, una violación a los supuestos del modelo de regresión lineal.</em></p>
+
+</article></slide><slide class=""><hgroup><h2>¿Qué ocurre con la inferencia individual?</h2></hgroup><article  id="qué-ocurre-con-la-inferencia-individual" class="smaller ">
+
+<p>Recordemos el estadístico de la prueba de signficancia individual y su intervalo de confianza:</p>
+
+<p>\[
+t_j=\frac{b_j-\beta_j^0}{\operatorname{s.e.}(b_j)}; \qquad b_j\pm t_{\alpha/2,n-k}\operatorname{s.e.}(b_j).
+\]</p>
+
+<p>La multicolinealidad puede aumentar la varianza de \(b_j\) y, por tanto, su error estándar. Esto puede producir:</p>
+
+<ul>
+<li>Estadísticos \(t\) de menor magnitud.</li>
+<li>Intervalos de confianza más amplios.</li>
+<li>Menor capacidad para detectar efectos individuales.</li>
+</ul>
+
+<p><em>¿Significa que las pruebas de hipótesis dejan de ser válidas?</em></p>
+
+</article></slide><slide class=""><hgroup><h2>¿Toda la información se vuelve imprecisa?</h2></hgroup><article  id="toda-la-información-se-vuelve-imprecisa" class="smaller ">
+
+<p>Consideremos nuevamente:</p>
+
+<p>\[
+y_i=\beta_1+\beta_2x_{2i}+\beta_3x_{3i}+u_i; \qquad x_{3i}\approx\gamma_0+\tau x_{2i}
+\]</p>
+
+<p>Entonces:</p>
+
+<p>\[
+y_i\approx(\beta_1+\gamma_0\beta_3)
++(\beta_2+\tau\beta_3)x_{2i}+u_i.
+\]</p>
+
+<p>Aunque sea difícil distinguir los efectos individuales de \(x_2\) y \(x_3\), podríamos estimar con mayor precisión la combinación \(\beta_2+\tau\beta_3\).</p>
+
+<p><em>¿Por qué?</em></p>
+
+</article></slide><slide class=""><hgroup><h2>¿Por qué una combinación puede estimarse con precisión?</h2></hgroup><article  id="por-qué-una-combinación-puede-estimarse-con-precisión" class="smaller ">
+
+<p><span class="emphasis-blue">Ejercicio*</span></p>
+
+<p>Utilizando la inversa de la matriz de productos cruzados, demuestra que, si</p>
+
+<p>\[
+\tau=\frac{S_{23}}{S_{22}},
+\] entonces:</p>
+
+<p>\[
+\operatorname{Var}(b_2+\tau b_3)
+=\frac{\sigma^2}{S_{22}}.
+\]</p>
+
+<p>¿Qué implica este resultado?</p>
+
+</article></slide><slide class="segue dark nobackground level2"><hgroup class = 'auto-fadein'><h2>Diagnóstico de la multicolinealidad</h2></hgroup><article  id="diagnóstico-de-la-multicolinealidad" class="smaller ">
+
+</article></slide><slide class=""><hgroup><h2>¿Un VIF elevado implica poca precisión?</h2></hgroup><article  id="un-vif-elevado-implica-poca-precisión" class="smaller ">
+
+<p><span class="emphasis-blue">Ejercicio*</span></p>
+
+<p>Consideremos dos diseños con \(\sigma^2=4\):</p>
+
+<table class="clean-table">
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+</th>
+
+<th style="text-align:right;">
+
+Diseño A
+
+</th>
+
+<th style="text-align:right;">
+
+Diseño B
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+\(S_{jj}\)
+
+</td>
+
+<td style="text-align:right;">
+
+800
+
+</td>
+
+<td style="text-align:right;">
+
+100
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+\(VIF_j\)
+
+</td>
+
+<td style="text-align:right;">
+
+8
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+<ol>
+<li>Calcula la varianza de \(b_j\) en ambos diseños.</li>
+<li>¿Cuál presenta mayor inflación <em>relativa</em> de la varianza?</li>
+<li>¿En cuál se estima el coeficiente con mayor precisión?</li>
+</ol>
+
+</article></slide><slide class=""><hgroup><h2>¿Cuándo debe preocuparnos el VIF?</h2></hgroup><article  id="cuándo-debe-preocuparnos-el-vif" class="smaller ">
+
+<p>Recordemos que:</p>
+
+<p>\[
+VIF_j=\frac{1}{1-R_j^2}\geq 1.
+\]</p>
+
+<p>Una regla frecuentemente utilizada es: si \(VIF_j=1\), el regresor es ortogonal a los demás; si \(VIF_j&gt;10\), podría existir un problema importante de multicolinealidad. Además, observa que:</p>
+
+<p>\[
+VIF_j&gt;10\iff R_j^2&gt;0.90.
+\]</p>
+
+<p><em>El valor de 10 es una referencia orientativa, no una prueba estadística ni un umbral universal.</em></p>
+
+<p>¿Podría preocuparnos un VIF menor que 10?</p>
+
+</article></slide><slide class=""><hgroup><h2>¿Qué resultados pueden hacernos sospechar?</h2></hgroup><article  id="qué-resultados-pueden-hacernos-sospechar" class="smaller ">
+
+<p>Algunas señales que justifican examinar la multicolinealidad son:</p>
+
+<ul>
+<li>Correlaciones elevadas entre variables explicativas.</li>
+<li>Un \(R^2\) elevado acompañado de coeficientes individuales estimados con poca precisión.</li>
+<li>Cambios importantes en los coeficientes al modificar ligeramente la especificación del modelo.</li>
+</ul>
+
+<p>Sin embargo, <em>ninguna de estas señales demuestra, por sí sola, que exista un problema importante de multicolinealidad.</em></p>
+
+<p>Para evaluar la situación podemos utilizar regresiones auxiliares, el VIF y los índices de condición.</p>
+
+</article></slide><slide class=""><hgroup><h2>Normalización de la matriz \(\mathbf{x}\)</h2></hgroup><article  id="normalización-de-la-matriz-mathbfx" class="smaller ">
+
+<p>Para evitar que las unidades de medición dominen el diagnóstico, normalizamos cada columna de \(\mathbf{x}\), incluida la constante:</p>
+
+<p>\[
+x_{ij}^*=\frac{x_{ij}}{\sqrt{\sum_{h=1}^n x_{hj}^2}}.
+\]</p>
+
+<p>Esto nos permite construir la <em>matriz normalizada</em> \(\mathbf{x}^*\) y, con esta, la matriz \(C=(\mathbf{x}^*)^{\top}\mathbf{x}^*\). Esta última tiene valores propios:</p>
+
+<p>\[
+\lambda_1\geq\lambda_2\geq\cdots\geq\lambda_k\geq0.
+\]</p>
+
+</article></slide><slide class=""><hgroup><h2>¿Qué nos dicen los valores propios?</h2></hgroup><article  id="qué-nos-dicen-los-valores-propios" class="smaller ">
+
+<p>Recordemos que:</p>
+
+<p>\[
+\operatorname{rank}(\mathbf{x})&lt;k\iff\lambda_k=0.
+\] Entonces:</p>
+
+<ul>
+<li>Si algún valor propio es cero, existe dependencia lineal exacta.</li>
+<li>Si un valor propio es muy pequeño respecto de los mayores, existe una dirección de dependencia casi exacta.</li>
+</ul>
+
+<p><em>¿Qué aporta este resultado frente a las correlaciones entre pares de regresores?</em></p>
+
+</article></slide><slide class=""><hgroup><h2>Número e índices de condición</h2></hgroup><article  id="número-e-índices-de-condición" class="smaller ">
+
+<p>Con los valores propios de \(C=(\mathbf{x}^*)^{\top}\mathbf{x}^*\), definimos el <strong>número de condición</strong>, \(K\) y el <strong>índice de condición</strong>, \(IC\):</p>
+
+<p>\[
+K=\frac{\lambda_1}{\lambda_k},
+\qquad
+IC_j=\sqrt{\frac{\lambda_1}{\lambda_j}}.
+\]</p>
+
+<p>Nota que, cuando \(\lambda_k&gt;0\), \(IC_{\max}=\sqrt K\). <em>¿Qué ocurre cuando \(\lambda_k\) se aproxima a cero?</em></p>
+
+</article></slide><slide class=""><hgroup><h2>Presión arterial: diagnóstico mediante valores propios</h2></hgroup><article  id="presión-arterial-diagnóstico-mediante-valores-propios" class="smaller ">
+
+<p>En el ejemplo de presión arterial, el índice de condición máximo es:</p>
+
+<p>\[
+IC_{\max}\approx 201.496.
+\]</p>
+
+<p>Este resultado sugiere que existe una combinación de regresores cercana a una dependencia lineal exacta.</p>
+
+<p><em>Los VIF permiten examinar la inflación de la varianza de cada coeficiente, mientras que el índice de condición proporciona información sobre la dependencia lineal del conjunto de regresores.</em></p>
+
+<p><em>¿Serían suficientes estos resultados para decidir eliminar alguna variable?</em></p>
+
+</article></slide><slide class="segue dark nobackground level2"><hgroup class = 'auto-fadein'><h2>¿Qué hacemos con la multicolinealidad?</h2></hgroup><article  id="qué-hacemos-con-la-multicolinealidad" class="smaller ">
+
+</article></slide><slide class=""><hgroup><h2>¿Siempre debemos corregirla?</h2></hgroup><article  id="siempre-debemos-corregirla" class="smaller ">
+
+<p>Bajo los supuestos clásicos, la multicolinealidad imperfecta:</p>
+
+<ul>
+<li>No produce sesgo en los estimadores MCO.</li>
+<li>No elimina su propiedad MELI.</li>
+<li>No invalida, por sí sola, las pruebas de hipótesis.</li>
+<li>Puede dificultar la estimación precisa de ciertos coeficientes.</li>
+</ul>
+
+<p>Por tanto, no siempre es necesario modificar el modelo. <em>La decisión depende de qué parámetros queremos estimar y con qué precisión necesitamos conocerlos</em>.</p>
+
+</article></slide><slide class=""><hgroup><h2>¿Qué ocurre si eliminamos un regresor? (1/3)</h2></hgroup><article  id="qué-ocurre-si-eliminamos-un-regresor-13" class="smaller ">
+
+<p><span class="emphasis-blue">Ejercicio*</span></p>
+
+<p>Supongamos que el modelo verdadero es:</p>
+
+<p>\[
+y_i=\beta_1+\beta_2 x_{2i}+\beta_3 x_{3i}+u_i;
+\]</p>
+
+<p>Para reducir la multicolinealidad, estimamos un modelo que excluye a \(x_3\):</p>
+
+<p>\[
+y_i=\widetilde b_1+\widetilde b_2x_{2i}+\widetilde e_i.
+\]</p>
+
+</article></slide><slide class=""><hgroup><h2>¿Qué ocurre si eliminamos un regresor? (2/3)</h2></hgroup><article  id="qué-ocurre-si-eliminamos-un-regresor-23" class="smaller ">
+
+<p>Demuestra que, cuando excluimos a \(x_3\):</p>
+
+<p>\[
+E(\widetilde b_2)=
+\beta_2+\beta_3\frac{S_{23}}{S_{22}}.
+\]</p>
+
+<p>¿En qué condiciones \(\widetilde b_2\) es insesgado para \(\beta_2\)?</p>
+
+</article></slide><slide class=""><hgroup><h2>¿Qué ocurre si eliminamos un regresor? (3/3)</h2></hgroup><article  id="qué-ocurre-si-eliminamos-un-regresor-33" class="smaller ">
+
+<p>Bajo los supuestos clásicos del modelo verdadero, demuestra que:</p>
+
+<p>\[
+\operatorname{Var}(\widetilde b_2)
+=\frac{\sigma^2}{S_{22}}.
+\]</p>
+
+<p>Compara este resultado con:</p>
+
+<p>\[
+\operatorname{Var}(b_2)
+=\frac{\sigma^2}{S_{22}(1-r_{23}^2)}.
+\]</p>
+
+<p>¿Qué sucede con la varianza cuando eliminamos \(x_3\)?</p>
+
+<p>Entonces, <em>¿podemos justificar la eliminación de un regresor únicamente porque reduce la varianza del estimador?</em></p>
+
+</article></slide><slide class=""><hgroup><h2>¿Cómo debemos actuar?</h2></hgroup><article  id="cómo-debemos-actuar" class="smaller ">
+
+<p>La decisión depende del objetivo del análisis.</p>
+
+<ul>
+<li>Mantener el modelo si la precisión obtenida es suficiente para responder nuestra pregunta.</li>
+<li>Obtener datos que aporten mayor variación independiente de los regresores de interés.</li>
+<li>Examinar si determinadas combinaciones de coeficientes permiten responder la pregunta.</li>
+<li>Modificar la especificación cuando exista una justificación económica, no solamente estadística.</li>
+</ul>
+
+<blockquote>
+<p>Eliminar regresores por tener un VIF elevado no garantiza una mejor estimación.</p>
+</blockquote>
+
+</article></slide><slide class="segue dark nobackground level2"><hgroup class = 'auto-fadein'><h2>Resumen</h2></hgroup><article  id="resumen" class="smaller ">
+
+</article></slide><slide class=""><hgroup><h2>¿Qué hemos aprendido?</h2></hgroup><article  id="qué-hemos-aprendido" class="smaller ">
+
+<p>Cuando los regresores contienen información muy parecida:</p>
+
+<ul>
+<li>Si existe <em>multicolinealidad perfecta</em>, los coeficientes no están determinados de manera única.</li>
+<li>Si la <em>multicolinealidad es imperfecta</em>, MCO permite estimarlos, pero su precisión puede verse afectada.</li>
+<li>Algunas combinaciones de coeficientes pueden seguir estimándose con precisión.</li>
+<li>El diagnóstico debe orientar nuestras decisiones, no sustituir el razonamiento económico.</li>
+</ul>
+
+<blockquote>
+<p>La pregunta no es solamente si podemos estimar un modelo, sino qué conclusiones permiten sostener los datos.</p>
+</blockquote>
+
+</article></slide><slide class=""><hgroup><h2>¿Qué sigue?</h2></hgroup><article  id="qué-sigue" class="smaller ">
+
+<p>Hasta ahora hemos estudiado cómo la información compartida entre regresores puede dificultar la estimación de sus efectos individuales. En los siguientes capítulos aprenderemos a construir especificaciones más flexibles, incorporando nuevas formas de representar las relaciones económicas.</p>
+
+<blockquote>
+<p>Cada decisión sobre la especificación del modelo también es una decisión sobre la evidencia que podemos construir.</p>
+</blockquote></article></slide>
 
 
   <slide class="backdrop"></slide>
