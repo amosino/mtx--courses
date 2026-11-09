@@ -624,7 +624,7 @@ Algunas señales que justifican examinar la multicolinealidad son:
 
 Sin embargo, *ninguna de estas señales demuestra, por sí sola, que exista un problema importante de multicolinealidad.*
 
-Para evaluar la situación podemos utilizar regresiones auxiliares, el VIF y los índices de condición.
+Para evaluar la situación podemos utilizar, además  del VIF, los índices de condición.
 
 
 ### Normalización de la matriz \(\mathbf{x}\)
