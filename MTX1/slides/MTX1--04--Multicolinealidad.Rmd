@@ -462,7 +462,7 @@ $$
 A diferencia del ejemplo anterior, ahora:
 
 $$
-Weight_i=46\,BSA_i.
+Weight_i\approx46\,BSA_i.
 $$
 
 _¿Qué esperas que ocurra con el $VIF_{Weight}$?_
