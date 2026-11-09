@@ -2,7 +2,7 @@
 title: "Econometría"
 subtitle: "Multicolinealidad"
 author: "Alejandro Mosiño - _Universidad de Guanajuato_"
-date: "v.2026.10.27"
+date: "v.2026.11.09"
 
 params:
   material_completo: false
@@ -246,7 +246,7 @@ _¿Significa esto que no podemos minimizar el RSS?_
 
 ### ¿Qué ocurre cuando la relación entre variables no es exacta?
 
-Aunque el caso de la **multicolinealidad perfecta** puede parecer un caso muy extremo, no imposible. En la práctica, es más frecuente encontrar _regresores fuertemente relacionados sin dependencia exacta_. Por ejemplo, al regresar \(x_3\) sobre \(x_2\):
+El caso de la **multicolinealidad perfecta** puede parecer un caso muy extremo, aunque no es imposible. Sin embargo, en la práctica, es más frecuente encontrar _regresores fuertemente relacionados sin dependencia exacta_. Por ejemplo, al regresar \(x_3\) sobre \(x_2\):
 
 $$
 x_{3i}=\widehat\gamma_0+\widehat\gamma_1 x_{2i}+v_i.
@@ -667,6 +667,19 @@ IC_j=\sqrt{\frac{\lambda_1}{\lambda_j}}.
 $$
 
 Nota que, cuando \(\lambda_k>0\), \(IC_{\max}=\sqrt K\). _¿Qué ocurre cuando \(\lambda_k\) se aproxima a cero?_
+
+
+### ¿Cómo interpretamos los índices de condición?
+
+Una regla de referencia frecuentemente utilizada es:
+
+- $IC_{\max}<10$: no hay señales fuertes de dependencia lineal cercana.
+- $10\leq IC_{\max}<30$: posible multicolinealidad moderada.
+- $IC_{\max}\geq30$: posible multicolinealidad importante o severa.
+
+Sin embargo, *estos umbrales son orientativos y no constituyen pruebas estadísticas.*
+
+Un índice elevado sugiere que debemos examinar con mayor cuidado la dependencia entre los regresores, pero no implica que debamos eliminar variables.
 
 
 ### Presión arterial: diagnóstico mediante valores propios
