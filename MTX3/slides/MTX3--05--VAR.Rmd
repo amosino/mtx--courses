@@ -44,7 +44,7 @@ $$
 Podemos utilizar el modelo de regresión lineal para hacer un pronóstico de $y_t$ _condicional_ a los supuestos sobre la variable $x_t$. Por ejemplo:
 
 $$
-\mathbb{E}\left(y_{T+h}|x_{T+h}\right)^\ast = \beta_1 + \beta_2 x_{T+h}^\ast
+\mathbb{E}\left(y_{T+h}|x_{T+h}^\ast\right) = \beta_1 + \beta_2 x_{T+h}^\ast
 $$
 
 donde hemos supuesto que el valor de $x_t$ en el periodo $T+h$ es $x_{T+h}^*$. Este tipo de análisis se conoce en la práctica como **análisis de escenarios** o **análisis de contingencia**.
