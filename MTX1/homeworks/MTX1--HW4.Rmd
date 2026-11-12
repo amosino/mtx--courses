@@ -1,0 +1,205 @@
+---
+title: "Econometría I"
+subtitle: "Tarea 4: Multicolinealidad"
+author: "Alejandro Mosiño - Universidad de Guanajuato"
+date: ""
+output:
+  pdf_document:
+    latex_engine: xelatex
+    number_sections: false
+geometry: margin=2.5cm
+fontsize: 11pt
+lang: es
+header-includes:
+  - \usepackage{amsmath,amssymb}
+  - \usepackage{enumitem}
+  - \setlist[enumerate]{itemsep=0.7em}
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs")})
+---
+
+**Indicaciones.** Resuelve cuidadosamente los tres ejercicios antes de responder el cuestionario correspondiente en Campus Digital. El cuestionario evalúa las ideas, procedimientos y resultados desarrollados en esta tarea, aunque sus preguntas no necesariamente reproducen los mismos ejercicios o datos. Trabajar y comprender previamente los ejercicios es la mejor preparación para resolverlo.
+
+En cada ejercicio encontrarás una sección titulada **Conexión con lo aprendido**, que recupera resultados de tareas anteriores. Utilízala para reconocer cómo se relacionan las herramientas que has estudiado durante el semestre.
+
+Salvo indicación contraria, cuando se utilicen propiedades probabilísticas de MCO considera regresores deterministas, $E(\mathbf{u})=\mathbf{0}$ y $\operatorname{Var}(\mathbf{u})=\sigma^2\mathbf{I}_n$, con $\sigma^2>0$. En los ejercicios que requieren estimadores únicos, la matriz de regresores tiene rango columna completo. El primer ejercicio estudia deliberadamente el caso en que este último supuesto no se cumple.
+
+## Ejercicio 1
+
+Una empresa desea estudiar la relación entre sus ventas ($y_i$) y el gasto en publicidad digital ($D_i$), publicidad tradicional ($T_i$) y publicidad total ($G_i$), donde todos los gastos están expresados en miles de pesos. El modelo propuesto es
+
+$$
+y_i=\beta_1+\beta_2D_i+\beta_3T_i+\beta_4G_i+u_i.
+$$
+
+Por definición, $G_i=D_i+T_i$. Para ilustrar las consecuencias de esta decisión de modelación, considera los siguientes datos sobre los regresores:
+
+| Observación | $D_i$ | $T_i$ | $G_i$ |
+|:-----------:|------:|------:|------:|
+| 1 | 0 | 0 | 0 |
+| 2 | 2 | 0 | 2 |
+| 3 | 0 | 2 | 2 |
+| 4 | 2 | 2 | 4 |
+
+**a)** Construye la matriz de regresores $\mathbf{x}$, incluida la constante. Encuentra un vector $\mathbf{d}\neq\mathbf{0}$ tal que
+
+$$
+\mathbf{x}\mathbf{d}=\mathbf{0}.
+$$
+
+Utiliza este resultado para explicar por qué los cuatro coeficientes no pueden determinarse de manera única mediante MCO.
+
+**b)** Sustituye $G_i=D_i+T_i$ en la ecuación del modelo y reescríbela utilizando únicamente $D_i$ y $T_i$. Identifica las dos combinaciones de pendientes que sí pueden distinguirse con estos datos. Muestra que modificar las tres pendientes originales en la dirección del vector $\mathbf{d}$ obtenido en el inciso anterior no modifica los valores ajustados.
+
+**c)** Calcula los coeficientes de correlación muestral entre $D$ y $T$, entre $D$ y $G$, y entre $T$ y $G$. ¿Encontraste alguna correlación simple igual a $1$ o a $-1$? Explica por qué tu respuesta no contradice la existencia de multicolinealidad perfecta.
+
+**d)** Muestra que las columnas de $\mathbf{x}$ correspondientes a la constante, $D$ y $T$ son linealmente independientes. Deduce el rango de $\mathbf{x}$ y explica qué ocurre con $\det(\mathbf{x}^{\top}\mathbf{x})$.
+
+**e)** Supón que eliminamos $G$ y conservamos la constante, $D$ y $T$. Sin conocer los valores observados de $y$, demuestra que el modelo reducido puede producir los mismos valores ajustados y el mismo mínimo de $RSS$ que el modelo original. ¿Por qué eliminar $G$ resuelve el problema de unicidad de los coeficientes sin eliminar información independiente de los regresores?
+
+**Conexión con lo aprendido.** En el Ejercicio 1 de la Tarea 2 demostraste que, cuando $\mathbf{x}$ no tiene rango columna completo, dos vectores distintos de coeficientes pueden producir exactamente los mismos valores ajustados. Explica cómo el vector $\mathbf{d}$ de este ejercicio representa aquel resultado en un ejemplo económico concreto. ¿Qué diferencia hay entre no poder determinar los coeficientes por separado y no poder ajustar el modelo a los datos?
+
+**¿Qué has aprendido?** La multicolinealidad perfecta puede involucrar más de dos regresores, incluso cuando ninguna correlación simple es igual a $1$ o a $-1$. En ese caso, ciertos coeficientes individuales no se identifican de forma única, aunque determinadas combinaciones de ellos y los valores ajustados sí pueden estar determinados.
+
+\newpage
+
+## Ejercicio 2
+
+Un investigador desea estimar el coeficiente de una variable explicativa $x_j$, manteniendo constantes los demás regresores. Considera dos diseños muestrales, A y B, que satisfacen los supuestos clásicos. En ambos se obtuvo $s^2=9$, $n-k=50$ y el mismo valor estimado $b_j=0.60$. Para utilizar las pruebas $t$, supón también que se cumple el supuesto de normalidad de los errores. Sin embargo, la información de las regresiones auxiliares es diferente:
+
+| Indicador | Diseño A | Diseño B |
+|:----------|---------:|---------:|
+| $S_{jj}=\sum_i(x_{ji}-\bar x_j)^2$ | $900$ | $120$ |
+| $R_j^2$ de la regresión auxiliar | $5/6$ | $1/2$ |
+
+Recuerda que
+
+$$
+VIF_j=\frac{1}{1-R_j^2},
+\qquad
+\widehat{\operatorname{Var}}(b_j)=\frac{s^2}{S_{jj}}VIF_j.
+$$
+
+**a)** Calcula el $VIF_j$, la variación residual $S_{jj}(1-R_j^2)$ y la varianza estimada de $b_j$ en cada diseño. ¿Cuál presenta mayor inflación relativa de la varianza? ¿En cuál se estima el coeficiente con mayor precisión absoluta?
+
+**b)** Calcula los errores estándar estimados y los estadísticos $t$ correspondientes a $H_0:\beta_j=0$ en ambos diseños. Considera una prueba bilateral al $5\%$, con valor crítico $t_{0.025,50}=2.009$. Compara las decisiones. ¿Por qué el diseño con mayor VIF produce, en este ejemplo, un estadístico $t$ de mayor magnitud? ¿Qué nos enseña este resultado sobre la relación entre multicolinealidad, precisión e inferencia?
+
+**c)** Ahora considera un modelo distinto, con dos regresores centrados, para el cual se conoce:
+
+$$
+S_{22}=100,\qquad S_{33}=100,\qquad S_{23}=90,\qquad\sigma^2=4.
+$$
+
+A partir de la matriz de productos cruzados
+
+$$
+\mathbf{A}=
+\begin{pmatrix}
+S_{22}&S_{23}\\
+S_{23}&S_{33}
+\end{pmatrix},
+$$
+
+calcula $\operatorname{Var}(b_2)$, $\operatorname{Var}(b_3)$ y $\operatorname{Cov}(b_2,b_3)$. Después calcula
+
+$$
+\operatorname{Var}(b_2+0.9b_3).
+$$
+
+Compara este último resultado con la varianza de cada pendiente individual. ¿Qué enseña la comparación sobre los efectos que pueden estimarse con precisión cuando los regresores están muy relacionados?
+
+**d)** Un tercer diagnóstico utiliza una matriz de regresores con cuatro columnas, incluida la constante. Después de normalizar cada columna por su norma euclidiana y construir $\mathbf{C}=(\mathbf{x}^*)^{\top}\mathbf{x}^*$, se obtuvieron los siguientes valores propios, ordenados de mayor a menor:
+
+$$
+\lambda_1=2.40,\qquad
+\lambda_2=1.00,\qquad
+\lambda_3=0.59,\qquad
+\lambda_4=0.01.
+$$
+
+Calcula el número de condición $K=\lambda_1/\lambda_4$ y los cuatro índices de condición $IC_h=\sqrt{\lambda_1/\lambda_h}$. Interpreta el índice máximo usando las referencias estudiadas en clase. ¿Basta este resultado para decidir qué regresor debe eliminarse? Explica.
+
+**Conexión con lo aprendido.** En el Ejercicio 4 de la Tarea 2 demostraste que la varianza de $b_j$ depende de la parte de $x_j$ que no puede explicarse mediante los demás regresores. En el Ejercicio 3 de la Tarea 3 estudiaste cómo las covarianzas influyen en la inferencia sobre combinaciones lineales de coeficientes. Explica cómo ambos resultados ayudan a comprender las diferencias encontradas en este ejercicio, tanto para coeficientes individuales como para una combinación de ellos.
+
+**¿Qué has aprendido?** El VIF describe la inflación relativa de la varianza, no su magnitud absoluta. La precisión también depende de la variación total del regresor y de $\sigma^2$. Además, una combinación de coeficientes puede estimarse con mucha mayor precisión que sus componentes por separado. Los índices de condición ayudan a detectar dependencias cercanas entre varios regresores, pero no sustituyen el criterio económico.
+
+\newpage
+
+## Ejercicio 3
+
+Considera el modelo verdadero
+
+$$
+y_i=\beta_1+\beta_2x_{2i}+\beta_3x_{3i}+u_i,
+$$
+
+donde se cumplen los supuestos clásicos. Los dos regresores no presentan dependencia lineal perfecta. Para facilitar la notación, define
+
+$$
+S_{22}=\sum_i(x_{2i}-\bar x_2)^2,\qquad
+S_{33}=\sum_i(x_{3i}-\bar x_3)^2,
+$$
+
+$$
+S_{23}=\sum_i(x_{2i}-\bar x_2)(x_{3i}-\bar x_3),
+\qquad
+r_{23}=\frac{S_{23}}{\sqrt{S_{22}S_{33}}}.
+$$
+
+Un investigador considera eliminar $x_3$ para disminuir la multicolinealidad y estima solamente una regresión de $y$ sobre $x_2$ y una constante. Denota por $\widetilde b_2$ la pendiente de esta regresión reducida, y por $b_2$ la pendiente correspondiente en el modelo completo.
+
+**a)** A partir de
+
+$$
+\widetilde b_2
+=\frac{\sum_i(x_{2i}-\bar x_2)(y_i-\bar y)}{S_{22}},
+$$
+
+sustituye el modelo verdadero y demuestra que
+
+$$
+E(\widetilde b_2)
+=\beta_2+\beta_3\frac{S_{23}}{S_{22}}.
+$$
+
+Obtén el sesgo de $\widetilde b_2$ como estimador de $\beta_2$ e identifica las condiciones en las que dicho sesgo desaparece.
+
+**b)** Demuestra que
+
+$$
+\operatorname{Var}(\widetilde b_2)=\frac{\sigma^2}{S_{22}}
+$$
+
+bajo los supuestos establecidos. Compárala con la varianza del estimador del modelo completo,
+
+$$
+\operatorname{Var}(b_2)=\frac{\sigma^2}{S_{22}(1-r_{23}^2)}.
+$$
+
+Explica por qué una varianza menor no basta para afirmar que $\widetilde b_2$ es un mejor estimador de $\beta_2$.
+
+**c)** Para comparar las consecuencias del sesgo y de la varianza, utilizaremos el **error cuadrático medio (ECM)** de un estimador $\widehat\theta$ de $\theta$:
+
+$$
+ECM(\widehat\theta)=E[(\widehat\theta-\theta)^2]
+=\operatorname{Var}(\widehat\theta)
++\bigl[E(\widehat\theta)-\theta\bigr]^2.
+$$
+
+En una primera situación, supón que
+
+$$
+S_{22}=100,\qquad S_{33}=100,\qquad S_{23}=80,\qquad
+\sigma^2=4,\qquad\beta_3=0.50.
+$$
+
+Calcula el sesgo, la varianza y el ECM de $\widetilde b_2$ como estimador de $\beta_2$. Calcula también la varianza y el ECM de $b_2$. ¿Cuál de los dos estimadores presenta menor ECM bajo estos valores hipotéticos?
+
+**d)** Conserva los mismos valores de $S_{22}$, $S_{33}$, $S_{23}$ y $\sigma^2$, pero supón ahora que $\beta_3=0.10$. Repite únicamente el cálculo del sesgo y el ECM de $\widetilde b_2$. ¿Cambia la comparación con el ECM de $b_2$? Explica por qué. ¿Podrías realizar esta misma comparación con datos reales si desconocieras el verdadero valor de $\beta_3$? Explica.
+
+**e)** Imagina que $y$ representa el salario, $x_2$ los años de educación y $x_3$ los años de experiencia laboral. Un compañero propone eliminar la experiencia porque ambos regresores están relacionados y con ello disminuye el VIF de educación. Utiliza los resultados de los incisos anteriores para evaluar su recomendación. ¿Qué información necesitarías antes de tomar una decisión para estudiar la relación entre educación y salario? En lugar de eliminar la experiencia laboral, ¿qué características deberían tener nuevos datos que permitieran estimar con mayor precisión la relación parcial entre educación y salario?
+
+**Conexión con lo aprendido.** En el Ejercicio 3 de la Tarea 1 estudiaste la insesgadez y la precisión de los estimadores de la regresión simple. En el Ejercicio 4 de la Tarea 2 comparaste las varianzas de estimadores de regresión múltiple cuando los regresores comparten información. ¿Por qué no hay contradicción entre que la regresión reducida produzca una pendiente más precisa y que esta pendiente ya no estime de manera insesgada el mismo parámetro?
+
+**¿Qué has aprendido?** Eliminar un regresor puede reducir la varianza de una pendiente, pero también cambiar su esperanza y generar sesgo. La comparación entre estimadores requiere distinguir el parámetro de interés, la precisión y el sesgo. La decisión de conservar o eliminar variables no puede basarse únicamente en mejorar un indicador de multicolinealidad.
