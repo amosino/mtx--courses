@@ -1,0 +1,795 @@
+---
+title: "Econometría"
+subtitle: "Formas funcionales y modelos no lineales"
+author: "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v.2026.11.13"
+
+params:
+  material_completo: false
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output:
+  ioslides_presentation:
+    self_contained: true
+    widescreen: true
+    smaller: true
+    transition: 0
+    slide_level: 3
+    css: ../src/custom.css
+---
+
+<a class="pdf-footer" href="MTX1--05--Formas_Funcionales.pdf" target="_blank">
+  PDF
+</a>
+
+```{r preparacion, include=FALSE}
+library(ggplot2)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE,
+                      fig.width = 9, fig.height = 4, out.width = "92%")
+
+# Bases de los ejemplos econométricos del capítulo.
+alimentos <- read.csv("../data/foodexp.csv", fileEncoding = "UTF-8-BOM")
+pib <- read.csv("../data/uspibreal.csv", fileEncoding = "UTF-8-BOM")
+produccion <- read.csv("../data/usproduction.csv", fileEncoding = "UTF-8-BOM")
+andy <- read.csv("../data/andy.csv", fileEncoding = "UTF-8-BOM")
+vida <- read.csv("../data/lexpectancy.csv", fileEncoding = "UTF-8-BOM")
+
+m_alimentos_log <- lm(sfdho ~ log(expend), data = alimentos)
+m_alimentos_inv <- lm(sfdho ~ I(1/expend), data = alimentos)
+m_pib_log <- lm(log(rgdp) ~ time, data = pib)
+m_pib_cuad <- lm(log(rgdp) ~ time + I(time^2), data = pib)
+m_produccion <- lm(log(output) ~ log(labor) + log(capital), data = produccion)
+m_andy_base <- lm(sales ~ price + advert, data = andy)
+m_andy_inter <- lm(sales ~ price * advert, data = andy)
+m_vida_lineal <- lm(life_exp ~ rgdp, data = vida)
+m_vida_rec <- lm(life_exp ~ I(1/rgdp), data = vida)
+
+# Verificamos que las estimaciones reproduzcan las del material original.
+stopifnot(nrow(alimentos) == 869, nrow(pib) == 48, nrow(produccion) == 51,
+          nrow(andy) == 75, nrow(vida) == 223)
+stopifnot(abs(unname(coef(m_alimentos_log)[2]) + 0.0777372) < 1e-5)
+stopifnot(abs(unname(coef(m_pib_cuad)[3]) + 0.000103304) < 1e-6)
+stopifnot(abs(unname(coef(m_andy_inter)[4]) + 0.8638302) < 1e-5)
+stopifnot(abs(unname(coef(m_vida_lineal)[1]) - 67.2993340) < 1e-5)
+stopifnot(abs(unname(coef(m_vida_rec)[2]) + 19263.0720) < 1e-2)
+
+# Resultados y contrastes preparados para la explicación del profesor.
+produccion_crs <- unname(sum(coef(m_produccion)[2:3]))
+var_crs <- sum(vcov(m_produccion)[2:3, 2:3])
+t_crs <- (produccion_crs - 1) / sqrt(var_crs)
+p_crs <- 2 * pt(abs(t_crs), df = df.residual(m_produccion), lower.tail = FALSE)
+t_giro_pib <- -coef(m_pib_cuad)[2] / (2 * coef(m_pib_cuad)[3])
+
+fmt <- function(x, dig = 4) formatC(x, format = "f", digits = dig)
+``` 
+
+
+## ¿Es suficiente una relación lineal?
+
+### Volvamos a una pregunta conocida
+
+¿Recuerdas cómo era la asociación entre el ingreso per cápita y la esperanza de vida?
+
+```{r figura-apertura-rls, fig.height=3.5, out.width="50%"}
+p_vida <- ggplot(vida, aes(x = rgdp, y = life_exp)) +
+  geom_point(color = "#F8766D", alpha = 0.6, size = 2) +
+  scale_x_continuous(labels = scales::dollar_format()) +
+  labs(
+    x = "Ingreso per cápita (USD)",
+    y = "Esperanza de vida (años)"
+  ) +
+  theme_minimal(base_size = 15)
+
+p_vida +
+  geom_smooth(
+    method = "lm", formula = y ~ x,
+    se = FALSE, color = "black",
+    linetype = "dashed", linewidth = 1.1
+  )
+```
+
+> La asociación entre ambas variables fue representada mediante una línea recta. ¿Que significa esto?
+
+### ¿Qué suponía nuestra recta?
+
+Recordemos el modelo de regresión lineal simple:
+
+$$
+y_i=\beta_1+\beta_2x_i+u_i
+$$
+Cuando suponemos que $E(u_i)=0$, tenemos:
+
+$$
+\begin{align}
+m(x)&=E(y_i)\\
+&=\beta_1+\beta_2x
+\ \Rightarrow \ \frac{dm(x)}{dx}=\beta_2
+\end{align}
+$$
+
+> La pendiente es constante: un mismo incremento del ingreso se asocia con el mismo cambio en la esperanza de vida, independientemente del ingreso inicial.
+
+### ¿Y si la pendiente cambia?
+
+
+<div style="display:flex; align-items:flex-start; gap:24px;">
+
+<div style="flex:1;">
+
+- ¿Es razonable suponer que un aumento de $1,000 en el ingreso per cápita se asocia con el mismo cambio en la esperanza de vida de países pobres y ricos?
+
+- La relación podría ser más pronunciada entre países de ingresos bajos y menos pronunciada entre países de ingresos elevados.
+
+
+</div>
+
+<div style="flex:1;">
+
+```{r figura-apertura-comparacion, fig.height=3.5, out.width="100%"}
+p_vida +
+  geom_smooth(
+    aes(linetype = "Recta"),
+    method = "lm", formula = y ~ x,
+    se = FALSE, color = "black", linewidth = 1.1
+  ) +
+  geom_smooth(
+    aes(linetype = "Curva alternativa"),
+    method = "lm", formula = y ~ log(x),
+    se = FALSE, color = "#00BFC4", linewidth = 1.1
+  ) +
+  scale_linetype_manual(
+    values = c("Recta" = "dashed",
+               "Curva alternativa" = "solid")
+  ) +
+  labs(linetype = NULL) +
+  theme(legend.position = "bottom")
+```
+
+</div>
+</div>
+
+
+> ¿Cómo podemos representar y estimar relaciones económicas más flexibles?
+
+## Linealidad en los parámetros
+
+### Una relación no lineal también puede estimarse por MCO
+
+Consideremos:
+
+$$
+y_i=\beta_1+\beta_2x_{2i}^2+\beta_3\sqrt{x_{3i}}+\beta_4\ln(x_{4i})+u_i.
+$$
+
+Aunque la función es no lineal en las variables, los parámetros aparecen linealmente.
+
+> La regresión lineal requiere **linealidad en los parámetros**, no necesariamente en las variables.
+
+
+### Redefiniendo los regresores
+
+Definamos:
+
+$$
+z_{2i}=x_{2i}^2,\qquad z_{3i}=\sqrt{x_{3i}},\qquad
+z_{4i}=\ln(x_{4i}).
+$$
+
+Entonces:
+
+$$
+y_i=\beta_1+\beta_2z_{2i}+\beta_3z_{3i}+\beta_4z_{4i}+u_i.
+$$
+
+La estimación por MCO sigue siendo posible, siempre que las transformaciones estén definidas y se satisfagan los supuestos pertinentes.
+
+> Transformar los regresores no implica abandonar el modelo lineal.
+
+
+### ¿Y si los parámetros aparecen de forma no lineal?
+
+Consideremos:
+
+$$
+y_i=\beta_1x_{2i}^{\beta_2}+u_i.
+$$
+
+El exponente $\beta_2$ es un parámetro desconocido. No podemos redefinir $x_{2i}^{\beta_2}$ como un regresor conocido.
+
+> Este modelo, con error aditivo en niveles, no se estima directamente por MCO lineal.*
+
+
+### ¿Podemos transformar también la variable dependiente?
+
+Consideremos, en cambio, un modelo con un _error multiplicativo_:
+
+$$
+y_i=A x_{2i}^{\beta_2}e^{u_i},\qquad A>0,\ x_{2i}>0.
+$$
+
+Aplicando logaritmos, para $y_i>0$:
+
+$$
+\ln(y_i)=\beta_1^*+\beta_2\ln(x_{2i})+u_i.
+$$
+
+> Transformar el modelo también exige considerar cómo se especifica el término de error.
+
+
+## Modelos logarítmicos
+
+### ¿Por qué utilizar logaritmos?
+
+En algunas relaciones económicas estamos interesados en estudiar _cambios absolutos_; en otras, _cambios proporcionales_. Por ejemplo:
+
+- ¿Cómo cambia la esperanza de vida de los países cuando cambia el ingreso per cápita?
+
+- ¿En qué porcentaje cambia la esperanza de vida cuando cambia el ingreso per cápita en 1 %?
+
+- ¿En cuántos años cambia la esperanza de vida cuando cambia el ingreso per cápita en 1 %?
+
+
+Como veremos, para responder a estas preguntas hacemos una transformación logarítmica. Es imporante destacar que _la transformación elegida debe responder a la pregunta económica y ser compatible con los datos_.
+
+
+### Modelo log-log: elasticidad constante
+
+Consideremos:
+
+$$
+\ln(y_i)=\beta_1+\beta_2\ln(x_{2i})+u_i,
+\qquad y_i>0,\ x_{2i}>0.
+$$
+
+Sea $g(x_2)$ la parte sistemática del modelo en niveles: $g(x_2)=\exp(\beta_1)x_2^{\beta_2}$. Entonces:
+
+$$
+\varepsilon_{g,x_2}
+=\frac{dg}{dx_2}\frac{x_2}{g(x_2)}
+=\frac{d\ln g}{d\ln x_2}=\beta_2.
+$$
+
+Por tanto, $\beta_2$ es la **elasticidad** de esa función respecto de $x_2$.
+
+> ¡Un aumento pequeño del 1% en $x_2$ corresponde aproximadamente a un cambio de $\beta_2$% en $g(x_2)$!
+
+
+### Ejemplo: función de producción Cobb-Douglas
+
+Considera, por ejemplo, la estimación de una función de producción Cobb-Douglas para 51 observaciones de los Estados Unidos:
+
+
+$$
+\widehat{\ln(output)}
+=3.8876+0.4683\ln(labor)+0.5213\ln(capital).
+$$
+
+- Elasticidad respecto del trabajo: $0.4683$, manteniendo constante el capital.
+- Elasticidad respecto del capital: $0.5213$, manteniendo constante el trabajo.
+- Además, nota que $b_2+b_3=0.9896$. 
+
+
+> ¿Que la suma de los coeficientes sea cercana a uno basta para afirmar que existen rendimientos constantes a escala?
+
+
+### Modelo log-lin: semielasticidad constante
+
+Consideremos:
+
+$$
+\ln(y_i)=\beta_1+\beta_2x_{2i}+u_i,
+\qquad y_i>0.
+$$
+
+Sea $g(x_2)$ la parte sistemática del modelo en niveles. Aquí $g(x_2)=\exp(\beta_1+\beta_2x_2)$. En este caso:
+
+$$
+\frac{1}{g(x_2)}\frac{dg}{dx_2}
+=\beta_2,
+\qquad
+\varepsilon_{g,x_2}=\beta_2x_2.
+$$
+
+Un incremento unitario de $x_2$ se asocia con una variación *aproximada* de $100\beta_2$% en $g$. La variación porcentual *exacta* implícita en la función exponencial del componente sistemático es:
+
+$$
+100(e^{\beta_2}-1)\%.
+$$
+
+
+### Ejemplo: crecimiento del PIB
+
+Consideremos, por ejemplo, la estimación del PIB real de los Estados Unidos. Si consideramos los 48 periodos observados:
+
+$$
+\widehat{\ln(PIB)}=7.87566+0.0314896\,t.
+$$
+
+El crecimiento porcentual aproximado de la función exponencial entre periodos consecutivos es:
+
+$$
+100b_2\approx3.15\%,
+$$
+
+mientras que el cambio exacto es:
+
+$$
+100(e^{0.0314896}-1)\approx3.20\%.
+$$
+
+*La especificación impone una tasa de crecimiento proporcional constante por periodo.*
+
+
+### Modelo lin-log: cambios absolutos y proporcionales
+
+Consideremos:
+
+$$
+y_i=\beta_1+\beta_2\ln(x_{2i})+u_i,
+\qquad x_{2i}>0.
+$$
+
+Para $m(x_2)=\beta_1+\beta_2\ln(x_2)$:
+
+$$
+\frac{dm}{dx_2}=\frac{\beta_2}{x_2},\qquad
+\frac{dm}{d\ln(x_2)}=\beta_2.
+$$
+
+Un incremento pequeño del 1% en $x_2$ se asocia aproximadamente con un cambio de $\beta_2/100$ unidades de $y$.
+
+
+### Ejemplo: participación del gasto alimentario
+
+Considera la proporción del gasto total destinada a alimentos en función del logaritmo del gasto total:
+
+
+$$
+\widehat{sfdho}=0.930387-0.0777372\ln(expend).
+$$
+
+
+Un aumento del 1% en el gasto total del hogar se asocia con una disminución aproximada de la proporción destinada a alimentos:
+
+$$
+\Delta\widehat{sfdho}\approx-0.0777372(0.01)=-0.0007774.
+$$
+
+Como $sfdho$ es una proporción, esto equivale a una reducción de aproximadamente **0.078 puntos porcentuales** en la participación del gasto alimentario.
+
+> ¿Significa esto que los hogares con mayor gasto destinan menos dinero a alimentos?
+
+
+## Modelo recíproco
+
+### ¿Puede una relación aproximarse a un límite?
+
+Consideremos la relación entre ingreso per cápita y esperanza de vida. ¿Esperamos que un aumento del ingreso produzca siempre la misma mejora en la esperanza de vida?
+
+Como hemos dicho: es posible que las mejoras sean mayores cuando el ingreso inicial es bajo y cada vez menores cuando aumenta.
+
+> ¿Qué especificación nos permitiría representar una relación que se aproxima a un límite?
+
+
+### Modelo recíproco
+
+El **modelo recíproco** se escribe:
+
+$$
+y_i=\beta_1+\beta_2\frac{1}{x_i}+u_i,\qquad x_i>0.
+$$
+
+Este modelo puede estimarse por MCO si definimos a $z_i=1/x_i$. Nota que, para $m(x)=\beta_1+\beta_2/x$:
+
+$$
+\frac{dm(x)}{dx}=-\frac{\beta_2}{x^2},
+\qquad
+\lim_{x\to\infty}m(x)=\beta_1.
+$$
+
+Si $\beta_2<0$, la función es creciente y su pendiente disminuye cuando aumenta $x$. Además, *¡la parte sistemática se aproxima a $\beta_1$!*
+
+
+### Ejemplo: participación del gasto alimentario
+
+
+Considera nuevamente la estimación del gasto en alimentos en función del gasto total. Ahora tenemos:
+
+$$
+\widehat{sfdho}=0.077263+\frac{1331.34}{expend}.
+$$
+
+Para $expend>0$, el efecto marginal es negativo:
+
+$$
+\frac{d\widehat{sfdho}}{d(expend)}
+=-\frac{1331.34}{expend^2}.
+$$
+
+Y la función estimada se aproxima a $0.077263$, es decir, cerca de **7.73% del gasto total**.
+
+*Es una implicación de la especificación, no un límite económico demostrado.*
+
+
+### Esperanza de vida e ingreso
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Considera el modelo de ingreso per cápita como variable explicativa de la esperanza de vida. Antes encontramos: 
+
+$$
+\widehat{\text{Esperanza de vida}}_i = 67.35 + 0.00024\text{Ingreso per cápita}_i
+$$
+
+Pero, si consideramos el modelo recíproco:
+
+$$
+\widehat{\text{Esperanza de vida}}_i=76.0391-\frac{19263.07}{\text{Ingreso per cápita}_i}.
+$$
+
+Grafica ambas líneas junto con los datos. ¿Cuál parece ser un mejor modelo? Compara e interpreta.
+
+```{r figura-vida, fig.height=2.5, include=FALSE}
+# La figura muestra los datos y las dos relaciones estimadas.
+# Acotamos el eje al percentil 98 de ingreso por legibilidad.
+limite_vida <- unname(quantile(vida$rgdp, .98))
+red_vida <- data.frame(rgdp = seq(min(vida$rgdp), limite_vida, length.out = 200))
+curvas_vida <- rbind(
+  data.frame(rgdp = red_vida$rgdp, ajuste = predict(m_vida_lineal, red_vida),
+             modelo = "Lineal"),
+  data.frame(rgdp = red_vida$rgdp, ajuste = predict(m_vida_rec, red_vida),
+             modelo = "Recíproco")
+)
+ggplot(vida, aes(rgdp, life_exp)) +
+  geom_point(alpha = .35, size = 1) +
+  geom_line(data = curvas_vida, aes(x = rgdp, y = ajuste, linetype = modelo),
+            linewidth = 1, inherit.aes = FALSE) +
+  coord_cartesian(xlim = c(min(vida$rgdp), limite_vida)) +
+  labs(x = "Ingreso (rgdp)", y = "Esperanza de vida (años)", linetype = NULL) +
+  theme_minimal(base_size = 11) + theme(legend.position = "bottom")
+```
+
+```{r corte-temporal, echo=FALSE, results='asis'}
+# Ocultación temporal: cambiar material_completo a true en el YAML y recompilar
+# para reactivar TODO el contenido posterior y retirar la diapositiva de aviso.
+if (!isTRUE(params$material_completo)) {
+  cat("\n\n### Material en preparación\n\n",
+      "Las siguientes secciones de este capítulo aún están en revisión ",
+      "y se incorporarán próximamente.\n\n", sep = "")
+  knitr::knit_exit(append = "")
+}
+```
+
+## Modelos polinómicos
+
+### ¿Puede cambiar el efecto con el nivel de la variable?
+
+En el modelo log-lin del PIB:
+
+$$
+\ln(PIB_i)=\beta_1+\beta_2t_i+u_i,
+$$
+
+la pendiente de la parte sistemática en logaritmos es constante:
+
+$$
+\frac{dm(t)}{dt}=\beta_2.
+$$
+
+*¿Qué ocurre si la tasa de crecimiento se acelera o desacelera con el tiempo?*
+
+
+### El modelo cuadrático
+
+El **modelo cuadrático** se especifica como:
+
+$$
+y_i=\beta_1+\beta_2x_{2i}+\beta_3x_{2i}^2+u_i.
+$$
+
+Es lineal en los parámetros y puede estimarse mediante MCO. Su efecto marginal es:
+
+$$
+\frac{dm(x_2)}{dx_2}=\beta_2+2\beta_3x_2.
+$$
+
+$\beta_2$ representa el efecto marginal cuando $x_2=0$; $\beta_3$ determina cómo cambia ese efecto.
+
+*La pendiente ya no es constante.*
+
+
+### Curvatura y puntos de máximo o mínimo
+
+La segunda derivada es:
+
+$$
+\frac{d^2m(x_2)}{dx_2^2}=2\beta_3.
+$$
+
+- $\beta_3<0$: función cóncava.
+- $\beta_3>0$: función convexa.
+
+El efecto marginal es cero cuando:
+
+$$
+x_2^*=-\frac{\beta_2}{2\beta_3},\qquad \beta_3\neq0.
+$$
+
+*Un punto de giro fuera del intervalo observado no significa que hayamos encontrado un máximo o mínimo en la muestra.*
+
+
+### Ejemplo: crecimiento del PIB
+
+El modelo cuadrático estimado con los 48 periodos es:
+
+$$
+\widehat{\ln(PIB)}
+=7.83348+0.0365515t-0.000103304t^2.
+$$
+
+La pendiente de esta función en logaritmos es:
+
+$$
+\frac{d\widehat{\ln(PIB)}}{dt}
+=0.0365515-0.000206608t.
+$$
+
+La tasa instantánea implícita disminuye de aproximadamente $3.63\%$ ($t=1$) a $2.66\%$ ($t=48$).
+
+El máximo matemático está cerca de $t=176.9$, **fuera de la muestra**.
+
+```{r figura-pib, fig.height=2.5}
+pred_pib <- data.frame(
+  time = pib$time,
+  log_pib = log(pib$rgdp),
+  loglin = predict(m_pib_log),
+  cuad = predict(m_pib_cuad)
+)
+lineas_pib <- rbind(
+  data.frame(time = pred_pib$time, valor = pred_pib$loglin, modelo = "Log-lin"),
+  data.frame(time = pred_pib$time, valor = pred_pib$cuad, modelo = "Cuadrático")
+)
+ggplot() +
+  geom_point(data = pred_pib, aes(time, log_pib), alpha = .45, size = 1) +
+  geom_line(data = lineas_pib, aes(time, valor, linetype = modelo), linewidth = .9) +
+  labs(x = "Periodo", y = "Logaritmo del PIB real", linetype = NULL) +
+  theme_minimal(base_size = 12) + theme(legend.position = "bottom")
+```
+
+
+### Polinomios de grado superior
+
+También podemos plantear un **polinomio cúbico**:
+
+$$
+y_i=\beta_1+\beta_2x_{2i}+\beta_3x_{2i}^2
++\beta_4x_{2i}^3+u_i.
+$$
+
+Su efecto marginal es:
+
+$$
+\frac{dm(x_2)}{dx_2}
+=\beta_2+2\beta_3x_2+3\beta_4x_2^2.
+$$
+
+Estos modelos siguen siendo lineales en los parámetros.
+
+*Más flexibilidad no implica automáticamente una mejor especificación.*
+
+
+### ¿Cuándo conviene introducir un polinomio?
+
+Un término cuadrático permite estudiar si la pendiente cambia con el nivel del regresor. Podemos contrastar:
+
+$$
+H_0:\beta_3=0.
+$$
+
+Pero debemos valorar también:
+
+- ¿Existe una razón económica para admitir curvatura?
+- ¿Cómo se comporta la función dentro de la muestra?
+- ¿Qué tan precisas son las estimaciones? ¿Existe multicolinealidad importante?
+
+> Incorporar potencias indiscriminadamente no equivale a mejorar la especificación.
+
+
+## Modelos con interacciones
+
+### ¿Puede el efecto de una variable depender de otra?
+
+Recordemos la relación entre precio, publicidad y ventas estudiada en RLM.
+
+Hasta ahora, el efecto parcial del precio se suponía constante al mantener fija la publicidad.
+
+> ¿Podría la publicidad modificar la relación entre precio y ventas?
+
+
+### El modelo con interacciones
+
+Incorporamos una **interacción** entre dos regresores:
+
+$$
+y_i=\beta_1+\beta_2x_{2i}+\beta_3x_{3i}
++\beta_4x_{2i}x_{3i}+u_i.
+$$
+
+Con $z_i=x_{2i}x_{3i}$, el modelo sigue siendo lineal en los parámetros y puede estimarse por MCO.
+
+*La interacción permite que el efecto parcial de un regresor dependa del nivel de otro.*
+
+
+### Interpretación de los efectos parciales
+
+Para:
+
+$$
+m(x_2,x_3)=\beta_1+\beta_2x_2+\beta_3x_3+\beta_4x_2x_3,
+$$
+
+obtenemos:
+
+$$
+\frac{\partial m}{\partial x_2}=\beta_2+\beta_4x_3,
+\qquad
+\frac{\partial m}{\partial x_3}=\beta_3+\beta_4x_2.
+$$
+
+Y la derivada cruzada:
+
+$$
+\frac{\partial^2m}{\partial x_2\partial x_3}=\beta_4.
+$$
+
+*Los coeficientes $\beta_2$ y $\beta_3$ corresponden a efectos parciales cuando el otro regresor vale cero.*
+
+
+### Ejemplo: precio, publicidad y ventas
+
+Con 75 observaciones de `andy.csv`, estimamos:
+
+$$
+\widehat{ventas}=109.2694-6.2205\,precio+6.8067\,publicidad
+-0.8638\,(precio\times publicidad).
+$$
+
+Para niveles de publicidad de $1.1$ y $2.7$, el efecto parcial estimado del precio es $-7.17$ y $-8.55$, respectivamente.
+
+```{r figura-interaccion, fig.height=2.8}
+# Rectas estimadas al fijar publicidad en dos niveles observados.
+niveles_pub <- unname(quantile(andy$advert, c(.25, .75)))
+red_precio <- seq(min(andy$price), max(andy$price), length.out = 100)
+lineas_andy <- do.call(rbind, lapply(niveles_pub, function(a) {
+  nuevos <- data.frame(price = red_precio, advert = a)
+  data.frame(price = red_precio, sales = predict(m_andy_inter, nuevos),
+             nivel = paste("Publicidad =", a))
+}))
+ggplot(andy, aes(price, sales)) +
+  geom_point(alpha = .30, size = 1) +
+  geom_line(data = lineas_andy, aes(x = price, y = sales, linetype = nivel),
+            linewidth = 1, inherit.aes = FALSE) +
+  labs(x = "Precio", y = "Ventas", linetype = NULL) +
+  theme_minimal(base_size = 11) + theme(legend.position = "bottom")
+```
+
+*Las pendientes pueden cambiar, pero debemos evaluar la precisión de esa diferencia.*
+
+### Inferencia sobre los efectos parciales
+
+Podemos evaluar si la relación entre precio y ventas depende de la publicidad:
+
+$$
+H_0:\beta_4=0.
+$$
+
+En el ejemplo, el coeficiente de interacción es $b_4=-0.8638$, con valor $p=0.495$.
+
+*No rechazamos la hipótesis de ausencia de interacción al 5%; esto no demuestra que el efecto sea exactamente cero.*
+
+También podemos evaluar el efecto parcial del precio cuando $publicidad=a$:
+
+$$
+H_0:\beta_2+a\beta_4=0.
+$$
+
+Es una **restricción lineal** cuya varianza depende de ambos estimadores y de su covarianza.
+
+### ¿Cuándo conviene introducir una interacción?
+
+Antes de incorporar una interacción debemos preguntarnos:
+
+- ¿Por qué esperamos que una variable modifique la relación entre otras dos?
+- ¿Cómo cambia la interpretación de los coeficientes?
+- ¿Nuestros datos permiten estimar y evaluar los efectos parciales pertinentes?
+
+En general, conservaremos también los dos términos principales, a menos que exista una justificación para restringirlos.
+
+> Una interacción debe responder a una hipótesis económica, no al deseo de complicar el modelo.
+
+
+## ¿Cómo elegir una forma funcional?
+
+### ¿Qué debemos considerar?
+
+La especificación debe responder a la pregunta que queremos estudiar:
+
+- ¿Qué relación económica pretendemos representar?
+- ¿Qué restricciones impone la forma funcional sobre los efectos marginales y las elasticidades?
+- ¿Qué evidencia aportan los datos para evaluar la relación?
+
+*No existe una especificación universalmente adecuada para todas las relaciones económicas.*
+
+
+### Una relación económica, dos especificaciones
+
+Para la participación del gasto alimentario, con $expend>0$:
+
+$$
+\begin{aligned}
+\text{Lin-log:}\quad
+\widehat{sfdho}&=0.930387-0.0777372\ln(expend),\\[0.3em]
+\text{Recíproco:}\quad
+\widehat{sfdho}&=0.077263+\frac{1331.34}{expend}.
+\end{aligned}
+$$
+
+Ambas representan relaciones decrecientes con pendientes de magnitud cada vez menor.
+
+*Solo el recíproco impone una asíntota horizontal finita al crecer el gasto.*
+
+
+### ¿Qué nos dice la evidencia?
+
+Ambos modelos emplean la misma variable dependiente y 869 observaciones.
+
+```{r tabla-ajuste, results='asis'}
+tabla_ajuste <- data.frame(
+  Modelo = c("Lin-log", "Recíproco"),
+  `R²` = sprintf("%.4f", c(summary(m_alimentos_log)$r.squared,
+                          summary(m_alimentos_inv)$r.squared)),
+  `R² ajustada` = sprintf("%.4f", c(summary(m_alimentos_log)$adj.r.squared,
+                                  summary(m_alimentos_inv)$adj.r.squared)),
+  check.names = FALSE
+)
+knitr::kable(tabla_ajuste, format = "html", row.names = FALSE)
+```
+
+```{r figura-alimentos, fig.height=3.0}
+red <- data.frame(expend = seq(min(alimentos$expend),
+                                quantile(alimentos$expend, .98), length.out = 200))
+red$linlog <- predict(m_alimentos_log, newdata = red)
+red$recip <- predict(m_alimentos_inv, newdata = red)
+trazas <- rbind(data.frame(expend = red$expend, cuota = red$linlog, modelo = "Lin-log"),
+                data.frame(expend = red$expend, cuota = red$recip, modelo = "Recíproco"))
+ggplot() +
+  geom_point(data = subset(alimentos, expend <= quantile(expend, .98)),
+             aes(expend, sfdho), alpha = .18, size = .8) +
+  geom_line(data = trazas, aes(expend, cuota, linetype = modelo), linewidth = 1) +
+  labs(x = "Gasto total del hogar", y = "Participación destinada a alimentos", linetype = NULL) +
+  theme_minimal(base_size = 13) + theme(legend.position = "bottom")
+```
+
+*Un ajuste ligeramente mayor no garantiza una especificación económicamente adecuada.*
+
+
+## Resumen
+
+### ¿Qué hemos aprendido?
+
+- Los modelos lineales en los parámetros permiten representar relaciones económicas más flexibles sin abandonar necesariamente MCO.
+- La forma funcional determina cómo se interpretan los coeficientes, efectos marginales y elasticidades.
+- Las transformaciones, los polinomios y las interacciones requieren una justificación económica y empírica.
+
+> Una buena especificación responde a la pregunta y reconoce lo que los datos permiten concluir.
+
+
+### ¿Qué sigue?
+
+Hasta ahora hemos utilizado principalmente regresores cuantitativos. ¿Cómo incorporar características cualitativas como el tipo de empresa, el grupo de trabajadores o la región?
+
+Las **variables dummy** nos permitirán incorporar estas características, estudiar diferencias entre grupos y ampliar nuevamente las posibilidades de especificación.
+
+> Una nueva herramienta para construir modelos que representen mejor las relaciones económicas.
