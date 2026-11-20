@@ -5,7 +5,7 @@ author: "Alejandro Mosiño - _Universidad de Guanajuato_"
 date: "v.2026.11.13"
 
 params:
-  material_completo: false
+  material_completo: true
 
 knit: (function(inputFile, encoding) {
   rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
@@ -451,16 +451,7 @@ ggplot(vida, aes(rgdp, life_exp)) +
   theme_minimal(base_size = 11) + theme(legend.position = "bottom")
 ```
 
-```{r corte-temporal, echo=FALSE, results='asis'}
-# Ocultación temporal: cambiar material_completo a true en el YAML y recompilar
-# para reactivar TODO el contenido posterior y retirar la diapositiva de aviso.
-if (!isTRUE(params$material_completo)) {
-  cat("\n\n### Material en preparación\n\n",
-      "Las siguientes secciones de este capítulo aún están en revisión ",
-      "y se incorporarán próximamente.\n\n", sep = "")
-  knitr::knit_exit(append = "")
-}
-```
+
 
 ## Modelos polinómicos
 
@@ -489,27 +480,27 @@ $$
 y_i=\beta_1+\beta_2x_{2i}+\beta_3x_{2i}^2+u_i.
 $$
 
-Es lineal en los parámetros y puede estimarse mediante MCO. Su efecto marginal es:
+Claramente, el modelo es lineal en los parámetros y puede estimarse mediante MCO. Pero nota que el efecto marginal de $x_{2i}$ es ahora:
 
 $$
 \frac{dm(x_2)}{dx_2}=\beta_2+2\beta_3x_2.
 $$
 
-$\beta_2$ representa el efecto marginal cuando $x_2=0$; $\beta_3$ determina cómo cambia ese efecto.
-
-*La pendiente ya no es constante.*
+Entonces, $\beta_2$ representa el efecto marginal cuando $x_2=0$; $\beta_3$ determina cómo cambia ese efecto. Esto es: *La pendiente ya no es constante.*
 
 
 ### Curvatura y puntos de máximo o mínimo
 
-La segunda derivada es:
+En el modelo cuadrático, la segunda derivada con respecto de $x_{2i} es:
 
 $$
 \frac{d^2m(x_2)}{dx_2^2}=2\beta_3.
 $$
 
-- $\beta_3<0$: función cóncava.
-- $\beta_3>0$: función convexa.
+Entonces, el efecto marginal es una:
+
+- función cóncava si $\beta_3<0$.
+- función convexa si $\beta_3>0$.
 
 El efecto marginal es cero cuando:
 
@@ -517,30 +508,20 @@ $$
 x_2^*=-\frac{\beta_2}{2\beta_3},\qquad \beta_3\neq0.
 $$
 
-*Un punto de giro fuera del intervalo observado no significa que hayamos encontrado un máximo o mínimo en la muestra.*
+Este es el punto de inflexión. Nota que *un punto de inflexión fuera del intervalo observado no significa que hayamos encontrado un máximo o mínimo en la muestra.*
 
 
 ### Ejemplo: crecimiento del PIB
 
-El modelo cuadrático estimado con los 48 periodos es:
+Consideremos un modelo cuadrático para el crecimiento del PIB en los EE.UU.
 
-$$
-\widehat{\ln(PIB)}
-=7.83348+0.0365515t-0.000103304t^2.
-$$
+<div style="display:flex; align-items:flex-start; gap:24px;">
 
-La pendiente de esta función en logaritmos es:
+<div style="flex:1;">
 
-$$
-\frac{d\widehat{\ln(PIB)}}{dt}
-=0.0365515-0.000206608t.
-$$
 
-La tasa instantánea implícita disminuye de aproximadamente $3.63\%$ ($t=1$) a $2.66\%$ ($t=48$).
 
-El máximo matemático está cerca de $t=176.9$, **fuera de la muestra**.
-
-```{r figura-pib, fig.height=2.5}
+```{r figura-pib}
 pred_pib <- data.frame(
   time = pib$time,
   log_pib = log(pib$rgdp),
@@ -558,31 +539,55 @@ ggplot() +
   theme_minimal(base_size = 12) + theme(legend.position = "bottom")
 ```
 
+$$
+\widehat{\ln(PIB)}
+=7.83348+0.0365515t-0.000103304t^2
+$$
+
+
+</div>
+
+<div style="flex:1;">
+
+- La pendiente de esta función en logaritmos es:
+
+$$
+\frac{d\widehat{\ln(PIB)}}{dt}
+=0.0365515-0.000206608t.
+$$
+
+- La tasa instantánea implícita disminuye de aproximadamente $3.63\%$ ($t=1$) a $2.66\%$ ($t=48$).
+
+- El máximo matemático está cerca de $t=176.9$, **fuera de la muestra**.
+
+</div>
+</div>
+
+
+
 
 ### Polinomios de grado superior
 
-También podemos plantear un **polinomio cúbico**:
+También podemos plantear modelos con polinomios mayores a dos. Por ejemplo, un **polinomio cúbico**:
 
 $$
 y_i=\beta_1+\beta_2x_{2i}+\beta_3x_{2i}^2
 +\beta_4x_{2i}^3+u_i.
 $$
 
-Su efecto marginal es:
+En esta caso, el efecto marginal de $x_{2i} es:
 
 $$
 \frac{dm(x_2)}{dx_2}
 =\beta_2+2\beta_3x_2+3\beta_4x_2^2.
 $$
 
-Estos modelos siguen siendo lineales en los parámetros.
-
-*Más flexibilidad no implica automáticamente una mejor especificación.*
+Estos modelos siguen siendo lineales en los parámetros y se pueden estimar por MCO.
 
 
 ### ¿Cuándo conviene introducir un polinomio?
 
-Un término cuadrático permite estudiar si la pendiente cambia con el nivel del regresor. Podemos contrastar:
+Un término cuadrático permite estudiar si la pendiente cambia con el nivel del regresor. Por supuesto, lo primero que queremos probar es:
 
 $$
 H_0:\beta_3=0.
@@ -594,43 +599,37 @@ Pero debemos valorar también:
 - ¿Cómo se comporta la función dentro de la muestra?
 - ¿Qué tan precisas son las estimaciones? ¿Existe multicolinealidad importante?
 
-> Incorporar potencias indiscriminadamente no equivale a mejorar la especificación.
+> Cuidado: Incorporar potencias indiscriminadamente no equivale a mejorar la especificación.
 
 
 ## Modelos con interacciones
 
 ### ¿Puede el efecto de una variable depender de otra?
 
-Recordemos la relación entre precio, publicidad y ventas estudiada en RLM.
+Recordemos la relación entre precio, publicidad y ventas que estudiamos antes. En regresión lineal múltiple suponíamos que el efecto parcial del precio es constante al mantener fija la publicidad.
 
-Hasta ahora, el efecto parcial del precio se suponía constante al mantener fija la publicidad.
 
-> ¿Podría la publicidad modificar la relación entre precio y ventas?
+Pero: _¿Podría la publicidad modificar la relación entre precio y ventas?_
 
 
 ### El modelo con interacciones
 
-Incorporamos una **interacción** entre dos regresores:
+Podemos incorporar una **interacción** entre dos regresores. Por ejemplo:
 
 $$
 y_i=\beta_1+\beta_2x_{2i}+\beta_3x_{3i}
 +\beta_4x_{2i}x_{3i}+u_i.
 $$
 
-Con $z_i=x_{2i}x_{3i}$, el modelo sigue siendo lineal en los parámetros y puede estimarse por MCO.
+Si definimos como $z_i=x_{2i}x_{3i}$, el modelo sigue siendo lineal en los parámetros y puede estimarse por MCO.
 
-*La interacción permite que el efecto parcial de un regresor dependa del nivel de otro.*
+> La interacción permite que el efecto parcial de un regresor dependa del nivel de otro.
 
 
 ### Interpretación de los efectos parciales
 
-Para:
+Nota que ahora:
 
-$$
-m(x_2,x_3)=\beta_1+\beta_2x_2+\beta_3x_3+\beta_4x_2x_3,
-$$
-
-obtenemos:
 
 $$
 \frac{\partial m}{\partial x_2}=\beta_2+\beta_4x_3,
@@ -644,21 +643,14 @@ $$
 \frac{\partial^2m}{\partial x_2\partial x_3}=\beta_4.
 $$
 
-*Los coeficientes $\beta_2$ y $\beta_3$ corresponden a efectos parciales cuando el otro regresor vale cero.*
+Entonces, _los coeficientes $\beta_2$ y $\beta_3$ corresponden a efectos parciales cuando el otro regresor vale cero._
 
 
 ### Ejemplo: precio, publicidad y ventas
 
-Con 75 observaciones de `andy.csv`, estimamos:
+En el ejemplo de Andy tenemos:
 
-$$
-\widehat{ventas}=109.2694-6.2205\,precio+6.8067\,publicidad
--0.8638\,(precio\times publicidad).
-$$
-
-Para niveles de publicidad de $1.1$ y $2.7$, el efecto parcial estimado del precio es $-7.17$ y $-8.55$, respectivamente.
-
-```{r figura-interaccion, fig.height=2.8}
+```{r figura-interaccion, out.width="50%"}
 # Rectas estimadas al fijar publicidad en dos niveles observados.
 niveles_pub <- unname(quantile(andy$advert, c(.25, .75)))
 red_precio <- seq(min(andy$price), max(andy$price), length.out = 100)
@@ -675,27 +667,28 @@ ggplot(andy, aes(price, sales)) +
   theme_minimal(base_size = 11) + theme(legend.position = "bottom")
 ```
 
-*Las pendientes pueden cambiar, pero debemos evaluar la precisión de esa diferencia.*
+$$
+\widehat{ventas}=109.2694-6.2205\,precio+6.8067\,publicidad
+-0.8638\,(precio\times publicidad).
+$$
+
+Para niveles de publicidad de $1.1$ y $2.7$, el efecto parcial estimado del precio es $-7.17$ y $-8.55$, respectivamente. Entonces, *las pendientes pueden cambiar, pero debemos evaluar la precisión de esa diferencia.*
 
 ### Inferencia sobre los efectos parciales
 
-Podemos evaluar si la relación entre precio y ventas depende de la publicidad:
+En el ejemplo de Andy, podemos evaluar si la relación entre precio y ventas depende de la publicidad. Para esto establecemos:
 
 $$
 H_0:\beta_4=0.
 $$
 
-En el ejemplo, el coeficiente de interacción es $b_4=-0.8638$, con valor $p=0.495$.
+De la regresión obtenemos que $b_4=-0.8638$, con valor $p=0.495$. (¿Qué significa esto?)
 
-*No rechazamos la hipótesis de ausencia de interacción al 5%; esto no demuestra que el efecto sea exactamente cero.*
-
-También podemos evaluar el efecto parcial del precio cuando $publicidad=a$:
+También podemos evaluar el efecto parcial del precio cuando $publicidad=a$. Para esto establecemos:
 
 $$
 H_0:\beta_2+a\beta_4=0.
 $$
-
-Es una **restricción lineal** cuya varianza depende de ambos estimadores y de su covarianza.
 
 ### ¿Cuándo conviene introducir una interacción?
 
@@ -736,9 +729,7 @@ $$
 \end{aligned}
 $$
 
-Ambas representan relaciones decrecientes con pendientes de magnitud cada vez menor.
-
-*Solo el recíproco impone una asíntota horizontal finita al crecer el gasto.*
+Ambas representan relaciones decrecientes con pendientes de magnitud cada vez menor. Sin embargo, *solo el recíproco impone una asíntota horizontal finita al crecer el gasto.*
 
 
 ### ¿Qué nos dice la evidencia?
@@ -757,7 +748,7 @@ tabla_ajuste <- data.frame(
 knitr::kable(tabla_ajuste, format = "html", row.names = FALSE)
 ```
 
-```{r figura-alimentos, fig.height=3.0}
+```{r figura-alimentos, out.width="50%"}
 red <- data.frame(expend = seq(min(alimentos$expend),
                                 quantile(alimentos$expend, .98), length.out = 200))
 red$linlog <- predict(m_alimentos_log, newdata = red)
@@ -788,8 +779,17 @@ ggplot() +
 
 ### ¿Qué sigue?
 
-Hasta ahora hemos utilizado principalmente regresores cuantitativos. ¿Cómo incorporar características cualitativas como el tipo de empresa, el grupo de trabajadores o la región?
-
-Las **variables dummy** nos permitirán incorporar estas características, estudiar diferencias entre grupos y ampliar nuevamente las posibilidades de especificación.
+Hasta ahora hemos utilizado principalmente regresores cuantitativos. ¿Cómo incorporar características cualitativas como el tipo de empresa, el grupo de trabajadores o la región? Las **variables dummy** nos permitirán incorporar estas características, estudiar diferencias entre grupos y ampliar nuevamente las posibilidades de especificación.
 
 > Una nueva herramienta para construir modelos que representen mejor las relaciones económicas.
+
+```{r corte-temporal, echo=FALSE, results='asis'}
+# Ocultación temporal: cambiar material_completo a true en el YAML y recompilar
+# para reactivar TODO el contenido posterior y retirar la diapositiva de aviso.
+if (!isTRUE(params$material_completo)) {
+  cat("\n\n### Material en preparación\n\n",
+      "Las siguientes secciones de este capítulo aún están en revisión ",
+      "y se incorporarán próximamente.\n\n", sep = "")
+  knitr::knit_exit(append = "")
+}
+```
