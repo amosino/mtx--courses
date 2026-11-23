@@ -486,12 +486,12 @@ $$
 \frac{dm(x_2)}{dx_2}=\beta_2+2\beta_3x_2.
 $$
 
-Entonces, $\beta_2$ representa el efecto marginal cuando $x_2=0$; $\beta_3$ determina cómo cambia ese efecto. Esto es: *La pendiente ya no es constante.*
+Entonces, $\beta_2$ representa el efecto marginal cuando $x_2=0$; $\beta_3$ determina cómo cambia ese efecto. Esto es: *la pendiente ya no es constante.*
 
 
 ### Curvatura y puntos de máximo o mínimo
 
-En el modelo cuadrático, la segunda derivada con respecto de $x_{2i} es:
+En el modelo cuadrático, la segunda derivada con respecto de $x_{2i}$ es:
 
 $$
 \frac{d^2m(x_2)}{dx_2^2}=2\beta_3.
@@ -575,7 +575,7 @@ y_i=\beta_1+\beta_2x_{2i}+\beta_3x_{2i}^2
 +\beta_4x_{2i}^3+u_i.
 $$
 
-En esta caso, el efecto marginal de $x_{2i} es:
+En esta caso, el efecto marginal de $x_{2i}$ es:
 
 $$
 \frac{dm(x_2)}{dx_2}
