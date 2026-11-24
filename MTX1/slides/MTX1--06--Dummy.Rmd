@@ -1,0 +1,789 @@
+---
+title: "Econometría"
+subtitle: "Variables dummy"
+author: "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v.2026.11.24"
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output:
+  ioslides_presentation:
+    self_contained: true
+    widescreen: true
+    smaller: true
+    transition: 0
+    slide_level: 3
+    css: ../src/custom.css
+---
+
+<a class="pdf-footer" href="MTX1--06--Dummy.pdf" target="_blank">
+  PDF
+</a>
+
+```{r preparacion, include=FALSE}
+library(ggplot2)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE,
+                      fig.width = 9, fig.height = 3.2, out.width = "85%",
+                      fig.align = "center")
+
+# Gujarati, Econometrics by Example, tabla 1.2. CPS, marzo de 1995.
+wages <- read.csv("../data/wages.csv", fileEncoding = "UTF-8-BOM")
+vars <- c("obs", "wage", "female", "nonwhite", "union", "education", "exper", "age")
+stopifnot(all(vars %in% names(wages)), nrow(wages) == 1289L,
+          !anyNA(wages[vars]), !anyDuplicated(wages$obs),
+          all(vapply(wages[vars], is.numeric, logical(1))),
+          all(is.finite(as.matrix(wages[vars]))), all(wages$wage > 0),
+          all(wages$exper == wages$age - wages$education - 6),
+          all(vapply(wages[c("female", "nonwhite", "union")],
+                     function(x) all(x %in% c(0, 1)), logical(1))))
+
+# Etiquetas de los indicadores originales (no una clasificación racial detallada).
+grupo_niveles <- c("Hombres blancos", "Mujeres blancas",
+                   "Hombres no blancos", "Mujeres no blancas")
+wages$genero <- factor(wages$female, levels = 0:1,
+                       labels = c("Hombres", "Mujeres"))
+wages$grupo <- factor(1 + wages$female + 2 * wages$nonwhite,
+                      levels = 1:4, labels = grupo_niveles)
+wages$grupo <- relevel(wages$grupo, ref = grupo_niveles[1])
+stopifnot(all(table(wages$grupo) > 0), all(table(wages$genero) > 0))
+# Contrastes de tratamiento explícitos, independientemente de options("contrasts").
+contrasts(wages$grupo) <- contr.treatment(grupo_niveles, base = 1)
+
+# Modelos que se recuperan a lo largo de la presentación.
+m_medias <- lm(wage ~ female, data = wages)
+m_comun <- lm(wage ~ education + exper, data = wages)
+m_interceptos <- lm(wage ~ education + exper + female, data = wages)
+m_aditivo <- lm(wage ~ education + exper + female + nonwhite + union, data = wages)
+m_grupos <- lm(wage ~ education + exper + grupo + union, data = wages)
+m_pendientes <- lm(wage ~ female + education + exper + female:education, data = wages)
+m_binarias <- lm(wage ~ education + exper + female * nonwhite + union, data = wages)
+m_completo <- lm(wage ~ female * (education + exper), data = wages)
+m_log <- lm(log(wage) ~ education + exper + female, data = wages)
+
+educ0 <- 12
+exper0 <- median(wages$exper)
+union0 <- 0
+wages$educ_c <- wages$education - educ0
+m_centrado <- lm(wage ~ female + educ_c + exper + female:educ_c, data = wages)
+m_h <- lm(wage ~ education + exper, data = wages, subset = female == 0)
+m_m <- lm(wage ~ education + exper, data = wages, subset = female == 1)
+
+fmt <- function(x, dig = 4) formatC(unname(x), format = "f", digits = dig)
+pfmt <- function(p) ifelse(p < 0.001, "< 0.001", fmt(p, 4))
+rss <- function(m) sum(residuals(m)^2)
+igual <- function(a, b, tol = 1e-8) {
+  isTRUE(all.equal(unname(a), unname(b), tolerance = tol, check.attributes = FALSE))
+}
+# Verificación contra las dos estimaciones originales (redondeadas).
+ref1 <- c("(Intercept)" = -7.18334, education = 1.37030, exper = 0.166607,
+          female = -3.07488, nonwhite = -1.56531, union = 1.09598)
+ref2 <- c("(Intercept)" = -7.08873, education = 1.37011, exper = 0.165856,
+          female = -3.24015, nonwhite = -2.15853, union = 1.11504,
+          "female:nonwhite" = 1.09537)
+stopifnot(all(abs(coef(m_aditivo)[names(ref1)] - ref1) < 1e-5),
+          all(abs(coef(m_binarias)[names(ref2)] - ref2) < 1e-5),
+          abs(rss(m_aditivo) - 54342.54) < 0.01,
+          abs(rss(m_binarias) - 54293.02) < 0.01,
+          abs(summary(m_aditivo)$r.squared - 0.323339) < 1e-6,
+          abs(summary(m_binarias)$r.squared - 0.323955) < 1e-6)
+modelos <- list(m_medias, m_comun, m_interceptos, m_aditivo, m_grupos,
+                m_pendientes, m_binarias, m_completo, m_log, m_centrado)
+stopifnot(all(vapply(modelos, function(m) nobs(m) == nrow(wages) &&
+                       m$rank == length(coef(m)), logical(1))),
+          igual(fitted(m_grupos), fitted(m_binarias)),
+          igual(residuals(m_grupos), residuals(m_binarias)),
+          igual(fitted(m_pendientes), fitted(m_centrado)),
+          igual(rss(m_completo), rss(m_h) + rss(m_m)),
+          igual(fitted(m_completo)[wages$female == 0], fitted(m_h)),
+          igual(fitted(m_completo)[wages$female == 1], fitted(m_m)))
+
+# Contraste de una combinación lineal, con la matriz de covarianzas clásica.
+contraste <- function(m, pesos, valor = 0, nivel = 0.95) {
+  stopifnot(!is.null(names(pesos)), !anyDuplicated(names(pesos)),
+            all(names(pesos) %in% names(coef(m))))
+  L <- setNames(numeric(length(coef(m))), names(coef(m)))
+  L[names(pesos)] <- pesos
+  est <- unname(sum(L * coef(m)))
+  se <- sqrt(drop(crossprod(L, vcov(m) %*% L)))
+  t <- (est - valor) / se
+  crit <- qt((1 + nivel)/2, df.residual(m))
+  data.frame(est = est, se = se, t = t,
+             p = 2 * pt(abs(t), df.residual(m), lower.tail = FALSE),
+             li = est - crit * se, ls = est + crit * se)
+}
+prueba_f <- function(r, u) {
+  stopifnot(identical(rownames(model.frame(r)), rownames(model.frame(u))),
+            identical(model.response(model.frame(r)), model.response(model.frame(u))))
+  a <- anova(r, u)
+  data.frame(q = a$Df[2], df = df.residual(u), F = a$F[2], p = a$`Pr(>F)`[2])
+}
+
+medias <- aggregate(wage ~ genero, wages, mean)
+nh <- sum(wages$female == 0); nm <- sum(wages$female == 1)
+yh <- medias$wage[1]; ym <- medias$wage[2]
+c_medias <- contraste(m_medias, c(female = 1))
+stopifnot(igual(coef(m_medias)[1], yh), igual(coef(m_medias)[2], ym - yh),
+          igual(c_medias$se^2, sigma(m_medias)^2 * (1/nh + 1/nm)))
+
+brechas <- do.call(rbind, lapply(list(m_medias, m_interceptos, m_aditivo),
+                                contraste, pesos = c(female = 1)))
+brechas$modelo <- factor(c("Sin controles", "Educación y experiencia", "Todos los controles"),
+                         levels = rev(c("Sin controles", "Educación y experiencia", "Todos los controles")))
+c_log <- contraste(m_log, c(female = 1))
+
+# Tres indicadores de grupo: columnas generadas por el factor.
+ng <- grep("^grupo", names(coef(m_grupos)), value = TRUE)
+stopifnot(length(ng) == 3L)
+# Contraste para el ejercicio: mujeres no blancas menos mujeres blancas.
+c_grupos <- contraste(m_grupos, setNames(c(1, -1), ng[c(3, 1)]))
+c_grupos_genero <- contraste(m_grupos, setNames(c(1, -1), ng[c(3, 2)]))
+f_grupos <- prueba_f(lm(wage ~ education + exper + union, data = wages), m_grupos)
+
+c_lambda <- contraste(m_pendientes, c("female:education" = 1))
+c_pend_m <- contraste(m_pendientes, c(education = 1, "female:education" = 1))
+c_educ <- function(z) contraste(m_pendientes, c(female = 1, "female:education" = z))
+c_12 <- c_educ(educ0)
+stopifnot(igual(coef(m_centrado)["female"], c_12$est),
+          igual(sqrt(vcov(m_centrado)["female", "female"]), c_12$se))
+# Niveles observados en ambos grupos; foco gráfico en los años 10 a 20.
+comunes <- intersect(wages$education[wages$female == 0], wages$education[wages$female == 1])
+educ_plot <- sort(comunes[comunes >= 10 & comunes <= 20])
+stopifnot(educ0 %in% educ_plot)
+brecha_educ <- do.call(rbind, lapply(educ_plot, c_educ))
+brecha_educ$education <- educ_plot
+
+c_blancos <- contraste(m_binarias, c(female = 1))
+c_no_blancos <- contraste(m_binarias, c(female = 1, "female:nonwhite" = 1))
+c_inter <- contraste(m_binarias, c("female:nonwhite" = 1))
+stopifnot(igual(c_grupos_genero$est, c_no_blancos$est), igual(c_grupos_genero$se, c_no_blancos$se))
+brecha_raza <- rbind(c_blancos, c_no_blancos)
+brecha_raza$grupo <- factor(c("Blancos", "No blancos"), levels = c("No blancos", "Blancos"))
+f_pend <- prueba_f(m_interceptos, m_pendientes)
+f_igual <- prueba_f(m_comun, m_pendientes)
+f_total <- prueba_f(m_comun, m_completo)
+stopifnot(igual(f_pend$F, c_lambda$t^2))
+
+# Funciones ajustadas: experiencia fija y, cuando corresponde, no sindicalización.
+nd <- expand.grid(education = seq(min(educ_plot), max(educ_plot), length.out = 101),
+                  female = 0:1, exper = exper0)
+nd$genero <- factor(nd$female, levels = 0:1, labels = levels(wages$genero))
+nd$ajuste_comun <- predict(m_interceptos, newdata = nd)
+nd$ajuste_inter <- predict(m_pendientes, newdata = nd)
+# Tablas y figuras de la segunda propuesta.
+# Se mantiene el mismo rango y escala vertical en las dos gráficas de rectas.
+pred_aditivo <- transform(nd, wage = ajuste_comun)
+pred_interaccion <- transform(nd, wage = ajuste_inter)
+lim_salario <- range(c(nd$ajuste_comun, nd$ajuste_inter))
+brecha_educacion <- transform(brecha_educ, estimacion = est, inferior = li, superior = ls)
+brechas_raza <- transform(brecha_raza, estimacion = est, inferior = li, superior = ls,
+                          grupo = factor(as.character(grupo), levels = c("Blancos", "No blancos")))
+col_genero <- c("Hombres" = "#1F77B4", "Mujeres" = "#F8766D")
+tema <- theme_minimal(base_size = 15) +
+  theme(legend.position = "bottom", legend.title = element_blank(),
+        panel.grid.minor = element_blank(), plot.margin = margin(5, 12, 5, 5))
+
+etiquetas <- c("(Intercept)" = "Constante", education = "Educación",
+               exper = "Experiencia potencial", female = "Mujer",
+               nonwhite = "No blanca", union = "Sindicalización")
+col_coef <- function(m, nombres) {
+  x <- coef(m)[nombres]
+  ifelse(is.na(x), "—", fmt(x, 4))
+}
+tabla_aditivos <- data.frame(Variable = unname(etiquetas),
+                             M1 = col_coef(m_medias, names(etiquetas)),
+                             M2 = col_coef(m_interceptos, names(etiquetas)),
+                             M3 = col_coef(m_aditivo, names(etiquetas)))
+tabla_aditivos <- rbind(tabla_aditivos,
+                       data.frame(Variable = "Observaciones", M1 = as.character(nobs(m_medias)),
+                                  M2 = as.character(nobs(m_interceptos)), M3 = as.character(nobs(m_aditivo))))
+tabla_coef <- function(m, et) {
+  s <- coef(summary(m))[names(et), , drop = FALSE]
+  data.frame(Variable = unname(et), Coeficiente = fmt(s[, 1]),
+             `Error estándar` = fmt(s[, 2]), check.names = FALSE)
+}
+tabla_categorias <- tabla_coef(m_grupos, c(etiquetas[c(1, 2, 3, 6)],
+                                          setNames(grupo_niveles[-1], ng)))
+tabla_interaccion_educacion <- tabla_coef(m_pendientes,
+  c(etiquetas[c(1, 2, 3, 4)], "female:education" = "Mujer × Educación"))
+tabla_interaccion_dummy <- tabla_coef(m_binarias,
+  c(etiquetas[c(1, 2, 3, 6, 4, 5)], "female:nonwhite" = "Mujer × No blanca"))
+tabla_modelos_anidados <- data.frame(
+  Modelo = c("1. Una misma función salarial", "2. Diferentes interceptos",
+             "3. Diferentes interceptos y pendientes de educación"),
+  Parámetros = vapply(list(m_comun, m_interceptos, m_pendientes), function(m) length(coef(m)), integer(1)),
+  RSS = fmt(vapply(list(m_comun, m_interceptos, m_pendientes), rss, numeric(1)), 2))
+# Verificaciones adicionales de las reparametrizaciones.
+m_referencia <- lm(wage ~ I(1 - female), data = wages)
+m_sin_constante <- lm(wage ~ 0 + grupo + education + exper + union, data = wages)
+stopifnot(igual(fitted(m_referencia), fitted(m_medias)),
+          igual(fitted(m_sin_constante), fitted(m_grupos)),
+          igual(coef(m_centrado)["(Intercept)"],
+                coef(m_pendientes)["(Intercept)"] + educ0 * coef(m_pendientes)["education"]),
+          igual(c_grupos$est, coef(m_binarias)["nonwhite"] + coef(m_binarias)["female:nonwhite"]))
+```
+
+<!-- Guía docente: 12 + 12 + 10 + 17 + 11 + 9 + 3 = 74 min;
+     margen de 16 min en una sesión de 90 min. Ejercicio* = clase;
+     Ejercicio = casa. Inferencia clásica con regresores fijos, rango completo,
+     E(u_i)=0, errores homoscedásticos y no correlacionados; normalidad para
+     las distribuciones t y F exactas. MCO sin ponderadores de la CPS.
+     Las etiquetas de género y grupo racial corresponden a los indicadores originales. -->
+
+## ¿Cómo representamos diferencias entre grupos?
+
+### ¿Existen diferencias salariales entre hombres y mujeres?
+
+Consideremos los salarios por hora de 1,289 personas entrevistadas en los Estados Unidos (_Current Population Survey, marzo de 1995_).
+```{r figura-medias, out.width="60%"}
+ggplot(wages, aes(genero, wage, color = genero)) +
+  geom_jitter(position = position_jitter(width = 0.21, height = 0, seed = 2026),
+              alpha = 0.25, size = 1.5) +
+  geom_point(data = medias, aes(genero, wage), shape = 18, size = 5, color = "black") +
+  geom_text(data = medias, aes(label = paste0("Media: ", fmt(wage, 2))),
+            nudge_x = 0.30, nudge_y = 2, color = "black", size = 4) +
+  scale_color_manual(values = col_genero, guide = "none") +
+  scale_x_discrete(expand = expansion(add = 0.65)) +
+  labs(x = NULL, y = "Salario (USD/hora)") + tema
+```
+
+
+> ¿Podemos representar las diferencias salariales entre ambos grupos mediante un modelo de regresión?
+
+### ¿Cómo incorporamos una característica cualitativa?
+
+Hasta ahora hemos utilizado _variables cuantitativas_ para explicar el comportamiento de nuestra variable dependiente. Sin embargo, también podemos estar interesados en las _características cualitativas_ de los individuos:
+
+- Definimos las **variables dummy** (también llamadas _variables binarias_ o _indicadoras_).
+
+- Las variables dummy son solo pueden tomar dos valores. Por ejemplo:
+
+$$
+D_i=\begin{cases}
+1 & \text{si la persona es mujer},\\
+0 & \text{si la persona es hombre}.
+\end{cases}
+$$
+
+El grupo para el cual $D_i=0$ se conoce como **grupo de referencia**.
+
+### Una regresión para dos grupos
+
+Una variable dummy se incorpora al modelo como cualquier otra variable. Por ejemplo, si la variable dependiente es el salario y tenemos una variable dummy de género, tenemos:
+
+$$
+y_i=\beta_1+\beta_2D_i+u_i.
+$$
+
+Nota que, si se cumplen los supuestos de Gauss-Markov sobre el error, entonces:
+
+$$
+E(y_i)=\begin{cases}
+\beta_1 & \text{para los hombres},\\
+\beta_1+\beta_2 & \text{para las mujeres}.
+\end{cases}
+$$
+
+En otras palabras, $\beta_1$ representa el salario esperado de los hombres, mientras que $\beta_2$ representa la diferencia entre los salarios esperados de las mujeres y de los hombres.
+
+
+### MCO y la diferencia de medias
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Muestra que, si estimamos el modelo por MCO:
+
+$$
+b_1=\overline{y}_H\qquad\text{y}\qquad b_2=\overline{y}_M-\overline{y}_H,
+$$
+
+donde $\overline{y}_H$ y $\overline{y}_M$ representan los salarios promedio de hombres y mujeres, respectivamente. En nuestro ejemplo:
+
+$$
+\widehat{y}_i=`r fmt(yh, 4)`-`r fmt(abs(c_medias$est), 4)`D_i.
+$$
+
+*¡MCO reproduce exactamente las medias muestrales de ambos grupos!*
+
+
+### ¿Importa qué grupo utilizamos como referencia?
+
+<span class="emphasis-blue">Ejercicio</span>
+
+¿Qué pasa si usamos a las mujeres como grupo de referencia? Esto es:
+
+$$
+D_i^*=\begin{cases}
+1 & \text{si la persona es hombre},\\
+0 & \text{si la persona es mujer}.
+\end{cases}
+$$
+
+Muestra que, al utilizar esta nueva variable, la regresión estimada puede escribirse como:
+
+$$
+\widehat{y}_i=(b_1+b_2)-b_2D_i^*.
+$$
+
+¿Cómo interpretamos ahora los coeficientes? ¿Qué sucede con los valores ajustados, los residuales y la $R^2$?
+
+### ¿Es estadísticamente significativa la diferencia? (1/2)
+
+En nuestra muestra, las mujeres ganan en promedio `r fmt(abs(c_medias$est), 2)` dólares por hora _menos_ que los hombres. Pero, ¿tenemos evidencia estadística de una diferencia poblacional? Para saberlo, probamos:
+
+$$
+H_0:\beta_2=0\qquad\text{vs.}\qquad H_1:\beta_2\neq0.
+$$
+
+En nuestro ejemplo, el estadístico de la prueba es: $
+t=`r fmt(c_medias$t, 2)`.$
+
+> Existe evidencia estadística de una diferencia salarial. Pero, ¿es suficiente comparar los promedios?
+
+### ¿Es estadísticamente significativa la diferencia? (2/2)
+
+<span class="emphasis-blue">Ejercicio</span> 
+
+Utilizando las propiedades de MCO y suponiendo que se satisfacen los supuestos de Gauss-Markov sobre el error, muestra que:
+
+$$
+\operatorname{Var}(b_2)=\sigma^2\left(\frac{1}{n_H}+\frac{1}{n_M}\right),
+$$
+
+donde $n_H$ y $n_M$ representan el número de hombres y mujeres en la muestra, respectivamente.
+
+## Más de una característica
+
+### ¿Es suficiente comparar los promedios?
+
+¿Qué pasa si los grupos difieren en más de una característica?
+
+En nuestro ejemplo, es posible que hombres y mujeres tengan distintos niveles de educación y experiencia laboral. Estas características también pueden incorporarse al modelo:
+
+$$
+y_i=\beta_1+\beta_2educ_i+\beta_3exper_i+\delta D_i+u_i.
+$$
+
+
+> ¿Cómo interpretamos ahora el coeficiente asociado con la variable dummy?
+
+
+### ¿Qué estamos comparando?
+
+En este modelo:
+
+- Si $D_i=0$ (hombres):
+
+$$
+E(y_i)=\beta_1+\beta_2educ_i+\beta_3exper_i.
+$$
+
+- Si $D_i=1$ (mujeres):
+
+$$
+E(y_i)=(\beta_1+\delta)+\beta_2educ_i+\beta_3exper_i.
+$$
+
+Entonces, $\delta$ representa la _diferencia entre los salarios esperados de dos personas con los mismos niveles de educación y experiencia, pero distinto género_.
+
+### ¿Qué estamos suponiendo?
+
+Veamos cómo se relaciona el salario con la educación para hombres y mujeres, manteniendo constante la experiencia potencial en `r fmt(exper0, 0)` años.
+
+```{r figura-pendientes-comunes, out.width="60%"}
+ggplot(pred_aditivo, aes(education, wage, color = genero)) +
+  geom_line(linewidth = 1.2) +
+  scale_color_manual(values = col_genero) +
+  coord_cartesian(ylim = lim_salario) +
+  labs(x = "Años de educación", y = "Salario estimado (USD/hora)", color = NULL) +
+  tema
+```
+
+El modelo permite diferentes interceptos, pero *supone que la relación entre educación y salario es la misma para ambos grupos* (es decir, tenemos dos rectas paralelas).
+
+### ¿Qué ocurre en nuestro ejemplo?
+
+En nuestro ejemplo, la estimación por MCO resulta en:
+
+
+```{r tabla-modelos-aditivos, results='asis'}
+knitr::kable(
+  tabla_aditivos[, 1:3],
+  format = "html",
+  row.names = FALSE,
+  align = c("l", "r", "r"),
+  col.names = c("Variable", "Modelo 1", "Modelo 2"),
+  table.attr = 'class="clean-table"'
+)
+```
+
+
+### ¿Podemos hablar de discriminación?
+
+<span class="emphasis-blue">Ejercicio</span> 
+
+En nuestro ejemplo tenemos que $\operatorname{se}(b_\delta)=`r fmt(brechas$se[3], 4)`$. Usando este resultado, evalúa la hipótesis:
+
+$$
+H_0:\delta=0\qquad\text{vs.}\qquad H_1:\delta\neq0.
+$$
+
+¿Podrían existir otras características relevantes que no hemos incorporado en nuestro modelo?
+
+> ¿Una diferencia salarial estadísticamente significativa constituye necesariamente evidencia de discriminación?
+
+
+### ¿Y si utilizamos un modelo log-lin?
+
+<span class="emphasis-blue">Ejercicio*</span>
+
+Consideremos ahora el modelo:
+
+$$
+\ln(y_i)=\beta_1+\beta_2educ_i+\beta_3exper_i+\delta D_i+u_i.
+$$
+
+
+Muestra que, cuando $D_i$ cambia de $0$ a $1$, el cambio porcentual en $y_i$ es: $100(e^\delta-1)$. En nuestro ejemplo, este es: $`r fmt(100 * expm1(coef(m_log)["female"]), 2)`$. ¿Qué significa?
+
+
+## ¿Qué ocurre cuando existen más de dos grupos?
+
+### ¿Cómo representamos más de dos grupos?
+
+Supongamos que ahora queremos estudiar las diferencias salariales entre los siguientes grupos de nuestra muestra:
+
+- Hombres blancos.
+- Mujeres blancas.
+- Hombres no blancos.
+- Mujeres no blancas.
+
+Como cada persona pertenece a uno y solo uno de estos grupos, podemos definir una variable dummy para cada uno.
+
+> Pero, ¿necesitamos realmente cuatro variables dummy?
+
+### ¿Cuántas variables dummy necesitamos?
+
+<span class="emphasis-blue">Ejercicio*</span>
+
+Supongamos que definimos una variable dummy para cada grupo:
+
+```{r tabla-indicadores, results='asis'}
+tabla_indicadores <- data.frame(
+  Grupo = c("Hombres blancos", "Mujeres blancas",
+            "Hombres no blancos", "Mujeres no blancas"),
+  D1 = c(1, 0, 0, 0),
+  D2 = c(0, 1, 0, 0),
+  D3 = c(0, 0, 1, 0),
+  D4 = c(0, 0, 0, 1)
+)
+
+knitr::kable(
+  tabla_indicadores,
+  format = "html",
+  row.names = FALSE,
+  align = c("l", "c", "c", "c", "c"),
+  col.names = c("Grupo", "$D_{1i}$", "$D_{2i}$",
+                "$D_{3i}$", "$D_{4i}$"),
+  table.attr = 'class="clean-table"',
+  escape = FALSE
+)
+```
+
+
+Explica por qué no podemos incorporar los cuatro indicadores en un modelo de regresión que contiene una constante. Este problema se conoce como la **trampa de las variables dummy**.
+
+> En general, si tenemos $G$ categorías mutuamente excluyentes y exhaustivas, utilizamos $G-1$ indicadores cuando el modelo contiene una constante.
+
+
+### Una regresión para cuatro grupos
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+Utilicemos a los hombres blancos como grupo de referencia e incorporemos los demás indicadores en nuestro modelo:
+
+$$
+\begin{aligned}
+y_i={}&\beta_1+\beta_2educ_i+\beta_3exper_i\\
+&+\delta_2D_{2i}+\delta_3D_{3i}+\delta_4D_{4i}+u_i.
+\end{aligned}
+$$
+
+- Obtén el salario esperado para cada uno de los cuatro grupos. ¿Cómo interpretamos los parámetros $\delta_2$, $\delta_3$ y $\delta_4$?
+
+- Demuestra que podemos representar el mismo modelo eliminando la constante e incorporando los cuatro indicadores. ¿Cómo interpretamos ahora sus coeficientes?
+
+### ¿Qué diferencias encontramos en nuestro ejemplo?
+
+Si, además de las variables propuestas, incorporamos una variable dummy sobre sindicalización ($1$ si sindicalizado, $0$ si no), obtenemos:
+
+```{r tabla-categorias, results='asis'}
+knitr::kable(
+  tabla_categorias,
+  format = "html",
+  row.names = FALSE,
+  align = c("l", "r", "r"),
+  col.names = c("Variable", "Coeficiente", "Error estándar"),
+  table.attr = 'class="clean-table"'
+)
+```
+
+### ¿Cómo comparamos los demás grupos?
+
+<span class="emphasis-blue">Ejercicio</span>
+
+¿Cómo podemos comparar los salarios de las mujeres blancas con los de las mujeres no blancas?
+
+- ¿Qué hipótesis debemos establecer para evaluar si existen diferencias salariales entre mujeres blancas y mujeres no blancas?
+
+- ¿Qué estadístico debemos utilizar?
+
+- ¿Qué hipótesis debemos establecer para evaluar si existen diferencias salariales entre los diferentes grupos?
+
+## ¿Es igual la relación entre educación y salarios para todos?
+
+### ¿Es igual la relación entre educación y salario?
+
+Hasta ahora hemos permitido que hombres y mujeres tengan distintos interceptos, pero hemos supuesto que las pendientes son iguales para ambos grupos. ¿Qué pasa si queremos relajar este supuesto?
+
+Considera la siguiente especificación (que incluye una _variable interactiva_):
+
+$$
+\begin{aligned}
+y_i={}&\beta_1+\beta_2educ_i+\beta_3exper_i\\
+&+\delta D_i+\lambda(D_i\times educ_i)+u_i.
+\end{aligned}
+$$
+
+> ¿Cómo interpretamos ahora los parámetros $\beta_2$ y $\lambda$?
+
+
+### ¿Qué hemos cambiado en nuestro modelo?
+
+Usando esta nueva especificación, podemos ver cómo es la relación entre el salario y la educación para hombres y mujeres, manteniendo constante la experiencia potencial en `r fmt(exper0, 0)` años.
+
+```{r figura-pendientes-diferentes, fig.height=3.1, out.width="75%"}
+ggplot(pred_interaccion, aes(education, wage, color = genero)) +
+  geom_line(linewidth = 1.2) +
+  scale_color_manual(values = col_genero) +
+  coord_cartesian(ylim = lim_salario) +
+  labs(x = "Años de educación", y = "Salario estimado (USD/hora)", color = NULL) +
+  tema
+```
+
+*¡Ahora las rectas no necesariamente son paralelas!* El parámetro $\lambda$ representa la diferencia entre las pendientes de educación de ambos grupos.
+
+### ¿Son diferentes las pendientes?
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Estimemos nuestro modelo utilizando los datos salariales.
+
+
+```{r tabla-interaccion-educacion, results='asis'}
+knitr::kable(
+  tabla_interaccion_educacion,
+  format = "html",
+  row.names = FALSE,
+  align = c("l", "r", "r"),
+  col.names = c("Variable", "Coeficiente", "Error estándar"),
+  table.attr = 'class="clean-table"'
+)
+```
+
+- ¿Tenemos evidencia estadística de que las pendientes para la educación de hombres y mujeres son diferentes al 5%?
+
+- Construye un intervalo de confianza al 95% para la pendiente de educación de las mujeres.
+
+<!-- H0: lambda=0; t=-1.87, p=0.0617. Para las mujeres, pendiente b2+b_lambda. -->
+
+### ¿Cómo interpretamos ahora el coeficiente de la dummy?
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Observa que, en nuestra última regresión, el coeficiente asociado con la variable `female` es prácticamente igual a cero:
+
+$$
+b_\delta=`r fmt(coef(m_pendientes)["female"], 4)`.
+$$
+
+¿Significa esto que ya no encontramos diferencias salariales entre hombres y mujeres?
+
+### ¿Podemos elegir otro punto de referencia?
+
+<span class="emphasis-blue">Ejercicio</span>
+
+
+Supongamos que nos interesa estudiar la diferencia salarial entre hombres y mujeres con 12 años de educación. Para esto, definimos: $educ_i^*=educ_i-12$. En este caso, el modelo se vuelve:
+
+$$
+\begin{aligned}
+y_i={}&\beta_1^*+\beta_2educ_i^*+\beta_3exper_i\\
+&+\delta^*D_i+\lambda(D_i\times educ_i^*)+u_i.
+\end{aligned}
+$$
+
+Demuestra que:
+
+$$
+\beta_1^*=\beta_1+12\beta_2\qquad\text{y}\qquad\delta^*=\delta+12\lambda.
+$$
+
+¿Qué representan ahora $\beta_1^*$ y $\delta^*$? ¿Qué sucede con los valores ajustados y los residuales?
+
+
+### ¿Cómo cambia la diferencia salarial con la educación?
+
+Podemos estimar la diferencia salarial entre hombres y mujeres como: $\widehat{\Delta}(educ_0)=b_\delta+b_\lambda educ_0$, donde $educ_0$ cualquier nivel educativo:
+
+```{r figura-brecha-educacion, out.width="60%"}
+ggplot(brecha_educacion, aes(education, estimacion)) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_ribbon(aes(ymin = inferior, ymax = superior), fill = "#1f77b4", alpha = 0.15) +
+  geom_line(color = "#1f77b4", linewidth = 1.2) +
+  geom_point(color = "#1f77b4", size = 2) +
+  scale_x_continuous(breaks = educ_plot) +
+  labs(x = "Años de educación", y = "Diferencia salarial (USD/hora)",
+       caption = "Mujeres − hombres. IC puntuales al 95%.") + tema
+```
+
+
+¿Podemos afirmar que la brecha salarial aumenta en magnitud con el nivel educativo?
+
+
+## ¿Depende una diferencia entre grupos de otra característica cualitativa?
+
+### ¿Es igual la diferencia salarial para todos los grupos?
+
+Supongamos que queremos estudiar si la diferencia salarial entre hombres y mujeres depende del grupo racial al que pertenecen. El modelo es:
+
+$$
+y_i=\beta_1+\beta_2educ_i+\beta_3exper_i+\delta D_i+\gamma R_i+u_i,
+$$
+
+donde $D_i=1$ si la persona es mujer y cero en otro caso y $R_i=1$ si la persona es no blanca y cero en otro caso.
+
+_¿Cómo obtendrías la diferencia salarial esperada entre mujeres y hombres cuando $R_i=0$ y cuando $R_i=1$._
+
+
+### Una interacción entre variables dummy
+
+Para permitir que la diferencia salarial entre hombres y mujeres sea distinta en ambos grupos raciales, podemos incorporar una interacción:
+
+$$
+\begin{aligned}
+y_i={}&\beta_1+\beta_2educ_i+\beta_3exper_i\\
+&+\delta D_i+\gamma R_i+\lambda(D_iR_i)+u_i.
+\end{aligned}
+$$
+
+
+¿Cómo interpretamos ahora los parámetros $\delta$, $\gamma$ y $\lambda$?
+
+
+### ¿Qué encontramos en nuestro ejemplo?
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Estimemos nuestro modelo incorporando también la sindicalización como variable de control.
+
+
+```{r tabla-interaccion-dummy, results='asis'}
+knitr::kable(
+  tabla_interaccion_dummy,
+  format = "html",
+  row.names = FALSE,
+  align = c("l", "r", "r"),
+  col.names = c("Variable", "Coeficiente", "Error estándar"),
+  table.attr = 'class="clean-table"'
+)
+```
+
+- ¿Cómo se calcula la diferencia salarial entre mujeres y hombres dentro de cada grupo racial.
+- ¿Qué nos indica el signo del coeficiente de interacción?
+
+### ¿Son estadísticamente diferentes las brechas?
+
+En nuestro ejemplo encontramos diferencias salariales entre hombres y mujeres en ambos grupos raciales. Pero, ¿tenemos evidencia estadística de que estas diferencias son distintas entre sí?
+
+```{r figura-brechas-raciales,out.width="60%"}
+ggplot(brechas_raza, aes(grupo, estimacion)) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_pointrange(aes(ymin = inferior, ymax = superior), color = "#1f77b4", linewidth = 0.8) +
+  labs(x = NULL, y = "Diferencia salarial (USD/hora)",
+       caption = "Mujeres − hombres. IC puntuales al 95%.") + tema
+```
+
+Para responder, evaluamos:
+
+$$
+H_0:\lambda=0\qquad\text{vs.}\qquad H_1:\lambda\neq0.
+$$
+
+### ¿No habíamos estimado ya este modelo?
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Antes construimos un modelo con tres variables dummy para representar cuatro grupos, utilizando a los hombres blancos como referencia:
+
+$$
+y_i=\beta_1+\delta_2D_{2i}+\delta_3D_{3i}+\delta_4D_{4i}+u_i.
+$$
+
+
+Pero ahora construimos el modelo:
+
+$$
+y_i=\beta_1+\delta D_i+\gamma R_i+\lambda(D_iR_i)+u_i.
+$$
+
+Demuestra que ambas especificaciones son equivalentes. ¿Qué relación existe entre sus parámetros? ¿Qué sucede con los valores ajustados y los residuales?
+
+
+### ¿Son iguales las funciones de regresión?
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Hasta ahora hemos permitido que hombres y mujeres tengan diferentes interceptos y pendientes de educación. Podemos extender esta idea y permitir que *todos los coeficientes*
+sean diferentes entre ambos grupos:
+
+$$
+\begin{aligned}
+y_i={}&\beta_1+\beta_2educ_i+\beta_3exper_i\\
+&+\delta D_i+\lambda(D_i educ_i)+\theta(D_i exper_i)+u_i.
+\end{aligned}
+$$
+
+- Obtén las funciones salariales para hombres y mujeres.
+
+- ¿Cómo probarías la hipótesis de que los coeficientes de hombres y mujeres son iguales?
+
+## Resumen
+
+### ¿Qué hemos aprendido?
+
+En este capítulo aprendimos a incorporar características cualitativas en nuestros modelos de regresión.
+
+Las variables dummy nos permiten:
+
+- Estimar diferencias entre grupos.
+- Comparar grupos con características similares según nuestro modelo.
+- Representar diferentes interceptos y pendientes.
+- Evaluar hipótesis sobre las diferencias entre funciones de regresión.
+
+*La pregunta económica que queremos responder determina cómo debemos especificar nuestro modelo.*
+
+> Encontrar diferencias entre grupos no significa necesariamente que hayamos identificado sus causas.
+
+### ¿Qué sigue?
+
+En los últimos capítulos hemos aprendido a especificar modelos que permiten representar relaciones económicas cada vez más flexibles. Sin embargo, ¿qué sucede si nuestro modelo está mal especificado?
+
+- ¿Si omitimos una variable relevante?
+- ¿Si incorporamos variables innecesarias?
+- ¿Si elegimos una forma funcional inadecuada?
+
+En el siguiente capítulo estudiaremos algunos de estos **problemas de especificación**.
+
+> ¿Cómo saber si hemos elegido un modelo adecuado?
