@@ -252,11 +252,11 @@ ggplot(wages, aes(genero, wage, color = genero)) +
 
 ### ¿Cómo incorporamos una característica cualitativa?
 
-Hasta ahora hemos utilizado _variables cuantitativas_ para explicar el comportamiento de nuestra variable dependiente. Sin embargo, también podemos estar interesados en las _características cualitativas_ de los individuos:
+Hasta ahora hemos utilizado _variables cuantitativas_ para explicar el comportamiento de la variable dependiente. Sin embargo, también podemos estar interesados en las _características cualitativas_ de los individuos:
 
-- Definimos las **variables dummy** (también llamadas _variables binarias_ o _indicadoras_).
+- Definimos las **variables dummy** (también llamadas _variables binarias_, _dicotómicas_ o _indicadoras_).
 
-- Las variables dummy son solo pueden tomar dos valores. Por ejemplo:
+- Las variables dummy solo pueden tomar dos valores. Por ejemplo:
 
 $$
 D_i=\begin{cases}
@@ -335,8 +335,7 @@ $$
 H_0:\beta_2=0\qquad\text{vs.}\qquad H_1:\beta_2\neq0.
 $$
 
-En nuestro ejemplo, el estadístico de la prueba es: $
-t=`r fmt(c_medias$t, 2)`.$
+En nuestro ejemplo, el estadístico de la prueba es: $t=`r fmt(c_medias$t, 2)`$.
 
 > Existe evidencia estadística de una diferencia salarial. Pero, ¿es suficiente comparar los promedios?
 
