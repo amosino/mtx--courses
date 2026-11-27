@@ -1,0 +1,794 @@
+---
+title: "Econometría"
+subtitle: "Problemas de especificación"
+author: "Alejandro Mosiño - _Universidad de Guanajuato_"
+date: "v.2026.11.25"
+
+params:
+  material_completo: false
+
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
+
+output:
+  ioslides_presentation:
+    self_contained: true
+    widescreen: true
+    smaller: true
+    transition: 0
+    slide_level: 3
+    css: ../src/custom.css
+---
+
+<a class="pdf-footer" href="MTX1--07--Especificacion.pdf" target="_blank">
+  PDF
+</a>
+
+```{r preparacion, include=FALSE}
+library(ggplot2)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE,
+                      fig.width = 9, fig.height = 3.5, out.width = "85%",
+                      fig.align = "center")
+
+# Bases de los ejemplos originales de 2023.
+eduinc <- read.csv("../data/eduinc.csv", fileEncoding = "UTF-8-BOM")
+kooptobias <- read.csv("../data/kooptobias.csv", fileEncoding = "UTF-8-BOM")
+# Misma base utilizada en Introducción y Formas funcionales.
+vida <- read.csv("../data/lexpectancy.csv", fileEncoding = "UTF-8-BOM")
+
+vars_inc <- c("faminc", "he", "we", "kl6", "xtra_x5", "xtra_x6")
+vars_sal <- c("wage", "educ", "exper", "score")
+stopifnot(all(vars_inc %in% names(eduinc)),
+          all(vars_sal %in% names(kooptobias)),
+          all(c("rgdp", "life_exp") %in% names(vida)),
+          nrow(eduinc) == 428L, nrow(kooptobias) == 1057L,
+          nrow(vida) == 223L,
+          all(vapply(eduinc[vars_inc], is.numeric, logical(1))),
+          all(vapply(kooptobias[vars_sal], is.numeric, logical(1))),
+          all(is.finite(as.matrix(eduinc[vars_inc]))),
+          all(is.finite(as.matrix(kooptobias[vars_sal]))),
+          all(eduinc$faminc > 0), all(kooptobias$wage > 0))
+
+# Ingreso familiar. Los modelos 1 y 2 se presentan en orden creciente
+# de complejidad, a diferencia de la numeración de 2023.
+m_inc1 <- lm(log(faminc) ~ he, data = eduinc)
+m_inc2 <- lm(log(faminc) ~ he + we, data = eduinc)
+m_inc3 <- lm(log(faminc) ~ he + we + kl6, data = eduinc)
+m_inc4 <- lm(log(faminc) ~ he + we + kl6 + xtra_x5 + xtra_x6,
+             data = eduinc)
+m_inc5 <- lm(log(faminc) ~ he + kl6 + xtra_x5 + xtra_x6,
+             data = eduinc)
+m_aux <- lm(we ~ he, data = eduinc)
+
+# Ecuaciones salariales, sin y con proxy.
+m_sal1 <- lm(log(wage) ~ educ + exper + I(exper^2), data = kooptobias)
+m_sal2 <- lm(log(wage) ~ educ + exper + I(exper^2) + score,
+             data = kooptobias)
+
+fmt <- function(x, dig = 4) formatC(unname(x), format = "f", digits = dig)
+rss <- function(m) sum(residuals(m)^2)
+igual <- function(a, b, tol = 1e-8) {
+  isTRUE(all.equal(unname(a), unname(b), tolerance = tol,
+                   check.attributes = FALSE))
+}
+col_coef <- function(m, nombres, dig = 4) {
+  s <- coef(summary(m))
+  resultado <- rep("", length(nombres))
+  presentes <- nombres %in% rownames(s)
+  resultado[presentes] <- paste0(fmt(s[nombres[presentes], 1], dig),
+                                 " (", fmt(s[nombres[presentes], 2], dig), ")")
+  resultado
+}
+prueba_f <- function(r, u) {
+  stopifnot(identical(rownames(model.frame(r)), rownames(model.frame(u))),
+            identical(model.response(model.frame(r)),
+                      model.response(model.frame(u))))
+  a <- anova(r, u)
+  data.frame(q = a$Df[2], df = df.residual(u), F = a$F[2],
+             p = a$`Pr(>F)`[2])
+}
+
+# RESET: se calculan los valores ajustados por separado para cada modelo.
+datos_reset1 <- transform(kooptobias, yhat = fitted(m_sal1))
+datos_reset2 <- transform(kooptobias, yhat = fitted(m_sal2))
+m_reset1 <- update(m_sal1, . ~ . + I(yhat^2) + I(yhat^3), data = datos_reset1)
+m_reset2 <- update(m_sal2, . ~ . + I(yhat^2) + I(yhat^3), data = datos_reset2)
+reset1 <- prueba_f(m_sal1, m_reset1)
+reset2 <- prueba_f(m_sal2, m_reset2)
+
+# Verificaciones contra los resultados redondeados de 2023.
+stopifnot(abs(coef(m_inc1)["he"] - 0.06132) < 1e-5,
+          abs(coef(m_inc2)["he"] - 0.04385) < 1e-5,
+          abs(coef(m_inc3)["he"] - 0.04482) < 1e-5,
+          abs(coef(m_inc4)["he"] - 0.04602) < 1e-5,
+          abs(coef(m_sal1)["educ"] - 0.07284) < 1e-5,
+          abs(coef(m_sal2)["educ"] - 0.05922) < 1e-5,
+          abs(coef(m_sal2)["score"] - 0.06039) < 1e-5,
+          abs(reset2$F - 0.759669) < 1e-5,
+          abs(reset1$F - 0.666006) < 1e-5,
+          reset1$q == 2L, reset2$q == 2L,
+          igual(coef(m_inc1)["he"], coef(m_inc2)["he"] +
+                  coef(m_inc2)["we"] * coef(m_aux)["he"]))
+modelos <- list(m_inc1, m_inc2, m_inc3, m_inc4, m_inc5,
+                m_sal1, m_sal2, m_reset1, m_reset2)
+stopifnot(all(vapply(modelos, function(m) m$rank == length(coef(m)),
+                     logical(1))))
+
+# Resultados para el profesor: no se muestran como soluciones.
+exclusion_artificiales <- prueba_f(m_inc3, m_inc4)
+sol_ecm <- data.frame(beta3 = c(0.2, 0.6),
+                      var_completo = 12 / (100 * (1 - 0.5^2)),
+                      var_reducido = 12 / 100)
+sol_ecm$sesgo <- sol_ecm$beta3 * 0.5
+sol_ecm$ecm_completo <- sol_ecm$var_completo
+sol_ecm$ecm_reducido <- sol_ecm$var_reducido + sol_ecm$sesgo^2
+```
+
+## ¿Qué tan buena es nuestra especificación?
+
+### ¿Es suficiente estimar bien un modelo?
+
+A lo largo del curso hemos aprendido a:
+
+- Estimar modelos de regresión y estudiar las propiedades de sus estimadores.
+- Evaluar hipótesis sobre los parámetros poblacionales.
+- Representar relaciones económicas mediante diferentes formas funcionales.
+- Incorporar características cuantitativas y cualitativas.
+
+Sin embargo, antes de estimar un modelo hemos tenido que decidir qué variables incluir y cómo representar la relación entre ellas.
+
+> ¿Qué sucede si nuestras decisiones de especificación no son adecuadas?
+
+### ¿Qué dejamos dentro del término de error?
+
+Consideremos nuevamente un modelo que relaciona el salario con los años de escolaridad y de experiencia:
+
+$$
+\ln(salario_i)=\beta_1+\beta_2educ_i+\beta_3exper_i+u_i.
+$$
+
+Recordemos que el término de error recoge aquello que nuestro modelo no representa explícitamente.
+
+- ¿Qué otras características podrían explicar las diferencias salariales?
+- ¿Necesitamos incorporarlas todas en nuestro modelo?
+- ¿Qué consecuencias tendría no incorporar algunas de ellas?
+
+_No necesitamos representar toda la realidad, pero sí comprender las implicaciones de aquello que decidimos dejar fuera._
+
+## ¿Qué variables debemos incluir?
+
+### ¿Qué ocurre si omitimos una variable relevante?
+
+Supongamos que el modelo verdadero es:
+
+$$
+y_i=\beta_1+\beta_2x_{2i}+\beta_3x_{3i}+u_i,
+$$
+
+pero estimamos un modelo que excluye a $x_3$:
+
+$$
+y_i=\widetilde b_1+\widetilde b_2x_{2i}+\widetilde e_i.
+$$
+
+Antes, demostramos que:
+
+$$
+\mathbb{E}(\widetilde b_2) = \beta_2 + \beta_3\frac{S_{23}}{S_{22}}.
+$$
+Esto es, ¡el estimador $\widetilde b_2$ no es insesgado!
+
+
+### Sesgo por variable omitida
+
+En el modelo que acabamos de estudiar, tenemos un **sesgo por variable omitida**. Este es:
+
+$$
+\mathbb{E}(\widetilde b_2) - \beta_2 = \beta_3\frac{S_{23}}{S_{22}}.
+$$
+
+_¿De qué depende la existencia, el signo y la magnitud del sesgo?_
+
+### Escolaridad e ingreso familiar
+
+Consideremos una muestra de 428 familias. Queremos estudiar la relación entre el ingreso familiar (en logaritmos) y los años de escolaridad del marido y de la esposa. La estimación del modelo por MCO resulta en (errores estándar entre paréntesis):
+
+```{r ejemplo-omision}
+nombres <- c("(Intercept)", "he", "we")
+tabla <- data.frame(Variable = c("Constante", "Escolaridad del marido",
+                                 "Escolaridad de la esposa"),
+                    M1 = col_coef(m_inc1, nombres),
+                    M2 = col_coef(m_inc2, nombres))
+knitr::kable(tabla, format = "html", row.names = FALSE,
+             col.names = c("Variable", "Modelo 1", "Modelo 2"),
+             table.attr = 'class="clean-table"', align = c("l", "r", "r"))
+```
+
+\bigskip
+
+Nota que el coeficiente asociado a la escolaridad del marido disminuye al incorporar la escolaridad de la esposa. La correlación entre ambas variables es $`r fmt(cor(eduinc$he, eduinc$we), 2)`$. _¿Cuál es tu intución detrás de este resultado?
+
+
+### ¿Qué ocurre cuando tenemos más regresores?
+
+Consideremos ahora el modelo de regresión múltiple:
+
+$$
+\mathbf{y}=\mathbf{x}_A\boldsymbol\beta_A+\mathbf{x}_B\boldsymbol\beta_B+\mathbf{u}.
+$$
+En el modelo, las matrices $\mathbf{x}_A$ y $\mathbf{x}_B$  forman un diseño de rango columna completo. Si estimamos por MCO, pero omitimos al conjunto de regresores $\mathbf{x}_B$, se puede demostrar que:
+
+$$
+\widetilde{\mathbf{b}}_A=\boldsymbol\beta_A+(\mathbf{x}_A^\top\mathbf{x}_A)^{-1}
+\mathbf{x}_A^\top\mathbf{x}_B\boldsymbol\beta_B+(\mathbf{x}_A^\top\mathbf{x}_A)^{-1}\mathbf{x}_A^\top\mathbf{u}.
+$$
+
+Entonces, como se cumplen los supuestos de Gauss-Markov sobre el error:
+
+$$
+E(\widetilde{\mathbf{b}}_A)-\boldsymbol\beta_A
+=(\mathbf{x}_A^\top\mathbf{x}_A)^{-1}\mathbf{x}_A^\top\mathbf{x}_B\boldsymbol\beta_B.
+$$
+
+_¡Omitir variables puede afectar simultáneamente la estimación de varios parámetros!_
+
+### ¿Qué ha cambiado en el término de error?
+
+Al omitir las variables $\mathbf{x}_B$, podemos escribir el modelo como:
+
+$$
+\mathbf{y}=\mathbf{x}_A\boldsymbol\beta_A+\mathbf{v},
+\qquad \mathbf{v}=\mathbf{x}_B\boldsymbol\beta_B+\mathbf{u}.
+$$
+
+Bajo los supuestos clásicos del modelo verdadero:
+
+$$
+\begin{align}
+\mathbb{E}(\mathbf{v})&=\mathbf{x}_B\boldsymbol\beta_B,\\
+\operatorname{Var}(\mathbf{v})&=\sigma^2\mathbf{I}_n.
+\end{align}
+$$
+Nota que hemos modificado la esperanza del término de error, pero no su matriz de varianzas y covarianzas.
+
+
+### ¿Qué sucede con el estimador de $\sigma^2$?
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Considera el modelo de la diapositiva anterior y recuerda que los residuos del modelo reducido son:
+
+$$
+\widetilde{\mathbf{e}}=\mathbf{M}_A\mathbf{y},
+\qquad \mathbf{M}_A=\mathbf{I}_n-\mathbf{x}_A
+(\mathbf{x}_A^\top\mathbf{x}_A)^{-1}\mathbf{x}_A^\top.
+$$
+
+Si $k_A$ es el número de columnas de $\mathbf{x}_A$, demuestra que:
+
+$$
+E(\widetilde s^2)=\sigma^2+
+\frac{\boldsymbol\beta_B^\top\mathbf{x}_B^\top\mathbf{M}_A
+\mathbf{x}_B\boldsymbol\beta_B}{n-k_A},
+\qquad \widetilde s^2=\frac{\widetilde{\mathbf{e}}^\top\widetilde{\mathbf{e}}}{n-k_A}.
+$$
+
+¿Qué signo tiene el sesgo? ¿En qué condiciones desaparece? ¿Qué implica para la estimación de las varianzas de los coeficientes?
+
+
+### ¿Y si incluimos una variable innecesaria? (1/2)
+
+Supongamos ahora que el modelo verdadero es:
+
+$$
+y_i=\beta_1+\beta_2x_{2i}+u_i,
+$$
+
+pero estimamos:
+
+$$
+y_i=b_1+b_2x_{2i}+b_3x_{3i}+e_i.
+$$
+
+Decimos que $x_3$ es una **variable irrelevante**. Esto es porque, si se mantienen los supuestos clásicos:
+
+$$
+\begin{align}
+E(b_2)=\beta_2,\qquad E(b_3)&=\beta_3 \\
+&=0.
+\end{align}
+$$
+
+### ¿Y si incluimos una variable innecesaria? (2/2)
+
+Nota que, a pesar de que el estimador de MCO es insesgado, ahora:
+
+$$
+\operatorname{Var}(b_2)=\frac{\sigma^2}{S_{22}(1-r_{23}^2)}
+\geq\frac{\sigma^2}{S_{22}}.
+$$
+
+Entonces, _incluir una variable irrelevante no produce sesgo, pero puede reducir la precisión con la que estimamos los demás parámetros._
+
+### ¿Qué estimador preferimos?
+
+Hemos visto que excluir un regresor puede reducir la varianza del estimador, pero también puede introducir sesgo. El **error cuadrático medio** (ECM) permite considerar ambas propiedades:
+
+$$
+\begin{aligned}
+ECM(b_j)&=E[(b_j-\beta_j)^2]\\
+&=\operatorname{Var}(b_j)+[E(b_j)-\beta_j]^2.
+\end{aligned}
+$$
+
+### El error cuadrático medio
+
+Considera el estimador de $\beta_2$ de MCO para el modelo:
+
+$$
+y_i=\beta_1+\beta_2x_{2i}+\beta_3x_{3i}+u_i,
+$$
+El modelo reducido es aquel que se estima sin considerar a la variable $x_{2i}$. En este caso:
+
+```{r tabla-ecm}
+tabla <- data.frame(Propiedad = c("Sesgo", "Varianza"),
+  Completo = c("$0$", "$\\displaystyle\\frac{\\sigma^2}{S_{22}(1-r_{23}^2)}$"),
+  Reducido = c("$\\displaystyle\\beta_3\\frac{S_{23}}{S_{22}}$",
+               "$\\displaystyle\\frac{\\sigma^2}{S_{22}}$"))
+knitr::kable(tabla, format = "html", row.names = FALSE, escape = FALSE,
+             col.names = c("", "Modelo completo", "Modelo reducido"),
+             table.attr = 'class="clean-table"', align = c("l", "c", "c"))
+```
+
+> ¿En qué condiciones preferiríamos el estimador del modelo reducido?
+
+### Sesgo y varianza
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Considera los modelos de la diapositiva anterior. Supón que:
+
+$$
+\sigma^2=12,\qquad S_{22}=S_{33}=100,\qquad r_{23}=0.5.
+$$
+
+1. Calcula la varianza de $b_2$ y de $\widetilde b_2$.
+2. Calcula el ECM de ambos estimadores cuando $\beta_3=0.2$ y $\beta_3=0.6$.
+3. ¿Qué estimador preferirías en cada caso si tu objetivo fuera minimizar el ECM?
+
+¿Qué ha cambiado entre ambos casos?
+
+### ¿Debemos incluir todas las variables disponibles?
+
+Supongamos que queremos estudiar la relación entre educación e ingresos. Consideramos dos especificaciones:
+
+$$
+\begin{align}
+\ln(ingreso_i)&=\beta_1+\beta_2educ_i+u_i,\\
+\ln(ingreso_i)&=\alpha_1+\alpha_2educ_i+\alpha_3ocup_i+v_i,
+\end{align}
+$$
+
+donde $ocup_i$ indica si el individuo tiene una ocupación profesional. Nota que es posible que la educación contribuya a obtener una ocupación profesional y que esta, a su vez, esté relacionada con el ingreso.
+
+- ¿Estamos estudiando la misma relación en ambos modelos?
+- ¿Qué mantenemos constante en el segundo modelo?
+
+_La elección de los controles depende de la pregunta que queremos responder._
+
+## ¿Qué hacemos si no observamos una variable relevante?
+
+### Variables proxy (1/2)
+
+Supongamos que queremos estudiar la relación entre escolaridad y salarios. Para simplificar, consideremos el modelo:
+
+$$
+\ln(salario_i)=\beta_1+\beta_2educ_i+\beta_3 hab_i+u_i,
+$$
+
+donde $hab_i$ representa la habilidad del individuo.
+
+El problema es que _la habilidad no es directamente observable_. ¿Entonces?
+
+
+### Variables proxy (2/2)
+
+Aunque la habilidad no es directamente observable, tal vez podríamos disponer del resultado de una prueba de habilidades, $z_i$. Esta puede ser una **variable proxy** de la habilidad.
+
+_Una variable proxy es una variable observable que utilizamos para representar una característica que no podemos observar directamente_.
+
+En nuestro ejemplo, supongamos que:
+
+$$
+hab_i=\mu+\lambda z_i+w_i,
+$$
+
+donde $w_i$ representa la parte de la habilidad que nuestra proxy no consigue explicar. Como los regresores son deterministas, $w_i$ también es una cantidad fija.
+
+### ¿Qué sucede cuando utilizamos una proxy?
+
+Usando la variable proxy, podemos escribir el modelo como:
+
+$$
+\ln(salario_i)=\alpha_1+\beta_2educ_i+\alpha_3z_i+v_i,
+$$
+
+donde:
+
+$$
+\alpha_1=\beta_1+\beta_3\mu,\qquad \alpha_3=\beta_3\lambda,\qquad v_i=u_i+\beta_3w_i.
+$$
+
+Nota que:
+
+- El parámetro asociado a la escolaridad sigue siendo $\beta_2$.
+- El parámetro asociado a la proxy es $\beta_3\lambda$, no $\beta_3$.
+- La parte de la habilidad que no representa nuestra proxy permanece en el término de error.
+
+### ¿Es suficiente utilizar una proxy?
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Sea $\mathbf{x}_P$ la matriz que contiene la constante, la escolaridad y nuestra proxy, y sea
+$\boldsymbol\theta=(\alpha_1,\beta_2,\alpha_3)^\top$. Suponiendo que $\mathbf{x}_P$ tiene rango columna completo
+y que $\mathbb{E}(\mathbf{u})=\mathbf{0}$:
+
+1. Obtén $\mathbb{E}(\mathbf{v})$.
+2. Obtén el sesgo de $\mathbf{b}_P$.
+3. Demuestra que una condición suficiente para la insesgadez
+   de MCO es:
+
+$$
+\mathbf{x}_P^\top\mathbf{w}=\mathbf{0}.
+$$
+
+> ¿Podemos verificar directamente esta condición si no observamos la habilidad?
+
+### Habilidad, escolaridad y salarios
+
+Consideremos una muestra de 1,057 individuos. Además de los años de escolaridad y de experiencia, disponemos del resultado de una prueba de habilidades ($score$). Si la variable dependiente es el logaritmo del salario, la estimación por MCO resulta en (errores estándar entre paréntesis):
+
+```{r ejemplo-proxy}
+nombres <- c("(Intercept)", "educ", "exper", "I(exper^2)", "score")
+tabla <- data.frame(Variable = c("Constante", "Escolaridad", "Experiencia",
+                                 "Experiencia al cuadrado", "Prueba de habilidades"),
+                    M1 = col_coef(m_sal1, nombres),
+                    M2 = col_coef(m_sal2, nombres))
+knitr::kable(tabla, format = "html", row.names = FALSE,
+             col.names = c("Variable", "Modelo 1", "Modelo 2"),
+             table.attr = 'class="clean-table"', align = c("l", "r", "r"))
+```
+
+
+Nota que, al incorporar nuestra proxy, disminuye el coeficiente asociado a la escolaridad. Entonces, _¿podemos afirmar que la nueva estimación está más cerca del verdadero parámetro poblacional?_
+
+
+## ¿Cómo elegimos entre distintas especificaciones?
+
+```{r corte-temporal, echo=FALSE, results='asis'}
+# Ocultación temporal: cambiar material_completo a true en el YAML y recompilar
+# para reactivar TODO el contenido posterior y retirar la diapositiva de aviso.
+if (!isTRUE(params$material_completo)) {
+  cat("\n\n### Material en preparación\n\n",
+      "Las siguientes secciones de este capítulo aún están en revisión ",
+      "y se incorporarán próximamente.\n\n", sep = "")
+  knitr::knit_exit(append = "")
+}
+```
+
+### La elección del modelo
+
+Hemos visto que tanto incluir como excluir variables puede tener consecuencias sobre nuestras estimaciones.
+
+Para elegir entre diferentes especificaciones podemos recurrir a:
+
+- La teoría económica: ¿qué variables y relaciones son pertinentes para nuestra pregunta?
+- Las pruebas de hipótesis: ¿podemos justificar estadísticamente las restricciones que imponemos?
+- La bondad del ajuste: ¿qué tan bien representa el modelo los datos observados?
+
+Recordemos que el $R^2$ nunca disminuye al añadir regresores a un modelo MCO estimado sobre la misma muestra, aun cuando estos sean irrelevantes.
+
+Por ello, hemos utilizado el $R^2$ ajustado:
+
+$$
+\overline R^2=1-\frac{RSS/(n-k)}{TSS/(n-1)}.
+$$
+
+_Buscamos representar adecuadamente una relación económica sin introducir complejidad innecesaria._
+
+### Criterios de información
+
+Otra manera de comparar modelos consiste en evaluar su ajuste e introducir una penalización por el número de parámetros estimados.
+
+Dos criterios ampliamente utilizados son:
+
+- El **criterio de información de Akaike** (AIC).
+- El **criterio de información bayesiano** (BIC).
+
+Para el modelo de regresión lineal con errores normales:
+
+$$
+\begin{aligned}
+AIC&=-2\ln(\widehat L)+2(k+1),\\[2mm]
+BIC&=-2\ln(\widehat L)+(k+1)\ln(n),
+\end{aligned}
+$$
+
+donde $\widehat L$ es la verosimilitud maximizada, $k$ es el número de coeficientes de regresión (incluyendo la constante) y $k+1$ incluye también $\sigma^2$.
+
+- Preferimos modelos con valores menores de AIC y BIC.
+- Para $n\geq 8$, el BIC penaliza más la incorporación de parámetros que el AIC.
+
+Estos criterios deben compararse utilizando la misma variable dependiente, las mismas observaciones y verosimilitudes comparables.
+
+<!-- Profesor: -2 ln(Lhat)=n[1+ln(2*pi)+ln(RSS/n)].
+     Las versiones normalizadas de 2023 dan el mismo orden sobre la misma muestra. -->
+
+### ¿Qué modelo elegimos?
+
+Regresemos al ejemplo del ingreso familiar. Además de la escolaridad del marido ($he$) y de la esposa ($we$), consideremos el número de hijos menores de seis años ($kl6$) y dos variables construidas artificialmente ($xtra\_x5$, $xtra\_x6$).
+
+```{r seleccion-modelos}
+modelos_inc <- list(m_inc1, m_inc2, m_inc3, m_inc4)
+tabla <- data.frame(Regresores = c("he", "he, we", "he, we, kl6",
+                                   "he, we, kl6, xtra_x5, xtra_x6"),
+                    k = sapply(modelos_inc, function(m) length(coef(m))),
+                    R2 = fmt(sapply(modelos_inc, function(m) summary(m)$r.squared)),
+                    R2aj = fmt(sapply(modelos_inc, function(m) summary(m)$adj.r.squared)),
+                    AIC = fmt(sapply(modelos_inc, AIC), 2),
+                    BIC = fmt(sapply(modelos_inc, BIC), 2))
+knitr::kable(tabla, format = "html", row.names = FALSE,
+             col.names = c("Regresores", "k", "R²", "R² ajustado", "AIC", "BIC"),
+             table.attr = 'class="clean-table"', align = c("l", rep("c", 5)))
+```
+
+Nota que el modelo que mejor ajusta los datos no es necesariamente el que prefieren los criterios de selección.
+
+- ¿Qué modelo elegirías utilizando estos criterios?
+- ¿Es suficiente esta información para justificar nuestra elección?
+
+### ¿Qué sucede si añadimos regresores innecesarios?
+
+<span class="emphasis-blue">Ejercicio</span>
+
+Utiliza la base de datos `eduinc.csv` para estimar los siguientes modelos:
+
+$$
+\begin{aligned}
+M_3:\quad \ln(faminc_i)&=\beta_1+\beta_2he_i+\beta_3we_i+\beta_4kl6_i+u_i,\\[2mm]
+M_4:\quad \ln(faminc_i)&=\beta_1+\beta_2he_i+\beta_3we_i+\beta_4kl6_i\\
+&\quad+\beta_5xtra\_x5_i+\beta_6xtra\_x6_i+u_i.
+\end{aligned}
+$$
+
+Las variables $xtra\_x5$ y $xtra\_x6$ fueron construidas artificialmente.
+
+1. Compara las estimaciones y los errores estándar de los coeficientes de $he$ y $we$.
+2. Realiza una prueba de exclusión conjunta de las dos variables artificiales.
+3. Estima nuevamente $M_4$, pero excluyendo $we$. ¿Qué sucede con la significancia estadística de las variables artificiales?
+
+¿Podemos determinar qué variables son relevantes utilizando únicamente pruebas de significancia estadística?
+
+<!-- Profesor: no conocemos el mecanismo exacto de generación de xtra_x5 y
+     xtra_x6; la ausencia de significancia no demuestra irrelevancia poblacional. -->
+
+## ¿Podemos detectar problemas de especificación?
+
+### ¿Qué nos dicen los residuos?
+
+Recordemos que los residuos representan la parte de la variable dependiente que nuestro modelo no consigue explicar. Consideremos dos especificaciones estimadas utilizando los mismos datos simulados.
+
+```{r residuos-especificacion, fig.width=9, fig.height=3.5, out.width="92%"}
+set.seed(123)
+datos_sim <- data.frame(x = seq(-2, 2, length.out = 150))
+datos_sim$y <- with(datos_sim, 2 + x + x^2 + rnorm(nrow(datos_sim), sd = 0.4))
+m_sim1 <- lm(y ~ x, data = datos_sim)
+m_sim2 <- lm(y ~ x + I(x^2), data = datos_sim)
+datos_res <- rbind(data.frame(x = datos_sim$x, e = residuals(m_sim1),
+                              Modelo = "Modelo lineal"),
+                   data.frame(x = datos_sim$x, e = residuals(m_sim2),
+                              Modelo = "Modelo cuadrático"))
+datos_res$Modelo <- factor(datos_res$Modelo,
+                           levels = c("Modelo lineal", "Modelo cuadrático"))
+ggplot(datos_res, aes(x, e)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+  geom_point(alpha = .5, size = 1.5, color = "#F8766D") +
+  geom_smooth(method = "loess", se = FALSE, linewidth = .9) +
+  facet_wrap(~ Modelo) +
+  labs(x = "x", y = "Residuos") +
+  theme_minimal(base_size = 13)
+```
+
+¿Qué información permanece en los residuos del primer modelo?
+
+<!-- Profesor: diseño fijo; en ambos casos sum(x_i e_i)=0 por construcción. -->
+
+### ¿Podemos aprovechar los valores ajustados?
+
+Recordemos que los residuos de MCO son ortogonales a los regresores y, por tanto, a los valores ajustados:
+
+$$
+\mathbf{x}^\top\mathbf{e}=\mathbf{0}
+\qquad\Longrightarrow\qquad\widehat{\mathbf{y}}^\top\mathbf{e}=0.
+$$
+
+Añadir $\widehat y_i$ no aporta información nueva: es una combinación lineal de los regresores originales. Sin embargo, los residuos no tienen por qué ser ortogonales a sus potencias. Consideremos, por ejemplo:
+
+$$
+\widehat y_i=b_1+b_2x_{2i}+b_3x_{3i}.
+$$
+
+Nota que:
+
+$$
+\begin{aligned}
+\widehat y_i^2={}&b_1^2+2b_1b_2x_{2i}+2b_1b_3x_{3i}\\
+&+b_2^2x_{2i}^2+b_3^2x_{3i}^2+2b_2b_3x_{2i}x_{3i}.
+\end{aligned}
+$$
+
+¿Qué términos no estaban presentes en nuestra especificación original?
+
+_Las potencias de los valores ajustados permiten explorar combinaciones de relaciones no lineales que nuestro modelo podría no estar representando._
+
+<!-- Profesor: yhat es combinación lineal de x, no añade rango. Las potencias
+     añaden combinaciones particulares de polinomios e interacciones, no
+     coeficientes libres para cada término; pueden no aportar rango adicional. -->
+
+### La prueba RESET
+
+Podemos aprovechar las potencias de los valores ajustados para investigar si nuestro modelo ha dejado sin representar alguna relación sistemática.
+
+Esta es la idea detrás de la **prueba RESET de Ramsey** (_Regression Specification Error Test_).
+
+Consideremos el modelo:
+
+$$
+y_i=\beta_1+\beta_2x_{2i}+\cdots+\beta_kx_{ki}+u_i.
+$$
+
+Después de estimarlo por MCO, obtenemos los valores ajustados $\widehat y_i$ y estimamos la siguiente regresión auxiliar:
+
+$$
+\begin{aligned}
+y_i={}&\alpha_1+\alpha_2x_{2i}+\cdots+\alpha_kx_{ki}\\
+&+\gamma_1\widehat y_i^2+\gamma_2\widehat y_i^3+v_i.
+\end{aligned}
+$$
+
+¿Contribuyen los términos adicionales a explicar la variación de $y$ que nuestra especificación original no consigue representar?
+
+### Una aplicación de la prueba $F$
+
+Para determinar si los términos adicionales contribuyen a explicar $y$, evaluamos (si ambos aportan rango):
+
+$$
+H_0:\gamma_1=\gamma_2=0,
+$$
+
+frente a la hipótesis alternativa de que al menos uno de estos parámetros es diferente de cero.
+
+Recuerda que podemos utilizar la prueba $F$:
+
+$$
+F=\frac{(RSS_R-RSS_U)/m}{RSS_U/(n-k-m)},
+$$
+
+donde $RSS_R$ corresponde al modelo original, $RSS_U$ a la regresión auxiliar, $k$ es el número de parámetros del modelo original y $m$ el incremento de rango al añadir los regresores.
+
+Si el modelo original satisface los supuestos clásicos con errores normales, y el incremento de rango es $m>0$ con $n>k+m$:
+
+$$
+F\sim F(m,n-k-m).
+$$
+
+<!-- Profesor: aunque x es fija, yhat es aleatoria. Bajo el modelo clásico
+     normal, yhat y e son independientes; condicional en yhat, los proyectores
+     de los términos añadidos residualizados respecto de x son fijos.
+     Si los términos son dependientes, se contrasta el incremento efectivo de rango. -->
+
+### ¿Qué nos dice RESET?
+
+Recuerda que la hipótesis que estamos evaluando, cuando los dos términos aportan rango, es:
+
+$$
+H_0:\gamma_1=\gamma_2=0.
+$$
+
+Si rechazamos $H_0$ (bajo los supuestos de la prueba):
+
+- Los términos adicionales aportan información estadísticamente significativa.
+- Tenemos evidencia de que nuestra especificación podría ser inadecuada.
+- No sabemos necesariamente qué debemos modificar.
+
+Si no rechazamos $H_0$:
+
+- No encontramos evidencia suficiente de los problemas que la prueba permite detectar.
+- No podemos descartar otros problemas de especificación.
+
+Por ejemplo, una variable omitida puede sesgar nuestros estimadores sin generar una relación no lineal.
+
+_No rechazar RESET no equivale a validar nuestro modelo._
+
+<!-- Profesor: RESET no prueba exogeneidad ni valida una proxy; tampoco es
+     una prueba de heteroscedasticidad o autocorrelación. Con estas últimas,
+     la distribución F convencional puede dejar de ser válida. Ejemplo oral:
+     x3 = delta1 + delta2*x2 + w; el sesgo lineal beta3*delta2 puede existir
+     aunque w no tenga proyección sobre las potencias residualizadas. -->
+
+### ¿Está correctamente especificada nuestra ecuación salarial?
+
+Regresemos a las dos ecuaciones salariales que estimamos al estudiar las variables proxy. Apliquemos RESET a ambas especificaciones.
+
+```{r ejemplo-reset}
+tabla <- data.frame(Resultado = c("Coeficiente de escolaridad", "F de RESET", "Valor p"),
+                    Sin = c(fmt(coef(m_sal1)["educ"]), fmt(reset1$F), fmt(reset1$p)),
+                    Con = c(fmt(coef(m_sal2)["educ"]), fmt(reset2$F), fmt(reset2$p)))
+knitr::kable(tabla, format = "html", row.names = FALSE,
+             col.names = c("", "Sin proxy", "Con proxy"),
+             table.attr = 'class="clean-table"', align = c("l", "r", "r"))
+```
+
+Nota que, al incorporar la proxy, cambia el coeficiente estimado de escolaridad. Sin embargo, al 5% no rechazamos la hipótesis nula de RESET en ninguno de los modelos.
+
+> ¿Nos permite RESET determinar si debemos incorporar la habilidad en nuestra ecuación salarial?
+
+## Para terminar...
+
+### Regresemos al principio
+
+En nuestra primera clase de Econometría observamos la siguiente relación:
+
+<div style="display:flex; align-items:center; gap:24px;">
+
+<div style="flex:1;">
+
+> ¿Podemos concluir que aumentar el ingreso hará que las personas vivan más?
+
+Ahora contamos con herramientas para examinar esta pregunta:
+
+- ¿Cómo representarías esta relación?
+- ¿Qué otras variables considerarías?
+- ¿Qué evidencia necesitarías para sostener tu conclusión?
+
+</div>
+
+<div style="flex:1.2;">
+
+```{r cierre-esperanza-vida, fig.width=6, fig.height=4, out.width="100%"}
+ggplot(vida, aes(x = rgdp, y = life_exp)) +
+  geom_point(size = 3, color = "#F8766D", alpha = 0.7) +
+  scale_x_continuous(labels = scales::dollar_format()) +
+  labs(x = "Ingreso per cápita (USD)", y = "Esperanza de vida (años)",
+       title = "Diagrama de dispersión") +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+```
+
+_Fuente: CIA World Factbook_.
+
+</div>
+</div>
+
+¿Qué podemos decir ahora que no podíamos decir al comenzar el curso?
+
+<!-- Profesor: recuperar la naturaleza iterativa de la investigación. La
+     evaluación de la evidencia puede motivar reconsiderar la especificación,
+     los datos o la pregunta, no buscar resultados deseados. -->
+
+### ¿Qué sigue?
+
+Durante este curso hemos aprendido a especificar modelos, estimarlos, estudiar las propiedades de sus estimadores y utilizar los resultados para construir evidencia.
+
+También hemos aprendido que las propiedades de MCO dependen de los supuestos del modelo.
+
+Pero:
+
+- ¿Qué sucede si la varianza del error no es constante?
+- ¿Qué sucede si los errores están relacionados entre sí?
+- ¿Qué sucede si los regresores son aleatorios? ¿Y si están relacionados con el término de error?
+- ¿Qué hacemos cuando el modelo de regresión lineal resulta insuficiente?
+
+Estas serán algunas de las preguntas que estudiaremos en Econometría II.
+
+> Las herramientas ejecutan modelos; los econometristas construyen evidencia.
